@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // kwb.mjs — one entry point for the kimi-webbridge multi-profile layer.
 //
+//   kwb doctor                   read-only environment self-check (Chrome, kimi
+//                                binary, profiles, extension, :10086) — run FIRST
 //   kwb profiles                 list profiles, hashed ports, ext presence, daemon up?
 //   kwb resolve <query>          resolve a name/email/dir to one profile
 //   kwb tabs <profile>           list a profile's NORMAL open tabs (from disk, no bridge)
@@ -55,6 +57,7 @@ import {
 } from "../src/extension.mjs";
 import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
 import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
+import { runDoctor, printDoctor } from "../src/doctor.mjs";
 
 // This tool is macOS + Google Chrome only. The `open`, `pgrep`, `defaults`
 // commands and the ~/Library/Application Support/Google/Chrome paths are
@@ -295,6 +298,9 @@ async function cmdDown(args) {
 async function main() {
   const [cmd, ...args] = process.argv.slice(2);
   switch (cmd) {
+    case "doctor":
+      process.exit(printDoctor(await runDoctor()));
+      break;
     case "profiles":
       console.table(
         (await Promise.all(
@@ -364,7 +370,7 @@ async function main() {
       break;
     default:
       console.error(
-        "usage: kwb <profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...>",
+        "usage: kwb <doctor|profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...>",
       );
       process.exit(1);
   }
