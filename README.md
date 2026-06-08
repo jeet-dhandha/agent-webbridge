@@ -31,6 +31,8 @@ The key observation: the daemon singleton only guards **`:10086`**. Leave `:1008
 
 No binary patching, nothing that breaks on a Kimi WebBridge upgrade.
 
+> **Implementing this natively?** If you maintain Kimi WebBridge (or want to send a patch), [`docs/UPSTREAM-NATIVE-MULTIPROFILE.md`](docs/UPSTREAM-NATIVE-MULTIPROFILE.md) is an explicit, agent-followable spec for adding multi-profile support **inside** the daemon + extension — grounded in the observed protocol, with acceptance tests. With those changes, fleet becomes unnecessary.
+
 ## Requirements
 
 - macOS, Google Chrome, and a working [Kimi WebBridge](https://www.kimi.com/features/webbridge) install (`~/.kimi-webbridge/bin/kimi-webbridge`).
