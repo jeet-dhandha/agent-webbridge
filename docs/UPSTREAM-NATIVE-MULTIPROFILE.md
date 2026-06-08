@@ -14,6 +14,10 @@ router) is no longer needed.
 > implementer with the source can locate it immediately. An agent implementing
 > this must **prove each change on the live surface** (see Acceptance tests),
 > not assume it works.
+>
+> For the literal `grep`/`strings`/patch commands used to locate these hooks
+> (and a working, tested extension patch for `list_all_tabs`), see
+> [`REVERSE-ENGINEERING-RECIPE.md`](REVERSE-ENGINEERING-RECIPE.md).
 
 ---
 
