@@ -9,3 +9,9 @@ state/
 
 # demo GIF generator (experiment locally; commit only the built docs/demo.gif)
 demo/
+
+# go-to-market drafts / playbooks — local-only, kept out of the public repo + Pages site
+docs/LAUNCH-POSTS.md
+docs/PUBLISHING.md
+docs/SEO-GEO.md
+docs/SEO-POSTS.md
