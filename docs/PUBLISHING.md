@@ -33,40 +33,77 @@ third party required:
 
 ## 3. Third-party skill marketplaces — discovery / reach
 
-### netresearch/claude-code-marketplace (catalog-of-references — keeps THIS repo as source)
+> **Principle: don't carpet-bomb.** Submitting one browser-automation skill to every "skills
+> marketplace" on the internet is a spam pattern — most either auto-crawl (so a submission is
+> noise) or are theme-curated and will reject an off-topic entry. Below is every site from the
+> launch shortlist, triaged by what it actually *is*. Spend effort only on Tier 1–2.
 
-Open a PR adding one entry to their `.claude-plugin/marketplace.json` `plugins` array. The plugin
-code stays here; their catalog just points at it, so every push ships immediately with no
-per-release PR:
+### Already covered — no submission step
 
-```json
-{
-  "name": "kimi-webbridge-fleet",
-  "source": { "source": "github", "repo": "jeet-dhandha/kimi-webbridge-fleet" },
-  "description": "Drive multiple real Chrome profiles with their live Google logins simultaneously through Kimi WebBridge — multi-account browser automation in the user's actual Chrome (not headless like Playwright/Firecrawl).",
-  "author": { "name": "jeet-dhandha" },
-  "homepage": "https://github.com/jeet-dhandha/kimi-webbridge-fleet",
-  "license": "MIT",
-  "category": "automation"
-}
-```
+- **Self-marketplace + npm** (§1, §2) — the real install path; LIVE on `git push`.
+- **skills.sh** (Vercel / `vercel-labs/skills`) — installs via `npx skills add <owner/repo>` from
+  *any* public repo, so it **already works against this repo today**; there is no registry to submit
+  to (listing on the site is crawl/editorial). Verified: their repo has no CONTRIBUTING/registry
+  submission flow — just the `npx skills` tool.
+- **Index / auto-crawler sites** — see the dedicated table below; most auto-index, but a couple
+  have an optional submit form worth using.
 
-### alirezarezvani/claude-skills (secondary mirror — vendored, more reach)
+### Manual web/account submit — the only places needing active effort
 
-Vendors a copy of the skill into their monorepo (you lose source-of-truth control; updates need a
-PR each time). Add as a secondary listing once #2 is verified. Position it as the multi-profile,
-real-login alternative to their existing headless "Playwright Pro".
+No GitHub-PR path — these are dashboard/web-form submissions, often with a review or security scan.
+This is what the **GCP_2 Chrome profile** is for (drive the real logins via Kimi WebBridge). Pick
+the credible ones; skip the long tail.
 
-### Auto-crawlers (awesomeskill.ai, claudeskills.info, agent-skills.cc, skillsllm.com)
+| Site | Mechanism | Notes |
+| --- | --- | --- |
+| **Agensi** (agensi.io) | Dashboard submit + automated security scan; Stripe payouts | Curation/scan = credibility; good first manual listing |
+| **LobeHub** (lobehub.com/skills) | Publish SKILL.md bundle via account | Large catalog; also crawls GitHub, so may appear on its own |
+| **MCP Market** (mcpmarket.com) | "Publish Skill" tool (maps dirs, versions, git push) | Tooling-assisted publish |
+| **Pawgrammer** (skills.pawgrammer.com) | Community submit | Plugin-marketplace style |
+| **Qoder** (qoder.com/marketplace) | Account submit | Qoder-IDE audience; lower fit |
+| **Cyrus** (atcyrus.com/skills) | Account submit | Cyrus-agent audience; lower fit |
+| **goose** (goose-docs.ai/skills) | "Submit Skill" web flow | goose-agent audience; SKILL.md is portable |
 
-No submission step — they index public repos that contain a `SKILL.md`. They should pick this up
-once the plugin structure is pushed; nothing to do.
+### Index / auto-crawler sites — mostly passive, two have a fast-track form
+
+These discover public `SKILL.md` repos by crawling, so the baseline requirement is just "repo is
+public and pushed." A couple expose an optional submit form to jump the queue — use those.
+
+| Site | Action | Notes |
+| --- | --- | --- |
+| **skillsllm.com** | **Submit form** at `/submit` | Active — submit the repo to fast-track indexing |
+| **claudeskills.info** | Check in-browser | Bot-walls server fetches (403); look for a submit link via GCP_2 |
+| **agent-skills.cc** | Check in-browser | Bot-walls server fetches (403); look for a submit link via GCP_2 |
+| **skillsmp.com** | Passive | FAQ confirms auto-index of public repos; no submit form |
+| **awesomeskill.ai** | Passive | Auto-indexes GitHub `SKILL.md`; no visible submit form |
+
+### Skip — off-theme, wrong ecosystem, or not a marketplace
+
+- **netresearch/claude-code-marketplace** — looked like a catalog-of-references, but on inspection
+  all **40** entries are `netresearch/*`-owned, there's no `CONTRIBUTING.md`, and the theme is
+  TYPO3/PHP/Go/enterprise. It's a **single-vendor curated catalog**, not a community marketplace —
+  a cold third-party PR adding a macOS browser-automation skill will almost certainly be closed.
+  *If* you want to try anyway, open an **issue** first ("do you accept community skills?") rather
+  than a surprise PR. (Their schema entries use only `name` / `description` / `source` / `category`
+  — no `author`/`homepage`/`license`.)
+- **huggingface/skills** — curated to the *HF ecosystem* (hf-cli, datasets, trainers). A browser-
+  automation skill is off-theme; a PR would almost certainly be declined. Don't.
+- **phuryn/pm-skills** — *product-management* skills only. Wrong category.
+- **Mycroft** (openconversational.ai) — *voice-assistant* skills, a different "skill" standard
+  entirely (not SKILL.md). Not applicable.
+- **alirezarezvani/claude-skills** — secondary *vendored* mirror (copies the skill into their
+  monorepo → you lose source-of-truth, every update needs a PR). Optional, much later, only if the
+  reach is worth the maintenance. Position as the multi-profile, real-login alternative to their
+  headless "Playwright Pro".
+- Article/listicle links (KDnuggets, Reddit threads, the Agensi blog) are coverage, not
+  marketplaces — nothing to submit.
 
 ## Release checklist
 
 1. `npm pack --dry-run` — confirm tarball contents.
 2. `git push` — makes the plugin install path (#2) live.
-3. Smoke-test `/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet` + install.
+3. Smoke-test `/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet` + install (gates the posts).
 4. `npm login && npm publish --access public`; smoke-test `npx kimi-webbridge-fleet profiles`.
-5. Open the netresearch PR (#3).
-6. Launch posts: r/LocalLLaMA + r/ClaudeAI, then HN.
+5. Launch posts (see `docs/LAUNCH-POSTS.md`): r/LocalLLaMA + r/ClaudeAI, then HN. **Only after #3.**
+6. Optional reach: manual web/account submits via the GCP_2 profile (Agensi first). Auto-crawlers
+   and skills.sh need no action. netresearch/HF are not viable targets (see §3 Skip).
