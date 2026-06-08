@@ -24,6 +24,7 @@
     "src/",
     "skills/",
     ".claude-plugin/",
+    "SKILL.md",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
