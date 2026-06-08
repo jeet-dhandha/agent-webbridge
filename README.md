@@ -1,4 +1,4 @@
-# kimi-webbridge-fleet
+# kimi-webbridge-fleet — Kimi WebBridge with multiple Chrome profiles & logins at once
 
 > Let one AI agent drive **several of your real Chrome profiles at once** — each with its own Google login — instead of one at a time. A drop-in layer over [Kimi WebBridge](https://www.kimi.com/features/webbridge): no patching, your existing `:10086` calls keep working — you just add a `"profile"` field.
 
@@ -295,6 +295,42 @@ Environment overrides (sensible macOS defaults otherwise):
 - **Idle auto-close.** If no `/command` is routed for `KWB_IDLE_TIMEOUT_MIN` minutes (default `120`), the router closes the fleet itself — it stops the daemon **processes only** and **leaves your browser tabs open** (the extensions just disconnect). The start/stop is recorded in `~/.kimi-webbridge/multi/run/fleet-state.json` (`kwb state`). Set `KWB_IDLE_TIMEOUT_MIN=0` to disable.
 - **macOS first.** Paths assume macOS Chrome; Linux support is a small change to the path helpers (PRs welcome).
 - **Not affiliated with Moonshot AI / Kimi.** This is an independent layer that orchestrates the stock daemon and reads Chrome's own files. It contains no Kimi WebBridge code.
+
+## FAQ
+
+Short answers to what people actually search for. (TL;DR: stock Kimi WebBridge is **one login at a time**; fleet makes it **many at once**.)
+
+### Can Kimi WebBridge use multiple Chrome profiles at once?
+
+Not on its own — stock Kimi WebBridge has a **single connection slot**, so exactly one Chrome profile is driven at a time. `kimi-webbridge-fleet` adds it: one stock daemon per profile plus a router on `:10086`, so every profile stays connected simultaneously. You drive each by adding a `"profile"` field to the same call.
+
+### Can Kimi WebBridge drive multiple Google accounts / logins at the same time?
+
+Yes, with fleet. Each Chrome profile carries its own Google login, so running one daemon per profile lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side — see the [two-live-logins example](#example--two-live-logins-no-extension-dance).
+
+### Does Kimi WebBridge support multiple accounts simultaneously?
+
+Stock Kimi WebBridge is built around a single primary browser/login (its own docs describe a single-instance deployment). Running **multiple simultaneous accounts** is exactly the gap `kimi-webbridge-fleet` fills — without patching the daemon or the extension.
+
+### Why does Kimi WebBridge only allow one login at a time?
+
+The stock daemon enforces two singletons: it refuses to start if anything already answers `:10086`, and one daemon accepts exactly one extension connection. Fleet sidesteps both by running each profile's daemon on its own port behind a router — see [How it works](#how-it-works).
+
+### Kimi WebBridge: second profile rejected / "slot held by another session"?
+
+That's the single connection slot — the extension in your second profile can't claim a slot the first profile already holds. Fleet gives each profile its **own** daemon and slot, so they never compete.
+
+### How do I switch profiles in Kimi WebBridge without toggling the extension off?
+
+Stock WebBridge makes you open `chrome://extensions` in the profile holding the slot and toggle WebBridge off — 2–3 clicks every switch. Fleet removes the dance: `kwb connect` points each profile's extension at its own daemon **on disk, zero clicks, no popup**, and all profiles stay live at once. See [Zero-click connect](#zero-click-connect-no-popup).
+
+### What is Kimi WebBridge?
+
+[Kimi WebBridge](https://www.kimi.com/features/webbridge) is Moonshot AI's browser extension + local daemon that lets an AI agent (Claude Code, Cursor, Codex, Kimi, Hermes) drive your real Chrome using your real logins, with everything running locally. `kimi-webbridge-fleet` is an independent layer on top that removes its one-profile-at-a-time limit.
+
+### Is kimi-webbridge-fleet affiliated with Kimi / Moonshot AI?
+
+No. It's an independent, MIT-licensed orchestration layer that supervises the stock `kimi-webbridge` daemon and reads Chrome's own files — it contains **no** Kimi WebBridge code.
 
 ## License
 

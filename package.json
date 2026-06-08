@@ -1,7 +1,7 @@
 {
   "name": "kimi-webbridge-fleet",
   "version": "0.0.1",
-  "description": "Drive multiple Chrome profiles (separate Google logins) simultaneously through Kimi WebBridge — one daemon per profile, one router, deterministic ports.",
+  "description": "Kimi WebBridge with multiple Chrome profiles & logins at once — drive several Google accounts simultaneously, not one at a time. Fixes the single connection slot / one-login limit with one daemon per profile + a router on :10086.",
   "type": "module",
   "bin": {
     "kwb": "bin/kwb.mjs"
@@ -34,12 +34,19 @@
     "kimi",
     "kimi-webbridge",
     "webbridge",
+    "moonshot-ai",
     "browser-automation",
+    "web-automation",
     "chrome",
     "chrome-profiles",
+    "multi-chrome-profile",
     "ai-agent",
     "claude-code",
     "multi-profile",
+    "multi-account",
+    "multi-login",
+    "multiple-accounts",
+    "google-accounts",
     "cdp"
   ],
   "license": "MIT",

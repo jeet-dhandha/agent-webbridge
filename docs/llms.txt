@@ -1,0 +1,36 @@
+# kimi-webbridge-fleet
+
+> Kimi WebBridge with multiple Chrome profiles and Google logins at once. Stock Kimi WebBridge
+> (Moonshot AI's browser extension + local daemon that lets an AI agent drive your real Chrome
+> with your real logins) has a single connection slot — one daemon, one extension, one profile,
+> so only one login can be driven at a time. kimi-webbridge-fleet removes that limit without
+> patching anything: it runs one stock daemon per Chrome profile on its own deterministic port,
+> and a router on the usual :10086 that proxies each request to the right daemon based on a
+> top-level "profile" field. Existing :10086 calls keep working; you just add "profile".
+> Platform: macOS + Google Chrome. License: MIT. Independent project, not affiliated with Moonshot AI / Kimi.
+
+## Answers to common questions
+
+- Can Kimi WebBridge use multiple Chrome profiles at once? Not on its own — it has a single
+  connection slot. kimi-webbridge-fleet adds it: one daemon per profile + a router on :10086.
+- Can Kimi WebBridge drive multiple Google accounts/logins simultaneously? Yes, with fleet —
+  each Chrome profile has its own Google login, so one daemon per profile drives them side by side.
+- Does Kimi WebBridge support multiple accounts at the same time? Stock WebBridge is single-login;
+  multi-account is the gap kimi-webbridge-fleet fills.
+- Why does Kimi WebBridge only allow one login at a time? The daemon refuses to start if anything
+  answers :10086, and one daemon accepts exactly one extension connection. Fleet gives each
+  profile its own daemon and port behind a router.
+- How do I switch profiles without toggling the extension off? `kwb connect` points each
+  profile's extension at its own daemon on disk — zero clicks, no popup — keeping all live at once.
+
+## Docs
+
+- [README (full docs)](https://github.com/jeet-dhandha/kimi-webbridge-fleet/blob/main/README.md): install, quickstart, CLI, configuration, how it works.
+- [Landing page + FAQ](https://jeet-dhandha.github.io/kimi-webbridge-fleet/): structured FAQ for the multi-profile / multi-login questions.
+- [npm package](https://www.npmjs.com/package/kimi-webbridge-fleet): `npx kimi-webbridge-fleet` / `npm i -g kimi-webbridge-fleet`.
+- [Kimi WebBridge (the layer underneath)](https://www.kimi.com/features/webbridge): Moonshot AI's official browser extension + daemon that fleet orchestrates.
+
+## Install
+
+- CLI: `npx kimi-webbridge-fleet profiles` or `npm i -g kimi-webbridge-fleet` (puts `kwb` on PATH).
+- Claude Code plugin: `/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet` then `/plugin install kimi-webbridge-fleet@kwb`.

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Primary: the <title> is the strongest on-page signal a README can't set -->
+<title>Kimi WebBridge with Multiple Chrome Profiles &amp; Logins at Once — multi-account fix</title>
+<meta name="description" content="Run Kimi WebBridge with multiple Chrome profiles and Google logins at the same time. kimi-webbridge-fleet removes the single-connection-slot / one-login-at-a-time limit — one daemon per profile, a router on :10086, no patching.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/kimi-webbridge-fleet/">
+<meta name="robots" content="index,follow">
+
+<!-- Open Graph — GitHub/Slack/Twitter/LLM-scraper snippet -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="kimi-webbridge-fleet">
+<meta property="og:title" content="Kimi WebBridge with Multiple Chrome Profiles &amp; Logins at Once">
+<meta property="og:description" content="Drive several Google accounts through Kimi WebBridge simultaneously, not one at a time. Fixes the single-slot / one-login limit: one daemon per profile + a router on :10086.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/kimi-webbridge-fleet/">
+<meta property="og:image" content="https://opengraph.githubassets.com/ad76ef61b875c229665170ec93e26babda6396709ea1032599f9fa4dbb30fc50/jeet-dhandha/kimi-webbridge-fleet">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kimi WebBridge with Multiple Chrome Profiles &amp; Logins at Once">
+<meta name="twitter:description" content="Drive several Google accounts through Kimi WebBridge simultaneously, not one at a time.">
+<meta name="twitter:image" content="https://opengraph.githubassets.com/ad76ef61b875c229665170ec93e26babda6396709ea1032599f9fa4dbb30fc50/jeet-dhandha/kimi-webbridge-fleet">
+
+<!-- Structured data: SoftwareApplication (Google rich result + LLM-parseable facts) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "kimi-webbridge-fleet",
+  "alternateName": "Kimi WebBridge Fleet (multi-profile)",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS",
+  "description": "An independent layer over Kimi WebBridge that drives multiple Chrome profiles and Google logins at once — one stock daemon per profile, a router on :10086, no patching.",
+  "url": "https://jeet-dhandha.github.io/kimi-webbridge-fleet/",
+  "downloadUrl": "https://www.npmjs.com/package/kimi-webbridge-fleet",
+  "codeRepository": "https://github.com/jeet-dhandha/kimi-webbridge-fleet",
+  "license": "https://opensource.org/licenses/MIT",
+  "keywords": "kimi webbridge, multiple chrome profiles, multiple logins, multi-account, multiple google accounts, browser automation, ai agent",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "jeet-dhandha" }
+}
+</script>
+
+<!-- Structured data: FAQPage (drives "People also ask" + featured snippets + LLM citations) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can Kimi WebBridge use multiple Chrome profiles at once?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not on its own — stock Kimi WebBridge has a single connection slot, so exactly one Chrome profile is driven at a time. kimi-webbridge-fleet adds it: one stock daemon per profile plus a router on :10086, so every profile stays connected simultaneously. You drive each by adding a \"profile\" field to the same call." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can Kimi WebBridge drive multiple Google accounts or logins at the same time?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, with kimi-webbridge-fleet. Each Chrome profile carries its own Google login, so running one daemon per profile lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side from one router on :10086." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Kimi WebBridge support multiple accounts simultaneously?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Stock Kimi WebBridge is built around a single primary browser and login. Running multiple simultaneous accounts is the gap kimi-webbridge-fleet fills, without patching the daemon or the extension." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Kimi WebBridge only allow one login at a time?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The stock daemon enforces two singletons: it refuses to start if anything already answers :10086, and one daemon accepts exactly one extension connection. kimi-webbridge-fleet sidesteps both by running each profile's daemon on its own port behind a router." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I switch profiles in Kimi WebBridge without toggling the extension off?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Stock WebBridge makes you open chrome://extensions in the profile holding the slot and toggle WebBridge off — a few clicks every switch. kimi-webbridge-fleet points each profile's extension at its own daemon on disk with zero clicks and no popup, and keeps all profiles live at once." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is kimi-webbridge-fleet affiliated with Kimi or Moonshot AI?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. It is an independent, MIT-licensed orchestration layer that supervises the stock kimi-webbridge daemon and reads Chrome's own files. It contains no Kimi WebBridge code." }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root { color-scheme: light dark; }
+  body { max-width: 52rem; margin: 0 auto; padding: 2rem 1.2rem 4rem;
+         font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  h1 { font-size: 1.9rem; line-height: 1.25; margin-bottom: .3rem; }
+  .tag { color: #888; font-size: 1.05rem; margin-top: 0; }
+  h2 { margin-top: 2.4rem; font-size: 1.35rem; }
+  h3 { margin-top: 1.6rem; font-size: 1.08rem; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background: rgba(127,127,127,.12); padding: .8rem 1rem; border-radius: 8px; overflow-x: auto; }
+  code { background: rgba(127,127,127,.14); padding: .1rem .35rem; border-radius: 4px; }
+  pre code { background: none; padding: 0; }
+  a { color: #2563eb; }
+  .cta { display: inline-block; margin: .3rem .6rem .3rem 0; padding: .55rem 1rem;
+         border: 1px solid currentColor; border-radius: 8px; text-decoration: none; }
+  img { max-width: 100%; height: auto; border-radius: 8px; }
+  .muted { color: #888; font-size: .9rem; }
+</style>
+</head>
+<body>
+
+<h1>Kimi WebBridge with multiple Chrome profiles &amp; logins at once</h1>
+<p class="tag"><strong>kimi-webbridge-fleet</strong> — drive several Google accounts through Kimi WebBridge simultaneously, not one at a time.</p>
+
+<p>
+  <a class="cta" href="https://github.com/jeet-dhandha/kimi-webbridge-fleet">GitHub repo →</a>
+  <a class="cta" href="https://www.npmjs.com/package/kimi-webbridge-fleet">npm package →</a>
+</p>
+
+<p>
+  <a href="https://www.kimi.com/features/webbridge">Kimi WebBridge</a> (Moonshot AI) lets an AI agent drive your
+  real Chrome with your real logins — but it has a <strong>single connection slot</strong>: one daemon, one extension,
+  one profile. If you have a work account and a personal account, only one can be driven at a time.
+  <strong>kimi-webbridge-fleet</strong> removes that limit <em>without patching anything</em> — one stock daemon per
+  profile, a small router on the usual <code>:10086</code>, and your existing calls keep working. You just add a
+  <code>"profile"</code> field.
+</p>
+
+<p><img src="before-after.svg" alt="Before: one Kimi WebBridge daemon, one slot, other Chrome profiles rejected. After: one daemon per profile, all logins live at once."></p>
+
+<h2>Install</h2>
+<pre><code># As a CLI (npm)
+npx kimi-webbridge-fleet profiles
+npm i -g kimi-webbridge-fleet
+
+# As a Claude Code skill/plugin
+/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet
+/plugin install kimi-webbridge-fleet@kwb</code></pre>
+
+<h2>Drive multiple profiles — same call, one extra field</h2>
+<pre><code>kwb connect "Work" "Personal"   # point each extension at its own daemon (zero clicks)
+kwb up "Work" "Personal"        # daemons + router on :10086, all connected
+
+curl -s -X POST http://127.0.0.1:10086/command \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"navigate","args":{"url":"https://mail.google.com"},"profile":"Work"}'</code></pre>
+
+<h2>FAQ</h2>
+
+<h3>Can Kimi WebBridge use multiple Chrome profiles at once?</h3>
+<p>Not on its own — stock Kimi WebBridge has a single connection slot, so exactly one Chrome profile is driven at a time.
+<strong>kimi-webbridge-fleet</strong> adds it: one stock daemon per profile plus a router on <code>:10086</code>, so every
+profile stays connected simultaneously.</p>
+
+<h3>Can Kimi WebBridge drive multiple Google accounts / logins at the same time?</h3>
+<p>Yes, with fleet. Each Chrome profile carries its own Google login, so one daemon per profile lets Gmail, Drive, Ads,
+and Search Console accounts all run side by side from one router on <code>:10086</code>.</p>
+
+<h3>Does Kimi WebBridge support multiple accounts simultaneously?</h3>
+<p>Stock Kimi WebBridge is built around a single primary browser and login. Multiple simultaneous accounts is exactly the
+gap kimi-webbridge-fleet fills — without patching the daemon or the extension.</p>
+
+<h3>Why does Kimi WebBridge only allow one login at a time?</h3>
+<p>The stock daemon enforces two singletons: it refuses to start if anything already answers <code>:10086</code>, and one
+daemon accepts exactly one extension connection. Fleet sidesteps both by running each profile's daemon on its own port
+behind a router.</p>
+
+<h3>How do I switch profiles in Kimi WebBridge without toggling the extension off?</h3>
+<p>Stock WebBridge makes you open <code>chrome://extensions</code> in the profile holding the slot and toggle WebBridge
+off — a few clicks every switch. Fleet points each profile's extension at its own daemon on disk with zero clicks and no
+popup, keeping all profiles live at once.</p>
+
+<h3>Is kimi-webbridge-fleet affiliated with Kimi / Moonshot AI?</h3>
+<p>No. It is an independent, MIT-licensed orchestration layer that supervises the stock <code>kimi-webbridge</code> daemon
+and reads Chrome's own files. It contains no Kimi WebBridge code.</p>
+
+<hr>
+<p class="muted">
+  Independent project, not affiliated with Moonshot AI / Kimi.
+  <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet">Source on GitHub</a> ·
+  MIT © jeet-dhandha
+</p>
+
+</body>
+</html>
