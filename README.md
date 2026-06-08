@@ -132,6 +132,27 @@ kwb down            # stops the fleet, restores the stock :10086 daemon
 
 A request with no `"profile"` is routed to your default (last-used profile whose daemon is up, or `KWB_DEFAULT_PROFILE`).
 
+## Example — two live logins, no extension dance
+
+You want a morning digest: unread **Reddit** DMs from your Personal account *and* unread **Slack**
+mentions from your Work email — pulled, cross-referenced, summarized. Stock Kimi WebBridge gives
+you **one** slot, so you'd drive one account, then quit Chrome or toggle its extension off to free
+the slot for the other — serial, and you lose the live session. Fleet keeps **both connected at
+once**; same call, you just name the profile:
+
+```bash
+# Reddit — Personal profile
+curl -s -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' \
+  -d '{"action":"navigate","args":{"url":"https://www.reddit.com/message/unread/"},"session":"digest","profile":"Personal"}'
+
+# Slack — Work profile, same instant, nothing toggled off
+curl -s -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' \
+  -d '{"action":"navigate","args":{"url":"https://app.slack.com/client"},"session":"digest","profile":"Work"}'
+```
+
+Read both, merge, act — two real sessions, zero juggling. Same trick scales to many Google
+accounts (Gmail / Drive / Ads / Search Console) running side by side.
+
 ## Zero-click connect (no popup)
 
 Pointing a profile's extension at its own daemon port used to be a manual click in the
