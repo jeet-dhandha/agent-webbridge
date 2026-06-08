@@ -32,6 +32,11 @@ routed by a top-level `"profile"` field.
   `~/.kimi-webbridge/multi/run/fleet-state.json`.
 - **`kwb connect` / `kwb connect --restore`** commands; `kwb up` now wakes each extension
   and polls until connected; the router logs to `run/router.log`.
+- **Installable three ways.** Published to npm (`npx kimi-webbridge-fleet`), and packaged as
+  a Claude Code plugin / Agent Skill — ships `.claude-plugin/plugin.json` +
+  `.claude-plugin/marketplace.json` with the skill at `skills/kimi-webbridge-fleet/SKILL.md`,
+  so `/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet` →
+  `/plugin install kimi-webbridge-fleet@kwb` installs it straight from GitHub.
 
 ### Changed
 - Profile windows are launched via the Chrome binary directly (headful), not macOS `open`

@@ -27,7 +27,7 @@ profiles matter.
 
 ## How to use
 
-Full, copy-pasteable setup is in **[AGENTS.md](AGENTS.md)** — read it for prerequisites
+Full, copy-pasteable setup is in **[AGENTS.md](../../AGENTS.md)** — read it for prerequisites
 (Kimi WebBridge daemon + CWS extension), install, and details. Summary:
 
 ```bash

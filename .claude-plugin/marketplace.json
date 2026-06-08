@@ -1,0 +1,15 @@
+{
+  "name": "kwb",
+  "owner": { "name": "jeet-dhandha", "email": "jeet.dhandha@lio.io" },
+  "plugins": [
+    {
+      "name": "kimi-webbridge-fleet",
+      "source": "./",
+      "description": "Drive multiple real Chrome profiles with their live Google logins simultaneously through Kimi WebBridge — multi-account browser automation in the user's actual Chrome (not headless like Playwright/Firecrawl).",
+      "author": { "name": "jeet-dhandha" },
+      "homepage": "https://github.com/jeet-dhandha/kimi-webbridge-fleet",
+      "license": "MIT",
+      "keywords": ["kimi-webbridge", "browser-automation", "chrome", "multi-profile", "claude-code"]
+    }
+  ]
+}

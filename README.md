@@ -1,6 +1,6 @@
 # kimi-webbridge-fleet
 
-> Drive **multiple Chrome profiles** (separate Google logins) **simultaneously** through [Kimi WebBridge](https://www.kimi.com/features/webbridge) — one daemon per profile, one router, deterministic ports.
+> Let one AI agent drive **several of your real Chrome profiles at once** — each with its own Google login — instead of one at a time. A drop-in layer over [Kimi WebBridge](https://www.kimi.com/features/webbridge): no patching, your existing `:10086` calls keep working — you just add a `"profile"` field.
 
 <p align="center">
   <img src="docs/demo.gif" alt="An AI agent drives two Chrome profiles (Work and Personal) at once through one router on :10086, routed by a profile field" width="100%">
@@ -81,6 +81,22 @@ This downloads the binary to **`~/.kimi-webbridge/bin/kimi-webbridge`** (the pat
 ```
 
 ## Install
+
+**As a Claude Code skill/plugin** — so your agent can drive the fleet itself:
+
+```bash
+/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet
+/plugin install kimi-webbridge-fleet@kwb
+```
+
+**As a CLI** — via npm, no clone:
+
+```bash
+npx kimi-webbridge-fleet profiles      # one-off
+npm i -g kimi-webbridge-fleet          # puts `kwb` on your PATH
+```
+
+**From source** — for hacking / PRs:
 
 ```bash
 git clone https://github.com/jeet-dhandha/kimi-webbridge-fleet.git

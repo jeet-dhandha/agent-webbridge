@@ -22,6 +22,8 @@
   "files": [
     "bin/",
     "src/",
+    "skills/",
+    ".claude-plugin/",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
