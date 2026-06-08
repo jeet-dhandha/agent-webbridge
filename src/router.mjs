@@ -13,10 +13,70 @@
 // NOT through this router — so the router only proxies HTTP.
 
 import http from "node:http";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
-import { daemonStatus, fleetStatus } from "./fleet.mjs";
+import { daemonStatus, fleetStatus, stopDaemon, KIMI_BIN } from "./fleet.mjs";
+import { ROUTER_PID, patchState } from "./runstate.mjs";
 
 const PORT = Number(process.env.KWB_ROUTER_PORT || ROUTER_PORT);
+
+// Idle auto-shutdown: if no /command (a real "action") is routed for this many minutes,
+// close the fleet by itself. 0 disables it. Default 120 (~2h). This stops only the local
+// daemon PROCESSES — it never closes the user's browser tabs/windows (the extension simply
+// disconnects). Set KWB_IDLE_NO_RESTORE to leave :10086 empty instead of restoring the
+// stock single daemon (matches `kwb down`).
+const IDLE_MIN = Number(process.env.KWB_IDLE_TIMEOUT_MIN ?? 120);
+const IDLE_MS = IDLE_MIN * 60_000;
+const IDLE_RESTORE = !process.env.KWB_IDLE_NO_RESTORE;
+
+let lastActivity = Date.now();
+let shuttingDown = false;
+const bump = () => (lastActivity = Date.now());
+
+// Stop every fleet daemon (process only — leaves Chrome tabs untouched), optionally
+// restore the stock :10086 daemon, record why we stopped, then exit. Same teardown as
+// `kwb down`, but initiated from inside the (idle) router itself.
+async function idleShutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  const idleMin = Math.round((Date.now() - lastActivity) / 60_000);
+  console.log(`[kwb-router] idle ${idleMin}m (limit ${IDLE_MIN}m) — closing the fleet daemons (browser tabs left open)`);
+  try {
+    for (const p of listProfiles()) {
+      if (await daemonStatus(p.port)) {
+        await stopDaemon(p); // daemon process only; does NOT close tabs
+        console.log(`[kwb-router] stopped daemon ${p.dir} (:${p.port}) — tabs left open`);
+      }
+    }
+    if (IDLE_RESTORE) {
+      try {
+        execFileSync(KIMI_BIN, ["start"], { stdio: "ignore" });
+        console.log("[kwb-router] restored stock :10086 daemon");
+      } catch {}
+    }
+    try { patchState({ stoppedAt: new Date().toISOString(), stoppedReason: "idle", idleMinutes: idleMin }); } catch {}
+  } catch (e) {
+    console.log(`[kwb-router] idle shutdown error: ${e.message}`);
+  }
+  // Remove the pid file only if it's OURS (guard against a stray router clobbering it).
+  try {
+    if (fs.readFileSync(ROUTER_PID, "utf8").trim() === String(process.pid)) fs.rmSync(ROUTER_PID, { force: true });
+  } catch {}
+  try { server.close(); } catch {}
+  console.log("[kwb-router] router exiting (idle)");
+  process.exit(0);
+}
+
+if (IDLE_MIN > 0) {
+  // Check at most once a minute (cheap), but more often for small timeouts so a short
+  // KWB_IDLE_TIMEOUT_MIN (incl. fractional, e.g. 0.1 for tests) actually fires promptly.
+  const everyMs = Math.min(60_000, Math.max(2_000, IDLE_MS));
+  const timer = setInterval(() => {
+    if (Date.now() - lastActivity >= IDLE_MS) idleShutdown();
+  }, everyMs);
+  timer.unref(); // don't keep the process alive solely for this check
+}
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -93,6 +153,7 @@ const server = http.createServer(async (req, res) => {
       return send(200, { profiles: listProfiles() });
     }
     if (req.method === "POST" && req.url.startsWith("/command")) {
+      bump(); // a real action — reset the idle clock
       const body = await readBody(req);
       let obj;
       try {
@@ -111,5 +172,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`[kwb-router] listening on http://127.0.0.1:${PORT} (proxying /command by profile)`);
+  const idle = IDLE_MIN > 0 ? `idle auto-shutdown after ${IDLE_MIN}m of no /command` : "idle auto-shutdown disabled";
+  console.log(`[kwb-router] listening on http://127.0.0.1:${PORT} (proxying /command by profile; ${idle})`);
 });

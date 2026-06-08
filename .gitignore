@@ -6,3 +6,6 @@ node_modules/
 run/
 state/
 *.pid
+
+# demo GIF generator (experiment locally; commit only the built docs/demo.gif)
+demo/

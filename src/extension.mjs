@@ -19,7 +19,7 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { KIMI_EXT_ID, listProfiles } from "./profiles.mjs";
+import { KIMI_EXT_ID, listProfiles, kimiExtId } from "./profiles.mjs";
 
 const CWS_UPDATE_URL = "https://clients2.google.com/service/update2/crx";
 const CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -137,14 +137,71 @@ export function isChromeRunning() {
   }
 }
 
-export function openChromeProfile(profileDir) {
-  const wasRunning = isChromeRunning();
-  const child = spawn("open", ["-na", "Google Chrome", "--args", `--profile-directory=${profileDir}`], {
+// Fully quit Chrome so its profile LevelDB stores are unlocked for writing. Tries a
+// graceful AppleScript quit first (lets Chrome save the session for restore), then
+// force-kills if it doesn't exit in time. Returns { stopped, forced }.
+export function quitChrome({ timeoutMs = 8000 } = {}) {
+  if (!isChromeRunning()) return { stopped: true, forced: false };
+  try {
+    execFileSync("osascript", ["-e", 'tell application "Google Chrome" to quit'], { stdio: "ignore" });
+  } catch {}
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!isChromeRunning()) return { stopped: true, forced: false };
+    execFileSync("sleep", ["0.3"]);
+  }
+  try {
+    execFileSync("pkill", ["-x", "Google Chrome"], { stdio: "ignore" });
+  } catch {}
+  execFileSync("sleep", ["1.5"]);
+  return { stopped: !isChromeRunning(), forced: true };
+}
+
+// Launch Google Chrome HEADFUL for one profile, opening the given URLs as tabs. We invoke
+// the binary in /Applications directly (chromeBinary(), overridable via KWB_CHROME_BIN)
+// rather than macOS `open -na`, because `open` does NOT reliably forward a
+// chrome-extension:// URL as a tab — and the binary path is what we already resolve. When
+// Chrome is already running on the default user-data-dir, its singleton forwards this to
+// the running instance and opens a window in the named profile. (Proven headful: this is
+// the launch that wakes the service worker; see the wakeExtension note below.)
+export function launchChrome(profileDir, urls = []) {
+  const child = spawn(chromeBinary(), [`--profile-directory=${profileDir}`, ...urls], {
     detached: true,
     stdio: "ignore",
   });
   child.unref();
+  return child;
+}
+
+export function openChromeProfile(profileDir) {
+  const wasRunning = isChromeRunning();
+  launchChrome(profileDir);
   return { opened: true, profileDir, chromeWasRunning: wasRunning };
+}
+
+// Wake a profile's DORMANT kimi service worker so it reads the local_url we wrote and
+// connects — the missing half of "zero-click connect".
+//
+// Why this is needed: the kimi MV3 service worker reconnects (reads storage.local
+// local_url) only when its top-level main() runs, i.e. when the worker STARTS. But the
+// extension registers no chrome.runtime.onStartup/onInstalled listener and ships no
+// content script (confirmed: its serviceworkerevents are only alarms/debugger/tabs/
+// tabGroups), so Chrome does NOT auto-start the worker on launch — it stays asleep and our
+// on-disk write is never applied (the gap the live test exposed; a fresh-udd copy worked
+// only because copying it counts as an install, which does start the worker).
+//
+// The fix (proven end-to-end, headful): open the extension's own popup page as a tab. The
+// popup's script messages the worker on load (GET_STATUS); delivering that message starts
+// the worker → main() → reconnectIfNeeded() → connects to local_url. This is the
+// equivalent of the user clicking the toolbar icon, which is in fact the only manual
+// reconnect path after a restart. about:blank is opened first (and stays the active,
+// driveable tab) so the popup never sits in front of the agent's navigation.
+export function wakeExtension(profileDir, extId) {
+  const id = extId || kimiExtId(profileDir);
+  if (!id) throw new Error(`no kimi extension in profile "${profileDir}"`);
+  const popupUrl = `chrome-extension://${id}/popup.html`;
+  launchChrome(profileDir, ["about:blank", popupUrl]);
+  return { woke: true, profileDir, extId: id, popupUrl };
 }
 
 // CLI

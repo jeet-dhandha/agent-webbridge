@@ -5,21 +5,41 @@
 //   kwb resolve <query>          resolve a name/email/dir to one profile
 //   kwb tabs <profile>           list a profile's NORMAL open tabs (from disk, no bridge)
 //   kwb status                   fleet status (all profiles' daemons)
+//   kwb state                    last recorded start (time, per-profile connected) + stop
+//   kwb connect <profile...>     point each profile's extension at its daemon by
+//                                editing storage.local on disk (no popup, no click);
+//                                closes Chrome to write, then you `kwb up`
+//   kwb connect <p...> --restore point them back at the stock :10086 bridge
 //   kwb up <profile...>          stop legacy :10086, start the named profiles' daemons,
-//                                then start the router on :10086 (persistent)
+//                                start the router on :10086, auto-connect (if Chrome is
+//                                closed), open each window AND WAKE its extension, then
+//                                poll until each reports connected
 //   kwb up --all-ext             bring up every profile that has the extension
+//   kwb up --no-open             start daemons + router only; don't open windows
+//   kwb up --no-connect          don't touch storage.local; just open windows
 //   kwb down [--no-restore]      stop router + all fleet daemons; restore legacy :10086
-//   kwb install <profile>        cold-start that profile with --load-extension
+//                                (stops daemon processes only — never closes browser tabs)
+//
+// Idle auto-close: the router stops the fleet itself after KWB_IDLE_TIMEOUT_MIN minutes
+// (default 120) with no /command — daemon processes only, browser tabs left open. The
+// last start/stop is recorded in run/fleet-state.json (see `kwb state`).
 //   kwb install --forcelist      enable CWS force-install across ALL profiles (needs Chrome restart)
 //   kwb install --missing        list profiles lacking the extension
 //
-// After `kwb up`, point each profile's extension at its port ONCE via the
-// extension popup's URL field (ws://127.0.0.1:<port>/ws). Then both profiles
-// drive simultaneously.
+// Zero-click connect has TWO halves, both pure Node / no deps / no CDP:
+//   1. WRITE the URL: the extension's daemon URL is a plain `local_url` key in its
+//      storage.local LevelDB (NOT integrity-protected). `kwb connect` writes it directly
+//      while Chrome is closed, replacing the manual popup click. The value persists.
+//   2. WAKE the worker: the kimi MV3 service worker only re-reads local_url when it
+//      STARTS, but it registers no onStartup listener, so Chrome never auto-starts it on
+//      launch — the write alone does nothing on an already-set-up profile. `kwb up` wakes
+//      it by opening the extension's own popup page as a tab (see extension.mjs
+//      wakeExtension), which is the headful equivalent of clicking the toolbar icon.
+// (CDP can't do either on real profiles: branded Chrome 136+ blocks remote-debugging on
+// the default user-data-dir where real profiles live.)
 
 import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { listProfiles, resolveProfile, ROUTER_PORT } from "../src/profiles.mjs";
 import { listOpenTabs } from "../src/snss.mjs";
@@ -29,8 +49,12 @@ import {
   enableForceInstall,
   launchWithExtension,
   openChromeProfile,
+  wakeExtension,
   isChromeRunning,
+  quitChrome,
 } from "../src/extension.mjs";
+import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
+import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
 
 // This tool is macOS + Google Chrome only. The `open`, `pgrep`, `defaults`
 // commands and the ~/Library/Application Support/Google/Chrome paths are
@@ -45,9 +69,7 @@ if (process.platform !== "darwin") {
 }
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
-const RUN = path.join(os.homedir(), ".kimi-webbridge", "multi", "run");
-const ROUTER_PID = path.join(RUN, "router.pid");
-fs.mkdirSync(RUN, { recursive: true });
+ensureRun(); // RUN / ROUTER_PID / ROUTER_LOG come from runstate.mjs
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -78,10 +100,15 @@ function routerRunning() {
   }
 }
 
+// Minutes of /command inactivity before the router tears the fleet down itself (0 = off).
+const IDLE_MIN = Number(process.env.KWB_IDLE_TIMEOUT_MIN ?? 120);
+
 function startRouter() {
+  // Log to a file (not /dev/null) so the detached router's idle-shutdown is observable.
+  const out = fs.openSync(ROUTER_LOG, "a");
   const child = spawn("node", [path.join(HERE, "..", "src", "router.mjs")], {
     detached: true,
-    stdio: "ignore",
+    stdio: ["ignore", out, out],
   });
   child.unref();
   fs.writeFileSync(ROUTER_PID, String(child.pid));
@@ -125,30 +152,134 @@ async function cmdUp(args) {
   const pid = startRouter();
   await sleep(1200);
   console.log(`• router on :${ROUTER_PORT} (pid ${pid})`);
+  console.log(
+    IDLE_MIN > 0
+      ? `• idle auto-shutdown: fleet stops itself after ${IDLE_MIN}m with no /command (set KWB_IDLE_TIMEOUT_MIN, 0=off)`
+      : `• idle auto-shutdown: disabled (KWB_IDLE_TIMEOUT_MIN=0)`,
+  );
 
-  // Wake each target profile's Chrome window so its extension is alive to
-  // connect (no window = no extension = no connection). --no-open to skip.
-  if (!args.includes("--no-open")) {
-    const coldStart = !isChromeRunning();
-    for (const p of targets) {
-      openChromeProfile(p.dir);
-      console.log(`• opened Chrome window: ${p.name}${coldStart ? " (cold start)" : ""}`);
+  if (args.includes("--no-open")) return;
+
+  // Point each profile's extension at its daemon by editing storage.local on disk
+  // (no popup, no CDP). The write needs Chrome closed; if it's already running we
+  // skip it here and tell the user to run `kwb connect` (which closes Chrome).
+  if (!args.includes("--no-connect")) {
+    const mismatched = targets.filter((p) => readLocalUrl(p.dir) !== p.wsUrl);
+    if (mismatched.length && isChromeRunning()) {
+      console.log(`\nℹ ${mismatched.length} profile(s) not yet pointed at their daemon. Chrome is`);
+      console.log("  running, so their on-disk storage can't be edited. Set them up with:");
+      console.log(`    kwb connect ${mismatched.map((p) => `'${p.dir}'`).join(" ")}`);
+      console.log("  (closes Chrome, writes the URLs) then re-run this `kwb up`.\n");
+    } else {
+      for (const p of mismatched) {
+        const r = setLocalUrl(p.dir, p.wsUrl);
+        console.log(`• connected ${p.name} → :${p.port} (${r.mode} storage.local)`);
+      }
     }
-    await sleep(1500);
   }
 
-  console.log("\nNext: in each profile's Chrome, open the Kimi WebBridge popup → set the");
-  console.log("daemon URL to its port, then Connect:");
-  for (const p of targets) console.log(`    ${p.name.padEnd(18)} ws://127.0.0.1:${p.port}/ws`);
+  const noConnect = args.includes("--no-connect");
+  for (let i = 0; i < targets.length; i++) {
+    const p = targets[i];
+    // Open the window AND wake the dormant service worker (opens the extension's popup
+    // as a background tab) so it reads local_url and connects. Without the wake, an MV3
+    // worker on an already-set-up profile never starts on launch, so the URL we wrote is
+    // never applied. Profiles without the extension (or --no-connect) just get a window.
+    if (!noConnect && p.extId) {
+      wakeExtension(p.dir, p.extId);
+      console.log(`• opened + woke ${p.name} (${p.extType} ext)`);
+    } else {
+      openChromeProfile(p.dir);
+      console.log(`• opened Chrome window: ${p.name}`);
+    }
+    // The first launch may cold-start Chrome; let its singleton come up before the next
+    // launch forwards to it, so we don't race two processes onto the default user-data-dir.
+    if (i === 0 && targets.length > 1) await sleep(2000);
+    else if (i < targets.length - 1) await sleep(600);
+  }
+
+  // Poll each daemon until its extension connects (worker cold-start + WS handshake
+  // takes a few seconds), rather than a single fixed-delay check.
+  await sleep(1500);
+  const connections = [];
+  for (const p of targets) {
+    const connected = await waitConnected(p.port, 12000);
+    connections.push({ dir: p.dir, name: p.name, port: p.port, extId: p.extId, extType: p.extType, connected });
+    console.log(`  ${connected ? "✓ connected   " : "… not connected"} ${p.name.padEnd(18)} → :${p.port}`);
+  }
+
+  // Record the last start so we can later confirm everything came up (kwb state).
+  const startedAt = new Date().toISOString();
+  const okCount = connections.filter((c) => c.connected).length;
+  writeState({
+    startedAt,
+    stoppedAt: null,
+    stoppedReason: null,
+    routerPort: ROUTER_PORT,
+    routerPid: pid,
+    idleTimeoutMin: IDLE_MIN,
+    allConnected: okCount === connections.length,
+    profiles: connections,
+  });
+  console.log(`• recorded start @ ${startedAt} — ${okCount}/${connections.length} connected (kwb state)`);
+}
+
+// Poll a daemon's /status until extension_connected is true or the deadline passes.
+async function waitConnected(port, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  do {
+    const s = await daemonStatus(port);
+    if (s?.extension_connected) return true;
+    await sleep(700);
+  } while (Date.now() < deadline);
+  return false;
+}
+
+// `kwb connect <profiles...> [--restore]` — point each profile's extension at its
+// daemon URL (or back at the stock :10086 with --restore) by editing storage.local
+// on disk. Requires Chrome closed, so it quits Chrome first (graceful, then force).
+async function cmdConnect(args) {
+  const restore = args.includes("--restore");
+  const targets = args.includes("--all-ext")
+    ? listProfiles().filter((p) => p.hasExtension)
+    : args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
+  if (!targets.length) {
+    console.error("kwb connect: name at least one profile, or use --all-ext");
+    process.exit(1);
+  }
+  if (isChromeRunning()) {
+    console.log("• closing Chrome to edit extension storage (session is saved for restore)…");
+    const q = quitChrome();
+    if (!q.stopped) {
+      console.error("could not quit Chrome — close it manually and retry");
+      process.exit(1);
+    }
+    console.log(`• Chrome closed${q.forced ? " (forced)" : ""}`);
+  }
+  let ok = true;
+  for (const p of targets) {
+    const url = restore ? `ws://127.0.0.1:${ROUTER_PORT}/ws` : p.wsUrl;
+    try {
+      const r = setLocalUrl(p.dir, url);
+      console.log(`✓ ${p.name.padEnd(18)} → ${url} (${r.mode})`);
+    } catch (e) {
+      ok = false;
+      console.log(`✗ ${p.name.padEnd(18)} ${e.message}`);
+    }
+  }
+  if (restore) console.log("\nRestored to the stock :10086 bridge. Reopen Chrome to reconnect.");
+  else console.log(`\nNext:  kwb up ${targets.map((p) => `'${p.dir}'`).join(" ")}`);
+  process.exit(ok ? 0 : 1);
 }
 
 async function cmdDown(args) {
   const restore = !args.includes("--no-restore");
   console.log(killRouter() ? "• router stopped" : "• router not running");
+  // Stops daemon PROCESSES only — the extensions disconnect but Chrome tabs stay open.
   for (const p of listProfiles()) {
     if (await daemonStatus(p.port)) {
       await stopDaemon(p);
-      console.log(`• stopped daemon: ${p.dir} "${p.name}" (:${p.port})`);
+      console.log(`• stopped daemon: ${p.dir} "${p.name}" (:${p.port}) — tabs left open`);
     }
   }
   await sleep(800);
@@ -158,6 +289,7 @@ async function cmdDown(args) {
     const s = await daemonStatus(ROUTER_PORT);
     console.log(`• legacy :${ROUTER_PORT} daemon ${s ? "restored" : "FAILED to restore"}`);
   }
+  try { patchState({ stoppedAt: new Date().toISOString(), stoppedReason: "manual" }); } catch {}
 }
 
 async function main() {
@@ -171,7 +303,7 @@ async function main() {
             name: p.name,
             email: p.email,
             port: p.port,
-            ext: p.hasExtension,
+            ext: p.hasExtension ? (p.extEnabled ? p.extType : `${p.extType} (off)`) : "—",
             daemonUp: !!(await daemonStatus(p.port)),
           })),
         )),
@@ -189,8 +321,28 @@ async function main() {
     case "status":
       console.table(await fleetStatus());
       break;
+    case "state": {
+      const st = readState();
+      if (!st) {
+        console.log("no fleet state recorded yet — run `kwb up`");
+      } else {
+        console.log(JSON.stringify(st, null, 2));
+        if (st.startedAt) {
+          const started = new Date(st.startedAt);
+          const ageMin = Math.round((Date.now() - started.getTime()) / 60000);
+          console.log(
+            `\nlast start: ${st.startedAt} (${ageMin}m ago) — ${st.allConnected ? "✓ all connected" : "⚠ not all connected"}` +
+              (st.stoppedAt ? `\nlast stop:  ${st.stoppedAt} (${st.stoppedReason})` : "\n(currently running)"),
+          );
+        }
+      }
+      break;
+    }
     case "up":
       await cmdUp(args);
+      break;
+    case "connect":
+      await cmdConnect(args);
       break;
     case "down":
       await cmdDown(args);
@@ -212,7 +364,7 @@ async function main() {
       break;
     default:
       console.error(
-        "usage: kwb <profiles|resolve <q>|tabs <profile>|status|up <profile...>|down|install ...>",
+        "usage: kwb <profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...>",
       );
       process.exit(1);
   }
