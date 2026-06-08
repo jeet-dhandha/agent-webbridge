@@ -123,6 +123,30 @@ export function launchWithExtension(profileDir) {
   };
 }
 
+// ---- Opening Chrome profile windows ----
+// macOS only. `open -na` opens a new window in the named profile; if Chrome is
+// not running at all, it cold-starts. Waking the window is what makes a
+// profile's extension connect to its daemon.
+
+export function isChromeRunning() {
+  try {
+    execFileSync("pgrep", ["-x", "Google Chrome"]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function openChromeProfile(profileDir) {
+  const wasRunning = isChromeRunning();
+  const child = spawn("open", ["-na", "Google Chrome", "--args", `--profile-directory=${profileDir}`], {
+    detached: true,
+    stdio: "ignore",
+  });
+  child.unref();
+  return { opened: true, profileDir, chromeWasRunning: wasRunning };
+}
+
 // CLI
 if (import.meta.url === `file://${process.argv[1]}`) {
   const cmd = process.argv[2];

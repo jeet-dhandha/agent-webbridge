@@ -28,7 +28,21 @@ import {
   profilesMissingExtension,
   enableForceInstall,
   launchWithExtension,
+  openChromeProfile,
+  isChromeRunning,
 } from "../src/extension.mjs";
+
+// This tool is macOS + Google Chrome only. The `open`, `pgrep`, `defaults`
+// commands and the ~/Library/Application Support/Google/Chrome paths are
+// macOS-specific; Linux/Windows support would need the path + launcher helpers
+// changed. Warn loudly rather than misbehave silently.
+if (process.platform !== "darwin") {
+  console.error(
+    `⚠️  kimi-webbridge-fleet currently supports macOS + Google Chrome only ` +
+      `(this machine is "${process.platform}"). Commands like \`open\`/\`defaults\` ` +
+      `and the Chrome paths will not work. See README → Platform & scope.`,
+  );
+}
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const RUN = path.join(os.homedir(), ".kimi-webbridge", "multi", "run");
@@ -111,6 +125,18 @@ async function cmdUp(args) {
   const pid = startRouter();
   await sleep(1200);
   console.log(`• router on :${ROUTER_PORT} (pid ${pid})`);
+
+  // Wake each target profile's Chrome window so its extension is alive to
+  // connect (no window = no extension = no connection). --no-open to skip.
+  if (!args.includes("--no-open")) {
+    const coldStart = !isChromeRunning();
+    for (const p of targets) {
+      openChromeProfile(p.dir);
+      console.log(`• opened Chrome window: ${p.name}${coldStart ? " (cold start)" : ""}`);
+    }
+    await sleep(1500);
+  }
+
   console.log("\nNext: in each profile's Chrome, open the Kimi WebBridge popup → set the");
   console.log("daemon URL to its port, then Connect:");
   for (const p of targets) console.log(`    ${p.name.padEnd(18)} ws://127.0.0.1:${p.port}/ws`);

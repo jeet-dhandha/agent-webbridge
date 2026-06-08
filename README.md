@@ -33,9 +33,24 @@ No binary patching, nothing that breaks on a Kimi WebBridge upgrade.
 
 > **Implementing this natively?** If you maintain Kimi WebBridge (or want to send a patch), [`docs/UPSTREAM-NATIVE-MULTIPROFILE.md`](docs/UPSTREAM-NATIVE-MULTIPROFILE.md) is an explicit, agent-followable spec for adding multi-profile support **inside** the daemon + extension — grounded in the observed protocol, with acceptance tests. With those changes, fleet becomes unnecessary.
 
+## Platform & scope
+
+**macOS + Google Chrome only, right now.** The implementation leans on
+macOS-specific commands and Chrome-specific paths:
+
+| Used for | macOS command / path (this tool) | Linux/Windows equivalent (not yet implemented) |
+|---|---|---|
+| Open a profile window | `open -na "Google Chrome" --args --profile-directory=…` | `google-chrome --profile-directory=…` / `start chrome …` |
+| Is Chrome running | `pgrep -x "Google Chrome"` | `pgrep chrome` / `tasklist` |
+| Force-install policy | `defaults write com.google.Chrome …` | policy JSON in `/etc/opt/chrome/policies/…` / registry |
+| Profiles + sessions | `~/Library/Application Support/Google/Chrome` | `~/.config/google-chrome` / `%LOCALAPPDATA%\…\Chrome\User Data` |
+
+Porting is mostly swapping those helpers (`src/profiles.mjs`, `src/extension.mjs`).
+PRs welcome. **Chromium/Brave/Edge** would also need their own paths and extension id.
+
 ## Requirements
 
-- macOS, Google Chrome, and a working [Kimi WebBridge](https://www.kimi.com/features/webbridge) install (`~/.kimi-webbridge/bin/kimi-webbridge`).
+- **macOS** + **Google Chrome**, and a working [Kimi WebBridge](https://www.kimi.com/features/webbridge) install (`~/.kimi-webbridge/bin/kimi-webbridge`).
 - Node.js ≥ 18 (no npm dependencies — pure built-ins; runs under `bun` too).
 
 ## Install
@@ -53,7 +68,9 @@ npm link        # optional: puts `kwb` on your PATH
 # 1. See your profiles, their assigned ports, and which have the extension
 kwb profiles
 
-# 2. Bring up daemons for the profiles you want + the router on :10086
+# 2. Bring up daemons for the profiles you want + the router on :10086.
+#    This also opens each profile's Chrome window (so its extension wakes up).
+#    Add --no-open to skip opening windows.
 kwb up "Work" "Personal"
 
 # 3. ONE-TIME per profile: open that profile's Kimi WebBridge extension popup,
