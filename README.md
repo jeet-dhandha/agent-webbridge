@@ -7,7 +7,7 @@
   <br><em>Illustration of the flow — one AI agent driving two profiles at once. Not a screen recording.</em>
 </p>
 
-[Kimi WebBridge](https://www.kimi.com/features/webbridge) lets an AI agent drive your real Chrome with your real logins. By design it has a **single connection slot**: one daemon, one extension, one profile. If you have a work account and a personal account, only one can be driven at a time — the other is rejected until you quit its Chrome or toggle its extension off.
+[Kimi WebBridge](https://www.kimi.com/features/webbridge) lets an AI agent drive your real Chrome with your real logins. By design it has a **single connection slot**: one daemon, one extension, one profile. If you have a work account and a personal account, only one can be driven at a time — to switch, you open `chrome://extensions` in the profile holding the slot and toggle WebBridge off (2–3 clicks, every switch).
 
 `kimi-webbridge-fleet` removes that limit **without patching anything**. It runs one stock daemon per profile on its own port, and puts a small router on the usual `:10086` so your existing calls keep working — you just add a `"profile"` field.
 
@@ -136,8 +136,8 @@ A request with no `"profile"` is routed to your default (last-used profile whose
 
 You want a morning digest: unread **Reddit** DMs from your Personal account *and* unread **Slack**
 mentions from your Work email — pulled, cross-referenced, summarized. Stock Kimi WebBridge gives
-you **one** slot, so you'd drive one account, then quit Chrome or toggle its extension off to free
-the slot for the other — serial, and you lose the live session. Fleet keeps **both connected at
+you **one** slot, so you'd drive one account, then toggle WebBridge off in `chrome://extensions` to free
+the slot for the other — 2–3 clicks every switch, serial, and you lose the live session. Fleet keeps **both connected at
 once**; same call, you just name the profile:
 
 ```bash
