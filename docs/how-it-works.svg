@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 640" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+    </marker>
+    <style>
+      .title{font-size:30px;font-weight:700;fill:#0f172a}
+      .sub{font-size:16px;fill:#64748b}
+      .lbl{font-size:15px;font-weight:600;fill:#0f172a}
+      .lbl2{font-size:13px;fill:#475569}
+      .port{font-size:14px;font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+      .mono{font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;fill:#334155}
+      .edge{font-size:12px;fill:#64748b}
+      .foot{font-size:13px;fill:#475569}
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1120" height="640" rx="18" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+
+  <text x="40" y="56" class="title">kimi-webbridge-fleet</text>
+  <text x="40" y="84" class="sub">Drive every Chrome profile at once — one daemon per profile, one router, deterministic ports.</text>
+  <line x1="40" y1="104" x2="1080" y2="104" stroke="#eef2f6" stroke-width="2"/>
+
+  <!-- column headers -->
+  <text x="150" y="150" class="lbl2" text-anchor="middle">YOUR AGENT</text>
+  <text x="470" y="150" class="lbl2" text-anchor="middle">ROUTER (one door)</text>
+  <text x="900" y="150" class="lbl2" text-anchor="middle">ONE DAEMON + CHROME PER PROFILE</text>
+
+  <!-- Agent -->
+  <rect x="50" y="270" width="200" height="86" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="150" y="305" class="lbl" text-anchor="middle">AI Agent / CLI</text>
+  <text x="150" y="328" class="lbl2" text-anchor="middle">Claude Code · Codex</text>
+  <text x="150" y="346" class="lbl2" text-anchor="middle">curl · Kimi</text>
+  <rect x="50" y="372" width="200" height="48" rx="8" fill="#0f172a"/>
+  <text x="64" y="392" class="mono" fill="#e2e8f0">POST :10086/command</text>
+  <text x="64" y="410" class="mono" fill="#7ee787">{ "profile": "work" … }</text>
+
+  <!-- Router -->
+  <rect x="370" y="262" width="200" height="102" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="470" y="298" class="lbl" text-anchor="middle">Router</text>
+  <text x="470" y="322" class="port" text-anchor="middle" fill="#2563eb">127.0.0.1:10086</text>
+  <text x="470" y="346" class="lbl2" text-anchor="middle">routes by "profile"</text>
+
+  <!-- Agent -> Router -->
+  <line x1="250" y1="313" x2="368" y2="313" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Daemons + profiles -->
+  <!-- row 1 -->
+  <rect x="690" y="190" width="160" height="62" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="770" y="216" class="lbl" text-anchor="middle">daemon</text>
+  <text x="770" y="238" class="port" text-anchor="middle" fill="#16a34a">:13222</text>
+  <rect x="910" y="190" width="170" height="62" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="995" y="214" class="lbl" text-anchor="middle">Chrome · Work</text>
+  <text x="995" y="236" class="lbl2" text-anchor="middle">logged-in session</text>
+
+  <!-- row 2 -->
+  <rect x="690" y="282" width="160" height="62" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="770" y="308" class="lbl" text-anchor="middle">daemon</text>
+  <text x="770" y="330" class="port" text-anchor="middle" fill="#16a34a">:13336</text>
+  <rect x="910" y="282" width="170" height="62" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="995" y="306" class="lbl" text-anchor="middle">Chrome · Personal</text>
+  <text x="995" y="328" class="lbl2" text-anchor="middle">logged-in session</text>
+
+  <!-- row 3 -->
+  <rect x="690" y="374" width="160" height="62" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="770" y="400" class="lbl" text-anchor="middle">daemon</text>
+  <text x="770" y="422" class="port" text-anchor="middle" fill="#16a34a">:14820</text>
+  <rect x="910" y="374" width="170" height="62" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="995" y="398" class="lbl" text-anchor="middle">Chrome · Client</text>
+  <text x="995" y="420" class="lbl2" text-anchor="middle">logged-in session</text>
+
+  <!-- Router -> daemons (fan out) -->
+  <path d="M570,300 C620,300 640,221 688,221" fill="none" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M570,313 L688,313" fill="none" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <path d="M570,326 C620,326 640,405 688,405" fill="none" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="612" y="250" class="edge">"work"</text>
+  <text x="600" y="305" class="edge">"personal"</text>
+  <text x="612" y="392" class="edge">"client"</text>
+
+  <!-- daemon -> chrome (/ws, direct) -->
+  <line x1="850" y1="221" x2="908" y2="221" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arrowg)"/>
+  <line x1="850" y1="313" x2="908" y2="313" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arrowg)"/>
+  <line x1="850" y1="405" x2="908" y2="405" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arrowg)"/>
+  <text x="879" y="210" class="edge" text-anchor="middle" fill="#16a34a">/ws</text>
+  <text x="879" y="302" class="edge" text-anchor="middle" fill="#16a34a">/ws</text>
+  <text x="879" y="394" class="edge" text-anchor="middle" fill="#16a34a">/ws</text>
+
+  <!-- footnotes -->
+  <line x1="40" y1="492" x2="1080" y2="492" stroke="#eef2f6" stroke-width="2"/>
+  <circle cx="52" cy="528" r="4" fill="#2563eb"/>
+  <text x="66" y="533" class="foot">Add one field — <tspan class="mono">"profile"</tspan> — to any existing Kimi WebBridge call. No profile → routes to your default.</text>
+  <circle cx="52" cy="558" r="4" fill="#16a34a"/>
+  <text x="66" y="563" class="foot">Deterministic port per profile: <tspan class="mono">10100 + hash(profile)</tspan>. Same profile → same port, every time.</text>
+  <circle cx="52" cy="588" r="4" fill="#ea580c"/>
+  <text x="66" y="593" class="foot">Each profile's extension connects to its own daemon's <tspan class="mono">/ws</tspan> directly. One daemon = one slot = one profile.</text>
+</svg>

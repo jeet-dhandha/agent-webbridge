@@ -1,0 +1,50 @@
+{
+  "name": "kimi-webbridge-fleet",
+  "version": "0.1.0",
+  "description": "Drive multiple Chrome profiles (separate Google logins) simultaneously through Kimi WebBridge — one daemon per profile, one router, deterministic ports.",
+  "type": "module",
+  "bin": {
+    "kwb": "./bin/kwb.mjs"
+  },
+  "exports": {
+    "./profiles": "./src/profiles.mjs",
+    "./snss": "./src/snss.mjs",
+    "./extension": "./src/extension.mjs",
+    "./fleet": "./src/fleet.mjs",
+    "./router": "./src/router.mjs"
+  },
+  "scripts": {
+    "kwb": "node ./bin/kwb.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "kimi",
+    "kimi-webbridge",
+    "webbridge",
+    "browser-automation",
+    "chrome",
+    "chrome-profiles",
+    "ai-agent",
+    "claude-code",
+    "multi-profile",
+    "cdp"
+  ],
+  "license": "MIT",
+  "author": "jeet-dhandha",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeet-dhandha/kimi-webbridge-fleet.git"
+  },
+  "homepage": "https://github.com/jeet-dhandha/kimi-webbridge-fleet#readme",
+  "bugs": {
+    "url": "https://github.com/jeet-dhandha/kimi-webbridge-fleet/issues"
+  }
+}

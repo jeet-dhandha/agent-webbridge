@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.DS_Store
+
+# runtime state (per-machine; never committed)
+run/
+state/
+*.pid
