@@ -1,10 +1,10 @@
 {
   "name": "kimi-webbridge-fleet",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Drive multiple Chrome profiles (separate Google logins) simultaneously through Kimi WebBridge — one daemon per profile, one router, deterministic ports.",
   "type": "module",
   "bin": {
-    "kwb": "./bin/kwb.mjs"
+    "kwb": "bin/kwb.mjs"
   },
   "exports": {
     "./profiles": "./src/profiles.mjs",
@@ -23,6 +23,8 @@
     "bin/",
     "src/",
     "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "keywords": [

@@ -11,10 +11,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// Our kimi-webbridge extension id (web-store build, present in profiles that have it).
+// The CWS (web-store) build's id is published and stable — match it directly.
 export const KIMI_EXT_ID = "fldmhceldgbpfpkbgopacenieobmligc";
-// A second id observed in the wild (alternate/unpacked build) — treat either as "installed".
+// A "Load unpacked" (dev-mode) build's id is NOT stable: Chrome derives it from the
+// manifest "key" if present, else from a hash of the load PATH. So we do NOT trust any
+// fixed dev id — we identify the extension by NAME and read back whatever id Chrome
+// assigned. This is the one dev id we've observed; kept only as a last-resort fallback.
 export const KIMI_EXT_ID_ALT = "hinhmbbmelmmgiehkfmmkmfndadahmkk";
+export const KIMI_EXT_IDS = [KIMI_EXT_ID, KIMI_EXT_ID_ALT];
+// The authoritative signal for a dev/unpacked build (its id varies; its name does not).
+export const KIMI_EXT_NAME = "Kimi WebBridge";
 
 export const ROUTER_PORT = 10086; // reserved
 const PORT_BASE = 10100;
@@ -57,15 +63,117 @@ export function readLocalState() {
   return { rows, lastUsed };
 }
 
-// Whether the kimi-webbridge extension is installed in a profile (on disk).
-export function hasKimiExtension(dir) {
-  const extDir = path.join(chromeUserDataDir(), dir, "Extensions");
-  for (const id of [KIMI_EXT_ID, KIMI_EXT_ID_ALT]) {
+// Chrome's location enum (extension install source). We only care about a few.
+const EXT_LOCATION = {
+  1: "store", // INTERNAL — installed from the Chrome Web Store
+  4: "unpacked", // UNPACKED — "Load unpacked" (dev mode); runs from a source dir, NOT Extensions/
+  5: "component",
+  6: "external", // EXTERNAL_PREF_DOWNLOAD
+  10: "policy", // EXTERNAL_POLICY — force-installed
+};
+
+// Read a profile's extension registry. Chrome 100+ keeps `extensions.settings` in
+// "Secure Preferences" (HMAC-protected, but we only READ it); older builds kept it in
+// "Preferences". This is the ONLY complete source — the Extensions/ folder is missing
+// for unpacked/dev-mode extensions, which load straight from their source directory.
+function readExtSettings(dir) {
+  const base = path.join(chromeUserDataDir(), dir);
+  for (const f of ["Secure Preferences", "Preferences"]) {
     try {
-      if (fs.existsSync(path.join(extDir, id))) return true;
+      const j = JSON.parse(fs.readFileSync(path.join(base, f), "utf8"));
+      const s = j?.extensions?.settings;
+      if (s && Object.keys(s).length) return s;
     } catch {}
   }
-  return false;
+  return {};
+}
+
+// Resolve a manifest "name" that may be an i18n placeholder (__MSG_key__) against the
+// extension's _locales messages. Returns the raw name if it isn't a placeholder or can't
+// be resolved. (The kimi build uses a literal name, but be robust to either.)
+function resolveExtName(name, extPath) {
+  if (!name || !name.startsWith("__MSG_") || !extPath) return name ?? null;
+  const key = name.slice(6, -2);
+  for (const loc of ["en", "en_US", "en_GB"]) {
+    try {
+      const msgs = JSON.parse(fs.readFileSync(path.join(extPath, "_locales", loc, "messages.json"), "utf8"));
+      const hit = Object.keys(msgs).find((k) => k.toLowerCase() === key.toLowerCase());
+      if (hit) return msgs[hit].message;
+    } catch {}
+  }
+  return name;
+}
+
+// Absolute path to an extension's source dir. Unpacked entries store an absolute path;
+// store entries store one relative to the profile's Extensions/ dir.
+function resolveExtPath(dir, entryPath) {
+  if (!entryPath) return null;
+  return path.isAbsolute(entryPath) ? entryPath : path.join(chromeUserDataDir(), dir, "Extensions", entryPath);
+}
+
+// Normalized list of a profile's extensions, from the registry (incl. unpacked).
+// Each: { id, name, version, location, unpacked, enabled, path, hasStartedServiceWorker }.
+// For unpacked builds the manifest isn't cached in prefs, so name/version are read live
+// from the extension's source manifest.json.
+export function installedExtensions(dir) {
+  const settings = readExtSettings(dir);
+  return Object.entries(settings).map(([id, v]) => {
+    const extPath = resolveExtPath(dir, v?.path);
+    let m = v?.manifest ?? null; // cached for store builds; absent for unpacked
+    if (!m && extPath) {
+      try {
+        m = JSON.parse(fs.readFileSync(path.join(extPath, "manifest.json"), "utf8"));
+      } catch {}
+    }
+    const enabled = !(v?.state === 0 || (Array.isArray(v?.disable_reasons) && v.disable_reasons.length));
+    return {
+      id,
+      name: resolveExtName(m?.name, extPath),
+      version: m?.version ?? null,
+      location: EXT_LOCATION[v?.location] ?? String(v?.location ?? "?"),
+      unpacked: v?.location === 4,
+      enabled,
+      path: extPath,
+      hasStartedServiceWorker: !!v?.has_started_service_worker,
+    };
+  });
+}
+
+// Is this entry our extension? The published CWS id is authoritative; otherwise match by
+// NAME (the dev/unpacked id is not stable, but the name is). The known dev id is only a
+// fallback so we still recognize it if a manifest can't be read.
+function isKimiExt(e) {
+  if (e.id === KIMI_EXT_ID) return true;
+  if (e.name && e.name.trim().toLowerCase() === KIMI_EXT_NAME.toLowerCase()) return true;
+  return e.id === KIMI_EXT_ID_ALT;
+}
+
+// The kimi-webbridge extension installed in a profile (CWS or unpacked), or null.
+// Prefers an enabled install if both an enabled and a disabled one somehow exist.
+export function kimiExtension(dir) {
+  const matches = installedExtensions(dir).filter(isKimiExt);
+  if (!matches.length) return null;
+  return matches.find((e) => e.enabled) ?? matches[0];
+}
+
+// The installed kimi extension's id for a profile — whatever id Chrome actually assigned
+// (read from the registry), or null if not installed. Falls back to the on-disk
+// Extensions/ folder if the registry is unreadable, so we never under-report a store build.
+export function kimiExtId(dir) {
+  const k = kimiExtension(dir);
+  if (k) return k.id;
+  const extDir = path.join(chromeUserDataDir(), dir, "Extensions");
+  for (const id of KIMI_EXT_IDS) {
+    try {
+      if (fs.existsSync(path.join(extDir, id))) return id;
+    } catch {}
+  }
+  return null;
+}
+
+// Whether the kimi-webbridge extension is installed in a profile (CWS OR unpacked).
+export function hasKimiExtension(dir) {
+  return kimiExtId(dir) !== null;
 }
 
 // Full profile list with deterministic, collision-free ports.
@@ -83,13 +191,19 @@ export function listProfiles() {
     taken.add(port);
     portByDir.set(p.dir, port);
   }
-  return rows.map((p) => ({
-    ...p,
-    port: portByDir.get(p.dir),
-    wsUrl: `ws://127.0.0.1:${portByDir.get(p.dir)}/ws`,
-    hasExtension: hasKimiExtension(p.dir),
-    isLastUsed: p.dir === lastUsed,
-  }));
+  return rows.map((p) => {
+    const k = kimiExtension(p.dir); // single registry read; null if not installed
+    return {
+      ...p,
+      port: portByDir.get(p.dir),
+      wsUrl: `ws://127.0.0.1:${portByDir.get(p.dir)}/ws`,
+      hasExtension: !!k,
+      extId: k?.id ?? null,
+      extType: k?.location ?? null, // "store" | "unpacked" | …
+      extEnabled: k?.enabled ?? false,
+      isLastUsed: p.dir === lastUsed,
+    };
+  });
 }
 
 // Resolve a free-text query to a single profile. Matches (in priority order):
