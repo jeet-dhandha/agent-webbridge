@@ -120,7 +120,7 @@ function parseUpdateTabNavigation(content) {
 
 // List a profile's open tabs from its on-disk session.
 // `query` is anything resolveProfile accepts (name/email/dir), or pass {dir}.
-export function listOpenTabs(query) {
+export function listOpenTabs(query, options = {}) {
   const profile = typeof query === "object" && query.dir ? query : resolveProfile(query);
   const file = latestSessionFile(profile.dir);
   if (!file) return { profile, file: null, tabs: [] };
@@ -151,7 +151,9 @@ export function listOpenTabs(query) {
   const tabs = [];
   for (const [tabId, nav] of byTab) {
     if (closed.has(tabId)) continue;
-    if (!nav.url || nav.url === "about:blank" || nav.url.startsWith("chrome://newtab")) continue;
+    if (!options.includeBlanks) {
+      if (!nav.url || nav.url === "about:blank" || nav.url.startsWith("chrome://newtab")) continue;
+    }
     tabs.push({ tabId, url: nav.url, title: nav.title || "" });
   }
   tabs.sort((a, b) => a.tabId - b.tabId);

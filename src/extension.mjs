@@ -19,7 +19,7 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { KIMI_EXT_ID, listProfiles, kimiExtId } from "./profiles.mjs";
+import { KIMI_EXT_ID, KIMI_EXT_ID_ALT, listProfiles, kimiExtId } from "./profiles.mjs";
 
 const CWS_UPDATE_URL = "https://clients2.google.com/service/update2/crx";
 const CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -30,7 +30,8 @@ export function chromeBinary() {
 }
 
 export function unpackedExtPath() {
-  const p = process.env.KWB_EXT_PATH || path.join(os.homedir(), "Downloads", "kimi-webbridge-extension");
+  const defaultPath = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "kimi-webbridge-extension");
+  const p = process.env.KWB_EXT_PATH || defaultPath;
   if (!fs.existsSync(path.join(p, "manifest.json"))) {
     throw new Error(`unpacked extension not found at ${p} (set KWB_EXT_PATH to override)`);
   }
@@ -165,7 +166,16 @@ export function quitChrome({ timeoutMs = 8000 } = {}) {
 // the running instance and opens a window in the named profile. (Proven headful: this is
 // the launch that wakes the service worker; see the wakeExtension note below.)
 export function launchChrome(profileDir, urls = []) {
-  const child = spawn(chromeBinary(), [`--profile-directory=${profileDir}`, ...urls], {
+  const args = [`--profile-directory=${profileDir}`];
+  try {
+    const extPath = unpackedExtPath();
+    args.push(`--load-extension=${extPath}`);
+  } catch (e) {
+    // local unpacked extension not found, ignore
+  }
+  args.push(...urls);
+
+  const child = spawn(chromeBinary(), args, {
     detached: true,
     stdio: "ignore",
   });
@@ -200,8 +210,136 @@ export function wakeExtension(profileDir, extId) {
   const id = extId || kimiExtId(profileDir);
   if (!id) throw new Error(`no kimi extension in profile "${profileDir}"`);
   const popupUrl = `chrome-extension://${id}/popup.html`;
-  launchChrome(profileDir, ["about:blank", popupUrl]);
+  launchChrome(profileDir, [popupUrl]);
   return { woke: true, profileDir, extId: id, popupUrl };
+}
+
+export function cleanupAnnoyingTabs(extId) {
+  try {
+    const extIdArg = extId || "";
+    const applescript = `
+      tell application "Google Chrome"
+        repeat with w in windows
+          set tabsList to every tab of w
+          set hasPopup to false
+          set popupTab to null
+          
+          repeat with t in tabsList
+            try
+              set tUrl to URL of t
+              if tUrl contains "popup.html" then
+                set hasPopup to true
+                set popupTab to t
+              end if
+            end try
+          end repeat
+          
+          if hasPopup then
+            set tabCount to count of tabsList
+            if tabCount is 1 then
+              set newUrl to "about:blank"
+              if "${extIdArg}" is not "" then
+                set newUrl to "about:blank#" & "${extIdArg}"
+              end if
+              tell w to make new tab with properties {URL:newUrl}
+              delay 0.1
+            end if
+            try
+              close popupTab
+            end try
+          end if
+        end repeat
+      end tell
+    `;
+    execFileSync("osascript", ["-e", applescript], { stdio: "ignore" });
+  } catch (e) {
+    // Ignore AppleScript errors silently
+  }
+}
+
+export function focusProfileWindow(extId) {
+  if (!extId) return;
+  try {
+    const applescript = `
+      tell application "Google Chrome"
+        repeat with w in windows
+          set tabsList to every tab of w
+          repeat with t in tabsList
+            try
+              if URL of t contains "${extId}" then
+                set index of w to 1
+                activate
+                exit repeat
+              end if
+            end try
+          end repeat
+        end repeat
+      end tell
+    `;
+    execFileSync("osascript", ["-e", applescript], { stdio: "ignore" });
+  } catch (e) {
+    // Ignore AppleScript errors silently
+  }
+}
+
+export function isProfileWindowOpen(extId) {
+  if (!extId || !isChromeRunning()) return false;
+  try {
+    const applescript = `
+      tell application "Google Chrome"
+        repeat with w in windows
+          set tabsList to every tab of w
+          repeat with t in tabsList
+            try
+              if URL of t contains "${extId}" then
+                return true
+              end if
+            end try
+          end repeat
+        end repeat
+      end tell
+      return false
+    `;
+    const out = execFileSync("osascript", ["-e", applescript], { encoding: "utf8" });
+    return out.trim() === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function closeBlankWindows() {
+  if (!isChromeRunning()) return;
+  try {
+    const applescript = `
+      tell application "Google Chrome"
+        set windowsList to every window
+        repeat with w in windowsList
+          set tabsList to every tab of w
+          set shouldClose to true
+          repeat with t in tabsList
+            try
+              set tUrl to URL of t
+              if tUrl does not contain "popup.html" and tUrl is not "about:blank" and tUrl is not "" then
+                set shouldClose to false
+                exit repeat
+              end if
+            on error
+              set shouldClose to false
+              exit repeat
+            end try
+          end repeat
+          if shouldClose then
+            try
+              close w
+            end try
+          end if
+        end repeat
+      end tell
+    `;
+    execFileSync("osascript", ["-e", applescript], { stdio: "ignore" });
+  } catch (e) {
+    // Ignore AppleScript errors silently
+  }
 }
 
 // CLI

@@ -18,6 +18,7 @@ import fs from "node:fs";
 import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
 import { daemonStatus, fleetStatus, stopDaemon, KIMI_BIN } from "./fleet.mjs";
 import { ROUTER_PID, patchState } from "./runstate.mjs";
+import { focusProfileWindow } from "./extension.mjs";
 
 const PORT = Number(process.env.KWB_ROUTER_PORT || ROUTER_PORT);
 
@@ -110,20 +111,26 @@ async function pickDefaultPort() {
 async function proxyCommand(bodyObj) {
   let port;
   let routedTo;
+  let extId = null;
   if (bodyObj.profile) {
     const profile = resolveProfile(bodyObj.profile);
     port = profile.port;
     routedTo = `${profile.dir} (${profile.name})`;
+    extId = profile.extId;
   } else {
     port = await pickDefaultPort();
     routedTo = "default";
+    if (port) {
+      const p = listProfiles().find(x => x.port === port);
+      if (p) extId = p.extId;
+    }
   }
   if (!port) {
     return { statusCode: 503, json: { ok: false, error: "no daemon available to route to" } };
   }
   const { profile, ...forward } = bodyObj; // strip our routing key
   const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 60000);
+  const t = setTimeout(() => ctl.abort(), 300000);
   try {
     const r = await fetch(`http://127.0.0.1:${port}/command`, {
       method: "POST",

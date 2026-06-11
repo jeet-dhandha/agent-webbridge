@@ -182,6 +182,26 @@ single `:10086` bridge: `kwb connect "Work" --restore`.
 > the default user-data-dir where real profiles live, and `--load-extension` is ignored in
 > Google Chrome 137+. The on-disk write + popup wake sidesteps both.
 
+## Multi-Tab Concurrency & Patched Extension
+
+By default, the official CWS extension does not support concurrent command execution (concurrency > 1) on the same Chrome profile. Because it uses a single global variable to track the debugged tab in its service worker, running multiple commands in parallel causes debugger attachments to collide, resulting in `Debugger is not attached` or `Detached while handling command` errors.
+
+To solve this, this repository contains a pre-patched version of the Kimi WebBridge extension in the [kimi-webbridge-extension/](file:///Users/jeetdhandha/Work/kimi-webbridge-fleet/kimi-webbridge-extension/) directory. The patch implements a Promise-based queue lock inside the service worker's `_e` function, serializing commands safely within the profile. This allows you to run **multiple concurrent tabs in parallel** on each profile with 100% stability.
+
+### Installing the Patched Extension
+
+To use the patched extension:
+
+1. **Remove CWS Extension:** Open Chrome and uninstall the official CWS "Kimi WebBridge" extension from any profiles you want to drive (right-click the extension icon and select **Remove from Chrome...**).
+2. **Load Unpacked Extension:**
+   - Go to `chrome://extensions/` in the target profile.
+   - Enable **Developer Mode** in the top-right corner.
+   - Click **Load unpacked** in the top-left corner.
+   - Select the [kimi-webbridge-extension/](file:///Users/jeetdhandha/Work/kimi-webbridge-fleet/kimi-webbridge-extension/) directory in this repo.
+3. **Alternative (Cold Start):** Quit Chrome fully, then run `kwb install <profile>` (or `kwb up` if configured) to launch Chrome and automatically load the unpacked extension.
+
+Since the unpacked extension includes the original public key in its `manifest.json`, Chrome derives the exact same extension ID (`fldmhceldgbpfpkbgopacenieobmligc`), making the transition completely seamless.
+
 ## CLI
 
 | Command | What it does |

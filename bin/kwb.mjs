@@ -55,6 +55,9 @@ import {
   isChromeRunning,
   quitChrome,
   launchChrome,
+  cleanupAnnoyingTabs,
+  closeBlankWindows,
+  isProfileWindowOpen,
 } from "../src/extension.mjs";
 import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
 import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
@@ -77,73 +80,7 @@ ensureRun(); // RUN / ROUTER_PID / ROUTER_LOG come from runstate.mjs
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function cleanupAnnoyingTabs(p) {
-  if (!p.extId) return;
-  const popupUrl = `chrome-extension://${p.extId}/popup.html`;
-  const cmdUrl = `http://127.0.0.1:${p.port}/command`;
-
-  const callKWB = async (action, args) => {
-    const res = await fetch(cmdUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, args }),
-    });
-    const json = await res.json();
-    if (!json.ok) {
-      throw new Error(typeof json.error === "object" ? JSON.stringify(json.error) : String(json.error));
-    }
-    return json;
-  };
-
-  try {
-    try {
-      await callKWB("navigate", { url: popupUrl, newTab: true });
-      await sleep(1000);
-    } catch (e) {}
-
-    try {
-      await callKWB("evaluate", {
-        code: `(async () => {
-          try {
-            if (typeof chrome === 'undefined' || typeof chrome.tabs === 'undefined') {
-              return "no-extension-context";
-            }
-            const tabs = await new Promise((resolve) => {
-              chrome.tabs.query({}, resolve);
-            });
-            const blankTabs = tabs.filter(t => t.url === 'about:blank');
-            const popupTabs = tabs.filter(t => t.url && t.url.includes('popup.html'));
-            const normalTabs = tabs.filter(t => t.url && !t.url.includes('popup.html') && t.url !== 'about:blank');
-            
-            const toCloseIds = [];
-            toCloseIds.push(...popupTabs.map(t => t.id));
-            
-            if (normalTabs.length > 0) {
-              toCloseIds.push(...blankTabs.map(t => t.id));
-            } else {
-              toCloseIds.push(...blankTabs.slice(1).map(t => t.id));
-            }
-            
-            if (toCloseIds.length === 0) return "no-tabs-to-close";
-            
-            await new Promise((resolve, reject) => {
-              chrome.tabs.remove(toCloseIds, () => {
-                if (chrome.runtime.lastError) {
-                  reject(new Error(chrome.runtime.lastError.message));
-                } else {
-                  resolve();
-                }
-              });
-            });
-            return "success";
-          } catch (e) {
-            return "error: " + e.message;
-          }
-        })()`
-      });
-    } catch (e) {}
-  } catch (e) {}
-}
+// cleanupAnnoyingTabs is now imported from extension.mjs and uses AppleScript.
 
 async function legacyOrRouterUp() {
   const s = await daemonStatus(ROUTER_PORT);
@@ -258,8 +195,14 @@ async function cmdUp(args) {
     // worker on an already-set-up profile never starts on launch, so the URL we wrote is
     // never applied. Profiles without the extension (or --no-connect) just get a window.
     if (!noConnect && p.extId) {
-      wakeExtension(p.dir, p.extId);
-      console.log(`• opened + woke ${p.name} (${p.extType} ext)`);
+      const status = await daemonStatus(p.port);
+      const windowOpen = isProfileWindowOpen(p.extId);
+      if (status?.extension_connected === true && windowOpen) {
+        console.log(`• already connected: ${p.name} (${p.extType} ext)`);
+      } else {
+        wakeExtension(p.dir, p.extId);
+        console.log(`• opened + woke ${p.name} (${p.extType} ext)`);
+      }
     } else {
       openChromeProfile(p.dir);
       console.log(`• opened Chrome window: ${p.name}`);
@@ -279,7 +222,7 @@ async function cmdUp(args) {
     connections.push({ dir: p.dir, name: p.name, port: p.port, extId: p.extId, extType: p.extType, connected });
     console.log(`  ${connected ? "✓ connected   " : "… not connected"} ${p.name.padEnd(18)} → :${p.port}`);
     if (connected) {
-      await cleanupAnnoyingTabs(p);
+      cleanupAnnoyingTabs(p.extId);
     }
   }
 
@@ -354,10 +297,12 @@ async function cmdDown(args) {
   for (const p of listProfiles()) {
     if (await daemonStatus(p.port)) {
       await stopDaemon(p);
-      console.log(`• stopped daemon: ${p.dir} "${p.name}" (:${p.port}) — tabs left open`);
+      console.log(`• stopped daemon: ${p.dir} "${p.name}" (:${p.port})`);
     }
   }
   await sleep(800);
+  closeBlankWindows();
+  console.log("• closed empty Chrome windows");
   if (restore) {
     startLegacy();
     await sleep(1500);
@@ -441,7 +386,9 @@ async function main() {
       console.log(JSON.stringify(resolveProfile(args[0]), null, 2));
       break;
     case "tabs": {
-      const res = listOpenTabs(args[0]);
+      const includeBlanks = args.includes("--all");
+      const profileQuery = args.filter((a) => a !== "--all")[0];
+      const res = listOpenTabs(profileQuery, { includeBlanks });
       console.log(`${res.profile.name} (${res.profile.dir}) :${res.profile.port} — ${res.tabs.length} open tab(s)`);
       for (const t of res.tabs) console.log(`  [${t.tabId}] ${t.title.slice(0, 70)} — ${t.url.slice(0, 100)}`);
       break;
