@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Primary: the <title> is the strongest on-page signal a README can't set -->
-<title>Kimi WebBridge with Multiple Chrome Profiles &amp; Logins at Once — multi-account fix</title>
-<meta name="description" content="Run Kimi WebBridge with multiple Chrome profiles and Google logins at the same time. kimi-webbridge-fleet removes the single-connection-slot / one-login-at-a-time limit — one daemon per profile, a router on :10086, no patching.">
+<title>Multi Chrome Profile WebBridge for Mac — Profile-Based Scraping &amp; Automation Solution</title>
+<meta name="description" content="A multi-profile scraping and browser automation solution for macOS using Kimi WebBridge. Run multiple valid Chrome profiles and logged-in Google sessions in parallel with zero manual toggling.">
 <link rel="canonical" href="https://jeet-dhandha.github.io/kimi-webbridge-fleet/">
 <meta name="robots" content="index,follow">
 
 <!-- Open Graph — GitHub/Slack/Twitter/LLM-scraper snippet -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="kimi-webbridge-fleet">
-<meta property="og:title" content="Kimi WebBridge with Multiple Chrome Profiles &amp; Logins at Once">
-<meta property="og:description" content="Drive several Google accounts through Kimi WebBridge simultaneously, not one at a time. Fixes the single-slot / one-login limit: one daemon per profile + a router on :10086.">
+<meta property="og:title" content="Multi Chrome Profile WebBridge for Mac — Profile-Based Scraping Solution">
+<meta property="og:description" content="Perform profile-based scraping and browser automation using Kimi WebBridge on Mac. Drive several valid Chrome profiles concurrently.">
 <meta property="og:url" content="https://jeet-dhandha.github.io/kimi-webbridge-fleet/">
 <meta property="og:image" content="https://opengraph.githubassets.com/ad76ef61b875c229665170ec93e26babda6396709ea1032599f9fa4dbb30fc50/jeet-dhandha/kimi-webbridge-fleet">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kimi WebBridge with Multiple Chrome Profiles &amp; Logins at Once">
-<meta name="twitter:description" content="Drive several Google accounts through Kimi WebBridge simultaneously, not one at a time.">
+<meta name="twitter:title" content="Multi Chrome Profile WebBridge for Mac — Profile-Based Scraping Solution">
+<meta name="twitter:description" content="Perform profile-based scraping and browser automation using Kimi WebBridge on Mac. Drive several valid Chrome profiles concurrently.">
 <meta name="twitter:image" content="https://opengraph.githubassets.com/ad76ef61b875c229665170ec93e26babda6396709ea1032599f9fa4dbb30fc50/jeet-dhandha/kimi-webbridge-fleet">
 
 <!-- Structured data: SoftwareApplication (Google rich result + LLM-parseable facts) -->
@@ -31,12 +31,12 @@
   "alternateName": "Kimi WebBridge Fleet (multi-profile)",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS",
-  "description": "An independent layer over Kimi WebBridge that drives multiple Chrome profiles and Google logins at once — one stock daemon per profile, a router on :10086, no patching.",
+  "description": "An independent layer over Kimi WebBridge that drives multiple Chrome profiles and Google logins at once — a multiple valid profile-based scraping and automation solution for macOS.",
   "url": "https://jeet-dhandha.github.io/kimi-webbridge-fleet/",
   "downloadUrl": "https://www.npmjs.com/package/kimi-webbridge-fleet",
   "codeRepository": "https://github.com/jeet-dhandha/kimi-webbridge-fleet",
   "license": "https://opensource.org/licenses/MIT",
-  "keywords": "kimi webbridge, multiple chrome profiles, multiple logins, multi-account, multiple google accounts, browser automation, ai agent",
+  "keywords": "kimi webbridge, multiple chrome profiles, multiple logins, multi-account, multiple google accounts, browser automation, scraping, ai agent",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "jeet-dhandha" }
@@ -52,12 +52,12 @@
     {
       "@type": "Question",
       "name": "Can Kimi WebBridge use multiple Chrome profiles at once?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not on its own — stock Kimi WebBridge has a single connection slot, so exactly one Chrome profile is driven at a time. kimi-webbridge-fleet adds it: one stock daemon per profile plus a router on :10086, so every profile stays connected simultaneously. You drive each by adding a \"profile\" field to the same call." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Not on its own — stock Kimi WebBridge has a single connection slot, so exactly one Chrome profile is driven at a time. kimi-webbridge-fleet adds it: a profile-based proxy architecture, so every Chrome profile stays connected simultaneously. You drive each by adding a \"profile\" field to the same call." }
     },
     {
       "@type": "Question",
       "name": "Can Kimi WebBridge drive multiple Google accounts or logins at the same time?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, with kimi-webbridge-fleet. Each Chrome profile carries its own Google login, so running one daemon per profile lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side from one router on :10086." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, with kimi-webbridge-fleet. Each Chrome profile carries its own Google login, so running one daemon per profile lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side from a single command interface." }
     },
     {
       "@type": "Question",
@@ -67,7 +67,7 @@
     {
       "@type": "Question",
       "name": "Why does Kimi WebBridge only allow one login at a time?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The stock daemon enforces two singletons: it refuses to start if anything already answers :10086, and one daemon accepts exactly one extension connection. kimi-webbridge-fleet sidesteps both by running each profile's daemon on its own port behind a router." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The stock daemon enforces two singletons: it refuses to start if anything already answers its central address, and one daemon accepts exactly one extension connection. kimi-webbridge-fleet sidesteps both by running isolated daemons for each profile behind a central routing gateway." }
     },
     {
       "@type": "Question",
@@ -848,9 +848,9 @@
     <!-- LEFT CARD: INTRODUCTION AND QUICK ACTIONS -->
     <div class="card">
       <div class="card-header-sub">Fleet Configuration Overview</div>
-      <h1 class="card-title">Drive multiple Chrome profiles &amp; logins at once</h1>
+      <h1 class="card-title">Multi Chrome Profile WebBridge for Mac</h1>
       <p class="card-desc">
-        <strong>kimi-webbridge-fleet</strong> removes Moonshot AI Kimi WebBridge's single-connection-slot barrier. Orchestrate Work, Personal, and Developer profiles side-by-side on deterministic mapped ports via a unified router on <code>:10086</code>.
+        <strong>kimi-webbridge-fleet</strong> is an advanced, multiple-profile browser scraping and automation engine. Unlock concurrent data collection across several valid Chrome profiles and Google logins at once, executing parallel scraping routines seamlessly without manual session juggling.
       </p>
       
       <div class="actions-row">
@@ -862,15 +862,15 @@
       <div class="metrics-grid">
         <div class="metric-item">
           <span class="metric-value">&infin;</span>
-          <span class="metric-label">Simultaneous Accounts</span>
+          <span class="metric-label">Concurrent Accounts</span>
         </div>
         <div class="metric-item">
           <span class="metric-value">0</span>
-          <span class="metric-label">Click LevelDB Connect</span>
+          <span class="metric-label">Manual Juggling</span>
         </div>
         <div class="metric-item">
-          <span class="metric-value">:10086</span>
-          <span class="metric-label">Unified Routing Port</span>
+          <span class="metric-value">macOS</span>
+          <span class="metric-label">Optimized Target</span>
         </div>
         <div class="metric-item">
           <span class="metric-value">100%</span>
@@ -883,7 +883,7 @@
     <div class="card">
       <div class="card-header-sub">Live Fleet Daemon Monitor</div>
       <p class="card-desc" style="font-size: 0.9rem; margin-bottom: 1rem;">
-        Deterministic port allocations and actual live daemon statuses.
+        Active Google Chrome profile instances and live daemon statuses.
       </p>
       
       <div style="overflow-x: auto; width: 100%; margin-bottom: 1.5rem;">
@@ -891,7 +891,7 @@
           <thead>
             <tr>
               <th>Profile ID</th>
-              <th>Daemon Port</th>
+              <th>Browser Target</th>
               <th>Connection Status</th>
               <th>Avg Latency</th>
             </tr>
@@ -899,19 +899,19 @@
           <tbody>
             <tr>
               <td class="profile-name">"Work"</td>
-              <td><code>13222</code></td>
+              <td>Google Workspace Account</td>
               <td><span class="badge-status active">Connected</span></td>
               <td id="lat-work">42ms</td>
             </tr>
             <tr>
               <td class="profile-name">"Personal"</td>
-              <td><code>13336</code></td>
+              <td>Personal Google Account</td>
               <td><span class="badge-status active">Connected</span></td>
               <td id="lat-personal">36ms</td>
             </tr>
             <tr>
               <td class="profile-name">"Developer"</td>
-              <td><code>14820</code></td>
+              <td>Admin Console Profile</td>
               <td><span class="badge-status active">Connected</span></td>
               <td id="lat-dev">51ms</td>
             </tr>
@@ -923,7 +923,7 @@
       <div class="log-console" id="log-console">
         <div class="log-entry">
           <span class="log-ts">[19:27:52]</span>
-          <span class="log-msg system">INIT: Router successfully bound to port :10086</span>
+          <span class="log-msg system">INIT: Router successfully bound and listening</span>
         </div>
         <div class="log-entry">
           <span class="log-ts">[19:27:53]</span>
@@ -1030,9 +1030,9 @@ $ kwb --version
       <div class="form-group">
         <label for="play-profile">Target Profile</label>
         <select id="play-profile" class="form-control" onchange="updatePlaygroundCode()">
-          <option value="Work">"Work" (Port 13222)</option>
-          <option value="Personal">"Personal" (Port 13336)</option>
-          <option value="Developer">"Developer" (Port 14820)</option>
+          <option value="Work">"Work" Profile</option>
+          <option value="Personal">"Personal" Profile</option>
+          <option value="Developer">"Developer" Profile</option>
         </select>
       </div>
 
@@ -1099,21 +1099,21 @@ $ kwb --version
     </div>
     <div class="diagram-notes">
       <div class="diagram-note-item">
-        <div class="diagram-note-h">The Single-Daemon Limitation</div>
+        <div class="diagram-note-h">The Single-Session Limitation</div>
         <div class="diagram-note-p">
-          Stock Kimi WebBridge holds a single extension slot on port <code>10086</code>. If a second Chrome profile attempts to connect, it is rejected. Toggling connections requires manual interaction.
+          Stock Kimi WebBridge allows only a single active browser instance. Attempting to connect a second Chrome profile results in connection rejection, requiring manual toggle adjustments.
         </div>
       </div>
       <div class="diagram-note-item">
-        <div class="diagram-note-h">Deterministic Port Hashing</div>
+        <div class="diagram-note-h">Simultaneous Session Isolation</div>
         <div class="diagram-note-p">
-          We spawn one stock daemon per Chrome profile, assigning ports deterministically via <code>10100 + hash(profileDir)</code>. Chrome profiles run fully sandboxed, speaking directly to their respective ports.
+          We spawn one isolated background daemon process per Chrome profile (using deterministic port mappings). This allows each Google account profile to run fully isolated with separate cookies and local storage.
         </div>
       </div>
       <div class="diagram-note-item">
-        <div class="diagram-note-h">Seamless Router Layer</div>
+        <div class="diagram-note-h">Transparent Router Gateway</div>
         <div class="diagram-note-p">
-          The fleet router listens on the native port <code>10086</code>. It accepts commands, inspects the top-level <code>"profile"</code> parameter, strips it, and proxies the HTTP payload transparently.
+          The proxy router serves as the central API gateway on the native port <code>10086</code>. It accepts standard HTTP commands, extracts the <code>"profile"</code> parameter, and forwards the payload transparently to the corresponding browser daemon.
         </div>
       </div>
     </div>
@@ -1244,16 +1244,16 @@ $ kwb --version
 
   // 3. Simulated router logs stream
   const logMsgs = [
-    { type: 'router', msg: 'POST /command -> forwarding to "Work" on port 13222' },
+    { type: 'router', msg: 'POST /command -> forwarding to "Work" Profile' },
     { type: 'daemon', msg: 'Work daemon: Executing navigate to https://search.google.com/search-console' },
     { type: 'daemon', msg: 'Work daemon: Navigation completed successfully (status: 200)' },
-    { type: 'router', msg: 'POST /command -> forwarding to "Personal" on port 13336' },
+    { type: 'router', msg: 'POST /command -> forwarding to "Personal" Profile' },
     { type: 'daemon', msg: 'Personal daemon: Executing list_tabs command' },
     { type: 'daemon', msg: 'Personal daemon: Found 12 active tabs' },
-    { type: 'router', msg: 'POST /command -> forwarding to "Developer" on port 14820' },
+    { type: 'router', msg: 'POST /command -> forwarding to "Developer" Profile' },
     { type: 'daemon', msg: 'Developer daemon: Executing click selector: "button.submit"' },
     { type: 'daemon', msg: 'Developer daemon: Click action resolved (target verified)' },
-    { type: 'system', msg: 'SYSTEM: Connection checked on all ports. Heartbeat OK.' }
+    { type: 'system', msg: 'SYSTEM: Connection checked on active profiles. Heartbeat OK.' }
   ];
 
   function addMockLog() {
@@ -1478,7 +1478,7 @@ Fleet stopped successfully.`
 
     setTimeout(() => {
       responseBox.textContent += '\n\n[Router received payload. Routing key: "profile" = "' + payload.profile + '"]';
-      responseBox.textContent += '\n[Forwarding stripped body to local daemon at port ' + (payload.profile === 'Work' ? '13222' : (payload.profile === 'Personal' ? '13336' : '14820')) + '...]';
+      responseBox.textContent += '\n[Forwarding stripped body to isolated daemon for profile: "' + payload.profile + '"...]';
       
       setTimeout(() => {
         statusText.textContent = 'Success (200 OK)';
@@ -1519,7 +1519,7 @@ Fleet stopped successfully.`
           status: 'success',
           code: 200,
           profile: payload.profile,
-          daemonPort: payload.profile === 'Work' ? 13222 : (payload.profile === 'Personal' ? 13336 : 14820),
+          profileTarget: payload.profile,
           result: daemonResult
         };
 
