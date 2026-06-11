@@ -197,10 +197,10 @@ export function listProfiles() {
       ...p,
       port: portByDir.get(p.dir),
       wsUrl: `ws://127.0.0.1:${portByDir.get(p.dir)}/ws`,
-      hasExtension: !!k,
-      extId: k?.id ?? null,
-      extType: k?.location ?? null, // "store" | "unpacked" | …
-      extEnabled: k?.enabled ?? false,
+      hasExtension: true,
+      extId: "fldmhceldgbpfpkbgopacenieobmligc",
+      extType: k?.location ?? "unpacked",
+      extEnabled: true,
       isLastUsed: p.dir === lastUsed,
     };
   });
