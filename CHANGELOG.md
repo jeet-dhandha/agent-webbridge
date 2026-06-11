@@ -3,6 +3,12 @@
 All notable changes to **kimi-webbridge-fleet** are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.0.2] — 2026-06-11
+
+### Added
+- **Interactive setup command (`kwb setup-interactive <profile...>`):** Automates the onboarding of new profiles by opening the Chrome Web Store to install the extension, writing daemon config to LevelDB, and starting the daemon.
+- **Automatic Startup Tab Cleanup:** Automatically closes annoying `about:blank` and `chrome-extension://.../popup.html` tabs opened during the extension wake process as soon as the profile connects. Smart preservation ensures that if no other tabs are open, one `about:blank` tab is kept to keep the window open, maintaining the extension connection.
+
 ## [0.0.1] — 2026-06-08
 
 First tagged release. Drives multiple real Chrome profiles (separate Google logins)
@@ -46,4 +52,5 @@ routed by a top-level `"profile"` field.
 - macOS + Google Chrome only. Requires the stock Kimi WebBridge daemon + extension.
 - Not affiliated with Moonshot AI / Kimi; contains no Kimi WebBridge code.
 
+[0.0.2]: https://github.com/jeet-dhandha/kimi-webbridge-fleet/releases/tag/v0.0.2
 [0.0.1]: https://github.com/jeet-dhandha/kimi-webbridge-fleet/releases/tag/v0.0.1

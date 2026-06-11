@@ -54,6 +54,7 @@ import {
   wakeExtension,
   isChromeRunning,
   quitChrome,
+  launchChrome,
 } from "../src/extension.mjs";
 import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
 import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
@@ -75,6 +76,74 @@ const HERE = path.dirname(new URL(import.meta.url).pathname);
 ensureRun(); // RUN / ROUTER_PID / ROUTER_LOG come from runstate.mjs
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function cleanupAnnoyingTabs(p) {
+  if (!p.extId) return;
+  const popupUrl = `chrome-extension://${p.extId}/popup.html`;
+  const cmdUrl = `http://127.0.0.1:${p.port}/command`;
+
+  const callKWB = async (action, args) => {
+    const res = await fetch(cmdUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, args }),
+    });
+    const json = await res.json();
+    if (!json.ok) {
+      throw new Error(typeof json.error === "object" ? JSON.stringify(json.error) : String(json.error));
+    }
+    return json;
+  };
+
+  try {
+    try {
+      await callKWB("navigate", { url: popupUrl, newTab: true });
+      await sleep(1000);
+    } catch (e) {}
+
+    try {
+      await callKWB("evaluate", {
+        code: `(async () => {
+          try {
+            if (typeof chrome === 'undefined' || typeof chrome.tabs === 'undefined') {
+              return "no-extension-context";
+            }
+            const tabs = await new Promise((resolve) => {
+              chrome.tabs.query({}, resolve);
+            });
+            const blankTabs = tabs.filter(t => t.url === 'about:blank');
+            const popupTabs = tabs.filter(t => t.url && t.url.includes('popup.html'));
+            const normalTabs = tabs.filter(t => t.url && !t.url.includes('popup.html') && t.url !== 'about:blank');
+            
+            const toCloseIds = [];
+            toCloseIds.push(...popupTabs.map(t => t.id));
+            
+            if (normalTabs.length > 0) {
+              toCloseIds.push(...blankTabs.map(t => t.id));
+            } else {
+              toCloseIds.push(...blankTabs.slice(1).map(t => t.id));
+            }
+            
+            if (toCloseIds.length === 0) return "no-tabs-to-close";
+            
+            await new Promise((resolve, reject) => {
+              chrome.tabs.remove(toCloseIds, () => {
+                if (chrome.runtime.lastError) {
+                  reject(new Error(chrome.runtime.lastError.message));
+                } else {
+                  resolve();
+                }
+              });
+            });
+            return "success";
+          } catch (e) {
+            return "error: " + e.message;
+          }
+        })()`
+      });
+    } catch (e) {}
+  } catch (e) {}
+}
 
 async function legacyOrRouterUp() {
   const s = await daemonStatus(ROUTER_PORT);
@@ -209,6 +278,9 @@ async function cmdUp(args) {
     const connected = await waitConnected(p.port, 12000);
     connections.push({ dir: p.dir, name: p.name, port: p.port, extId: p.extId, extType: p.extType, connected });
     console.log(`  ${connected ? "✓ connected   " : "… not connected"} ${p.name.padEnd(18)} → :${p.port}`);
+    if (connected) {
+      await cleanupAnnoyingTabs(p);
+    }
   }
 
   // Record the last start so we can later confirm everything came up (kwb state).
@@ -295,6 +367,56 @@ async function cmdDown(args) {
   try { patchState({ stoppedAt: new Date().toISOString(), stoppedReason: "manual" }); } catch {}
 }
 
+async function cmdSetupInteractive(args) {
+  const targets = args.map((q) => resolveProfile(q));
+  if (!targets.length) {
+    console.error("usage: kwb setup-interactive <profile...>");
+    process.exit(1);
+  }
+
+  for (const p of targets) {
+    console.log(`\n👉 Setting up profile "${p.name}" (${p.dir})`);
+    
+    // 1. If it doesn't have the extension, open CWS
+    if (!p.hasExtension) {
+      console.log(`• Extension not found in profile "${p.name}".`);
+      console.log("• Opening Chrome Web Store. Please click 'Add to Chrome' to install it.");
+      const cwsUrl = "https://chromewebstore.google.com/detail/kimi-webbridge/fldmhceldgbpfpkbgopacenieobmligc";
+      launchChrome(p.dir, [cwsUrl]);
+      
+      // Wait for user confirmation
+      console.log("\nPress Enter once the extension is added/installed...");
+      await new Promise((resolve) => {
+        process.stdin.once("data", resolve);
+      });
+    } else {
+      console.log(`• Extension is already installed in profile "${p.name}".`);
+    }
+
+    // 2. Point it to its daemon port (needs Chrome closed)
+    console.log(`• Closing Chrome to write daemon URL ws://127.0.0.1:${p.port}/ws to storage.local...`);
+    const q = quitChrome();
+    if (!q.stopped) {
+      console.error("• Could not quit Chrome automatically. Please quit it manually and press Enter.");
+      await new Promise((resolve) => {
+        process.stdin.once("data", resolve);
+      });
+    }
+    
+    try {
+      const url = p.wsUrl;
+      const r = setLocalUrl(p.dir, url);
+      console.log(`✓ Configured storage.local: ${p.name} → ${url} (${r.mode})`);
+    } catch (e) {
+      console.error(`✗ Failed to write storage.local for ${p.name}: ${e.message}`);
+    }
+  }
+
+  console.log("\n• Configuration complete! Starting the profiles...");
+  // 3. Bring them up
+  await cmdUp(targets.map((p) => p.dir));
+}
+
 async function main() {
   const [cmd, ...args] = process.argv.slice(2);
   switch (cmd) {
@@ -353,6 +475,9 @@ async function main() {
     case "down":
       await cmdDown(args);
       break;
+    case "setup-interactive":
+      await cmdSetupInteractive(args);
+      break;
     case "install":
       if (args.includes("--missing")) {
         const miss = profilesMissingExtension();
@@ -370,7 +495,7 @@ async function main() {
       break;
     default:
       console.error(
-        "usage: kwb <doctor|profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...>",
+        "usage: kwb <doctor|profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...|setup-interactive <profile...>>",
       );
       process.exit(1);
   }

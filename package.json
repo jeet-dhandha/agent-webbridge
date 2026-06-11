@@ -1,6 +1,6 @@
 {
   "name": "kimi-webbridge-fleet",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Kimi WebBridge with multiple Chrome profiles & logins at once — drive several Google accounts simultaneously, not one at a time. Fixes the single connection slot / one-login limit with one daemon per profile + a router on :10086.",
   "type": "module",
   "bin": {
