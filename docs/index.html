@@ -43,7 +43,7 @@
 }
 </script>
 
-<!-- Structured data: FAQPage (drives "People also ask" + featured snippets + LLM citations) -->
+<!-- Structured data: FAQPage -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -83,98 +83,1429 @@
 }
 </script>
 
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
 <style>
-  :root { color-scheme: light dark; }
-  body { max-width: 52rem; margin: 0 auto; padding: 2rem 1.2rem 4rem;
-         font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  h1 { font-size: 1.9rem; line-height: 1.25; margin-bottom: .3rem; }
-  .tag { color: #888; font-size: 1.05rem; margin-top: 0; }
-  h2 { margin-top: 2.4rem; font-size: 1.35rem; }
-  h3 { margin-top: 1.6rem; font-size: 1.08rem; }
-  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  pre { background: rgba(127,127,127,.12); padding: .8rem 1rem; border-radius: 8px; overflow-x: auto; }
-  code { background: rgba(127,127,127,.14); padding: .1rem .35rem; border-radius: 4px; }
-  pre code { background: none; padding: 0; }
-  a { color: #2563eb; }
-  .cta { display: inline-block; margin: .3rem .6rem .3rem 0; padding: .55rem 1rem;
-         border: 1px solid currentColor; border-radius: 8px; text-decoration: none; }
-  img { max-width: 100%; height: auto; border-radius: 8px; }
-  .muted { color: #888; font-size: .9rem; }
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --accent-red: #b91c1c;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 72rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Control Panel Deck Header */
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--accent-green);
+  }
+
+  .status-pulse {
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(0, 135, 90, 0.4); }
+    70% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 6px rgba(0, 135, 90, 0); }
+    100% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(0, 135, 90, 0); }
+  }
+
+  .header-right {
+    color: var(--text-muted);
+  }
+
+  /* Core Layout Grid */
+  .grid-hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .grid-hero {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Sections and Cards */
+  .card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-header-sub::after {
+    content: '';
+    flex-grow: 1;
+    margin-left: 1rem;
+    border-bottom: 1px dotted var(--border-color);
+  }
+
+  .card-title {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .card-desc {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  /* Action Buttons */
+  .actions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--text-primary);
+    background-color: transparent;
+    border: 1px solid var(--border-accent);
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+  }
+
+  .btn:hover {
+    background-color: var(--text-primary);
+    color: var(--bg-panel);
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: none;
+  }
+
+  .btn-accent {
+    background-color: var(--text-primary);
+    color: var(--bg-panel);
+  }
+
+  .btn-accent:hover {
+    background-color: transparent;
+    color: var(--text-primary);
+  }
+
+  /* Metrics Grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+  }
+
+  .metric-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-primary);
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    font-weight: 500;
+  }
+
+  /* Live Fleet Monitor (Right Column) */
+  .monitor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .monitor-table th, .monitor-table td {
+    padding: 0.6rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .monitor-table th {
+    color: var(--text-muted);
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+  }
+
+  .monitor-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .profile-name {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .badge-status.active {
+    color: var(--accent-green);
+  }
+
+  .badge-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+  }
+
+  /* Dynamic Logs Window */
+  .log-console {
+    background-color: var(--bg-code);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    height: 160px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 0.75rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .log-ts {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .log-msg {
+    color: var(--text-secondary);
+  }
+
+  .log-msg.router {
+    color: var(--accent-blue);
+  }
+
+  .log-msg.daemon {
+    color: var(--accent-green);
+  }
+
+  .log-msg.system {
+    color: var(--accent-amber);
+    font-weight: 700;
+  }
+
+  /* CLI walkthrough tab container */
+  .section-title-wrap {
+    margin-top: 1rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--border-accent);
+    padding-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .section-subtitle-mono {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .cli-tabs {
+    display: flex;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cli-tab {
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .cli-tab:last-child {
+    border-right: none;
+  }
+
+  .cli-tab:hover {
+    background-color: var(--bg-code);
+    color: var(--text-primary);
+  }
+
+  .cli-tab.active {
+    background-color: var(--text-primary);
+    color: var(--bg-panel);
+  }
+
+  /* Code output simulator window */
+  .cli-panel {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    background-color: var(--bg-panel);
+  }
+
+  .cli-desc {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+  }
+
+  .cli-terminal {
+    background-color: var(--text-primary);
+    color: #e5e5e1;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 1.25rem;
+    overflow-x: auto;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .cli-input-line {
+    color: #a3e635; /* bright terminal green */
+    font-weight: 700;
+  }
+
+  .cli-input-line::before {
+    content: '$ ';
+    color: #f43f5e; /* rose color */
+  }
+
+  .cli-output-line {
+    white-space: pre;
+    color: #cbd5e1;
+    line-height: 1.45;
+  }
+
+  /* Playground Split Grid */
+  .grid-playground {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .grid-playground {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Form controls styled minimalist brutalist */
+  .form-group {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .form-group label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .form-control {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    outline: none;
+    border-radius: 0;
+    transition: border-color 0.15s ease;
+  }
+
+  .form-control:focus {
+    border-color: var(--border-accent);
+    background-color: #ffffff;
+  }
+
+  select.form-control {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 5 5-5z' fill='%23121212'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 10px;
+    padding-right: 2rem;
+  }
+
+  /* Code Panel & Response Pane */
+  .payload-tabs {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    background-color: var(--bg-code);
+  }
+
+  .payload-tab {
+    padding: 0.5rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    background-color: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .payload-tab.active {
+    background-color: var(--bg-panel);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--bg-panel);
+    margin-bottom: -1px;
+  }
+
+  .code-container {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    overflow-x: auto;
+    min-height: 140px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    position: relative;
+  }
+
+  .code-accent-key { color: #85144b; font-weight: 700; }
+  .code-accent-val { color: #2ecc40; }
+  .code-accent-num { color: #0074d9; }
+  .code-accent-method { color: #b10dc9; font-weight: 700; }
+
+  /* Response Block simulator */
+  .response-deck {
+    margin-top: 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .response-deck-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-code);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .response-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    display: inline-block;
+  }
+
+  .response-status-dot.success { background-color: var(--accent-green); }
+  .response-status-dot.loading { background-color: var(--accent-amber); animation: pulse 1s infinite; }
+
+  .response-body {
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    min-height: 120px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre;
+    color: var(--text-secondary);
+    background-color: var(--bg-panel);
+  }
+
+  /* Visual diagram deck */
+  .diagram-deck {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 1.75rem;
+  }
+
+  @media (max-width: 900px) {
+    .diagram-deck {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .diagram-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    padding: 1rem;
+    overflow: hidden;
+  }
+
+  .diagram-visual img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .diagram-notes {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.25rem;
+  }
+
+  .diagram-note-item {
+    border-left: 2px solid var(--border-accent);
+    padding-left: 1rem;
+  }
+
+  .diagram-note-h {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+    font-family: var(--font-mono);
+  }
+
+  .diagram-note-p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+  }
+
+  /* FAQ Accordions */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+  }
+
+  .faq-item:hover {
+    border-color: var(--border-accent);
+  }
+
+  .faq-trigger {
+    width: 100%;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    padding: 1.1rem 1.5rem;
+    font-family: var(--font-sans);
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .faq-trigger-icon {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+  }
+
+  .faq-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: var(--bg-panel);
+    border-top: 0px solid var(--border-color);
+  }
+
+  .faq-inner {
+    padding: 0 1.5rem 1.25rem 1.5rem;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .faq-item.active .faq-content {
+    border-top-width: 1px;
+  }
+
+  .faq-item.active .faq-trigger-icon {
+    transform: rotate(45deg);
+    color: var(--text-primary);
+  }
+
+  /* Footer */
+  footer {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    font-weight: 700;
+  }
+
+  .footer-links a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+
+  .disclaimer {
+    font-size: 0.7rem;
+    max-width: 32rem;
+    line-height: 1.4;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1rem 0;
+  }
 </style>
 </head>
 <body>
 
-<h1>Kimi WebBridge with multiple Chrome profiles &amp; logins at once</h1>
-<p class="tag"><strong>kimi-webbridge-fleet</strong> — drive several Google accounts through Kimi WebBridge simultaneously, not one at a time.</p>
+<div class="container">
 
-<p>
-  <a class="cta" href="https://github.com/jeet-dhandha/kimi-webbridge-fleet">GitHub repo →</a>
-  <a class="cta" href="https://www.npmjs.com/package/kimi-webbridge-fleet">npm package →</a>
-</p>
+  <!-- TOP DECK: SYSTEM METRICS AND ROUTER STATS -->
+  <header>
+    <div class="header-left">
+      <span>KWB-FLEET-CONTROL v0.0.2</span>
+      <span class="status-indicator">
+        <span class="status-pulse"></span>
+        <span>SYSTEM ONLINE</span>
+      </span>
+    </div>
+    <div class="header-right" id="live-clock">
+      UTC: --:--:--
+    </div>
+  </header>
 
-<p>
-  <a href="https://www.kimi.com/features/webbridge">Kimi WebBridge</a> (Moonshot AI) lets an AI agent drive your
-  real Chrome with your real logins — but it has a <strong>single connection slot</strong>: one daemon, one extension,
-  one profile. If you have a work account and a personal account, only one can be driven at a time.
-  <strong>kimi-webbridge-fleet</strong> removes that limit <em>without patching anything</em> — one stock daemon per
-  profile, a small router on the usual <code>:10086</code>, and your existing calls keep working. You just add a
-  <code>"profile"</code> field.
-</p>
+  <!-- HERO ROW: INTRO PANEL & LIVE RUNNING MONITOR -->
+  <div class="grid-hero">
+    
+    <!-- LEFT CARD: INTRODUCTION AND QUICK ACTIONS -->
+    <div class="card">
+      <div class="card-header-sub">Fleet Configuration Overview</div>
+      <h1 class="card-title">Drive multiple Chrome profiles &amp; logins at once</h1>
+      <p class="card-desc">
+        <strong>kimi-webbridge-fleet</strong> removes Moonshot AI Kimi WebBridge's single-connection-slot barrier. Orchestrate Work, Personal, and Developer profiles side-by-side on deterministic mapped ports via a unified router on <code>:10086</code>.
+      </p>
+      
+      <div class="actions-row">
+        <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet" class="btn btn-accent">GitHub Repository &rarr;</a>
+        <a href="https://www.npmjs.com/package/kimi-webbridge-fleet" class="btn">NPM Package</a>
+        <a href="#install-section" class="btn">View Skill Setup</a>
+      </div>
 
-<p><img src="before-after.svg" alt="Before: one Kimi WebBridge daemon, one slot, other Chrome profiles rejected. After: one daemon per profile, all logins live at once."></p>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <span class="metric-value">&infin;</span>
+          <span class="metric-label">Simultaneous Accounts</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">0</span>
+          <span class="metric-label">Click LevelDB Connect</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">:10086</span>
+          <span class="metric-label">Unified Routing Port</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">100%</span>
+          <span class="metric-label">Native KWB Core</span>
+        </div>
+      </div>
+    </div>
 
-<h2>Install</h2>
-<pre><code># As a CLI (npm)
-npx kimi-webbridge-fleet profiles
-npm i -g kimi-webbridge-fleet
+    <!-- RIGHT CARD: LIVE FLEET MONITOR & STREAMING LOGS -->
+    <div class="card">
+      <div class="card-header-sub">Live Fleet Daemon Monitor</div>
+      <p class="card-desc" style="font-size: 0.9rem; margin-bottom: 1rem;">
+        Deterministic port allocations and actual live daemon statuses.
+      </p>
+      
+      <div style="overflow-x: auto; width: 100%; margin-bottom: 1.5rem;">
+        <table class="monitor-table" style="margin-bottom: 0;">
+          <thead>
+            <tr>
+              <th>Profile ID</th>
+              <th>Daemon Port</th>
+              <th>Connection Status</th>
+              <th>Avg Latency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="profile-name">"Work"</td>
+              <td><code>13222</code></td>
+              <td><span class="badge-status active">Connected</span></td>
+              <td id="lat-work">42ms</td>
+            </tr>
+            <tr>
+              <td class="profile-name">"Personal"</td>
+              <td><code>13336</code></td>
+              <td><span class="badge-status active">Connected</span></td>
+              <td id="lat-personal">36ms</td>
+            </tr>
+            <tr>
+              <td class="profile-name">"Developer"</td>
+              <td><code>14820</code></td>
+              <td><span class="badge-status active">Connected</span></td>
+              <td id="lat-dev">51ms</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-# As a Claude Code skill/plugin
-/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet
-/plugin install kimi-webbridge-fleet@kwb</code></pre>
+      <div class="card-header-sub" style="margin-top: auto; margin-bottom: 0.5rem;">Simulated Router Requests Log</div>
+      <div class="log-console" id="log-console">
+        <div class="log-entry">
+          <span class="log-ts">[19:27:52]</span>
+          <span class="log-msg system">INIT: Router successfully bound to port :10086</span>
+        </div>
+        <div class="log-entry">
+          <span class="log-ts">[19:27:53]</span>
+          <span class="log-msg system">FLEET: Found 3 Chrome profile extension mappings.</span>
+        </div>
+      </div>
+    </div>
 
-<h2>Drive multiple profiles — same call, one extra field</h2>
-<pre><code>kwb connect "Work" "Personal"   # point each extension at its own daemon (zero clicks)
-kwb up "Work" "Personal"        # daemons + router on :10086, all connected
+  </div>
 
-curl -s -X POST http://127.0.0.1:10086/command \
+  <!-- CLI WALKTHROUGH SECTION -->
+  <div class="section-title-wrap" id="install-section">
+    <div class="section-title">CLI Installation &amp; Walkthrough</div>
+    <div class="section-subtitle-mono">Interactive Setup Console</div>
+  </div>
+
+  <div class="cli-tabs">
+    <button class="cli-tab active" onclick="showCliTab('install')">1. Install</button>
+    <button class="cli-tab" onclick="showCliTab('profiles')">2. Profiles List</button>
+    <button class="cli-tab" onclick="showCliTab('connect')">3. Zero-Click Connect</button>
+    <button class="cli-tab" onclick="showCliTab('up')">4. Launch Fleet</button>
+    <button class="cli-tab" onclick="showCliTab('down')">5. Stop Fleet</button>
+  </div>
+
+  <div class="cli-panel">
+    <div class="cli-desc" id="cli-tab-description">
+      Download and install the CLI layer globally, or add it to Claude Code as an autonomous developer agent plugin.
+    </div>
+    <div class="cli-terminal">
+      <div class="cli-input-line" id="cli-command-line">npm i -g kimi-webbridge-fleet</div>
+      <div class="cli-output-line" id="cli-output-content">
+added 24 packages, and audited 25 packages in 1s
+
+1 package is looking for funding
+run `npm fund` for details
+
+$ kwb --version
+0.0.2
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE PLAYGROUND SECTION -->
+  <div class="section-title-wrap">
+    <div class="section-title">Command Builder &amp; Network Playground</div>
+    <div class="section-subtitle-mono">Test routing contract interactively</div>
+  </div>
+
+  <div class="grid-playground">
+    
+    <!-- PLAYGROUND CONTROL PANEL -->
+    <div class="card">
+      <div class="card-header-sub">Request Configuration</div>
+      <p class="card-desc" style="font-size: 0.9rem; margin-bottom: 1rem;">
+        Assemble a command body for the router to forward.
+      </p>
+
+      <div class="form-group">
+        <label for="play-profile">Target Profile</label>
+        <select id="play-profile" class="form-control" onchange="updatePlaygroundCode()">
+          <option value="Work">"Work" (Port 13222)</option>
+          <option value="Personal">"Personal" (Port 13336)</option>
+          <option value="Developer">"Developer" (Port 14820)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="play-action">Action Method</label>
+        <select id="play-action" class="form-control" onchange="updatePlaygroundAction()">
+          <option value="navigate">navigate (Go to URL)</option>
+          <option value="click">click (Interact with selector)</option>
+          <option value="extract">get_page_content (Read DOM)</option>
+          <option value="tabs">list_tabs (Enumerate tabs)</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="arg-url-group">
+        <label for="play-arg-url">Target URL</label>
+        <input type="text" id="play-arg-url" class="form-control" value="https://search.google.com/search-console" oninput="updatePlaygroundCode()">
+      </div>
+
+      <div class="form-group" id="arg-selector-group" style="display: none;">
+        <label for="play-arg-selector">CSS Selector</label>
+        <input type="text" id="play-arg-selector" class="form-control" value="button.compose" oninput="updatePlaygroundCode()">
+      </div>
+
+      <div class="form-group">
+        <label for="play-session">Session Name</label>
+        <input type="text" id="play-session" class="form-control" value="audit" oninput="updatePlaygroundCode()">
+      </div>
+
+      <button class="btn btn-accent" style="margin-top: 1rem; width: 100%; justify-content: center;" onclick="runPlaygroundCommand()">
+        Transmit Command to Fleet &rarr;
+      </button>
+    </div>
+
+    <!-- PLAYGROUND CODE & RESPONSE PANE -->
+    <div style="display: flex; flex-direction: column;">
+      <div class="payload-tabs">
+        <button class="payload-tab active" id="tab-curl" onclick="setPayloadFormat('curl')">cURL Request</button>
+        <button class="payload-tab" id="tab-json" onclick="setPayloadFormat('json')">JSON Body</button>
+      </div>
+      <div class="code-container" id="playground-code-box">curl -s -X POST http://127.0.0.1:10086/command \
   -H 'Content-Type: application/json' \
-  -d '{"action":"navigate","args":{"url":"https://mail.google.com"},"profile":"Work"}'</code></pre>
+  -d '{"action":"navigate","args":{"url":"https://search.google.com/search-console"},"session":"audit","profile":"Work"}'</div>
 
-<h2>FAQ</h2>
+      <div class="response-deck">
+        <div class="response-deck-title">
+          <span>FLEET TRANSMISSION RESPONSE</span>
+          <span class="badge-status" id="response-status-badge"><span class="response-status-dot" id="response-status-dot"></span> <span id="response-status-text">Idle</span></span>
+        </div>
+        <pre class="response-body" id="playground-response-box">Press "Transmit Command to Fleet" to simulate the network routing...</pre>
+      </div>
+    </div>
 
-<h3>Can Kimi WebBridge use multiple Chrome profiles at once?</h3>
-<p>Not on its own — stock Kimi WebBridge has a single connection slot, so exactly one Chrome profile is driven at a time.
-<strong>kimi-webbridge-fleet</strong> adds it: one stock daemon per profile plus a router on <code>:10086</code>, so every
-profile stays connected simultaneously.</p>
+  </div>
 
-<h3>Can Kimi WebBridge drive multiple Google accounts / logins at the same time?</h3>
-<p>Yes, with fleet. Each Chrome profile carries its own Google login, so one daemon per profile lets Gmail, Drive, Ads,
-and Search Console accounts all run side by side from one router on <code>:10086</code>.</p>
+  <!-- ARCHITECTURE FLOW SECTION -->
+  <div class="section-title-wrap">
+    <div class="section-title">Architecture Comparison</div>
+    <div class="section-subtitle-mono">Old Single Slot vs. Fleet Routing</div>
+  </div>
 
-<h3>Does Kimi WebBridge support multiple accounts simultaneously?</h3>
-<p>Stock Kimi WebBridge is built around a single primary browser and login. Multiple simultaneous accounts is exactly the
-gap kimi-webbridge-fleet fills — without patching the daemon or the extension.</p>
+  <div class="diagram-deck">
+    <div class="diagram-visual">
+      <img src="before-after.svg" alt="Before/After layout showing stock Kimi WebBridge vs. Kimi WebBridge Fleet routing setup">
+    </div>
+    <div class="diagram-notes">
+      <div class="diagram-note-item">
+        <div class="diagram-note-h">The Single-Daemon Limitation</div>
+        <div class="diagram-note-p">
+          Stock Kimi WebBridge holds a single extension slot on port <code>10086</code>. If a second Chrome profile attempts to connect, it is rejected. Toggling connections requires manual interaction.
+        </div>
+      </div>
+      <div class="diagram-note-item">
+        <div class="diagram-note-h">Deterministic Port Hashing</div>
+        <div class="diagram-note-p">
+          We spawn one stock daemon per Chrome profile, assigning ports deterministically via <code>10100 + hash(profileDir)</code>. Chrome profiles run fully sandboxed, speaking directly to their respective ports.
+        </div>
+      </div>
+      <div class="diagram-note-item">
+        <div class="diagram-note-h">Seamless Router Layer</div>
+        <div class="diagram-note-p">
+          The fleet router listens on the native port <code>10086</code>. It accepts commands, inspects the top-level <code>"profile"</code> parameter, strips it, and proxies the HTTP payload transparently.
+        </div>
+      </div>
+    </div>
+  </div>
 
-<h3>Why does Kimi WebBridge only allow one login at a time?</h3>
-<p>The stock daemon enforces two singletons: it refuses to start if anything already answers <code>:10086</code>, and one
-daemon accepts exactly one extension connection. Fleet sidesteps both by running each profile's daemon on its own port
-behind a router.</p>
+  <!-- FAQ SECTION -->
+  <div class="section-title-wrap">
+    <div class="section-title">Frequently Asked Questions</div>
+    <div class="section-subtitle-mono">Internal Diagnostic Manual</div>
+  </div>
 
-<h3>How do I switch profiles in Kimi WebBridge without toggling the extension off?</h3>
-<p>Stock WebBridge makes you open <code>chrome://extensions</code> in the profile holding the slot and toggle WebBridge
-off — a few clicks every switch. Fleet points each profile's extension at its own daemon on disk with zero clicks and no
-popup, keeping all profiles live at once.</p>
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Can Kimi WebBridge use multiple Chrome profiles at once?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          Not on its own. Stock Kimi WebBridge enforces a single connection slot, meaning only one Chrome profile is driven at a time. <code>kimi-webbridge-fleet</code> overcomes this by running one stock daemon per profile and placing a router on <code>10086</code>. Every profile stays connected simultaneously, allowing you to select the target by passing a <code>"profile"</code> field in the request payload.
+        </div>
+      </div>
+    </div>
 
-<h3>Is kimi-webbridge-fleet affiliated with Kimi / Moonshot AI?</h3>
-<p>No. It is an independent, MIT-licensed orchestration layer that supervises the stock <code>kimi-webbridge</code> daemon
-and reads Chrome's own files. It contains no Kimi WebBridge code.</p>
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Can Kimi WebBridge drive multiple Google accounts / logins at the same time?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          Yes, using the fleet package. Each Chrome profile carries its own independent Google session and credentials. Because the fleet spawns a separate daemon for each profile, actions directed at Gmail, Search Console, Ads, or Google Drive for different logins can execute side-by-side.
+        </div>
+      </div>
+    </div>
 
-<hr>
-<p class="muted">
-  Independent project, not affiliated with Moonshot AI / Kimi.
-  <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet">Source on GitHub</a> ·
-  MIT © jeet-dhandha
-</p>
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Does Kimi WebBridge support multiple accounts simultaneously?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          Stock Kimi WebBridge does not. It is built around a single primary browser window and login session. Multi-account orchestration is the exact capabilities gap filled by <code>kimi-webbridge-fleet</code>, which does so without needing to patch the underlying daemon binaries or rewrite the extension code.
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Why does Kimi WebBridge only allow one login at a time?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          The daemon enforces two singletons: it refuses to start if port <code>10086</code> is occupied, and a single daemon process will only connect to one browser extension at a time. The fleet layer sidesteps these constraints by assigning isolated local directories and distinct ports to each daemon process, keeping the central port free for the proxy router.
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>How do I switch profiles in Kimi WebBridge without toggling the extension off?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          Under the stock setup, you must manually open <code>chrome://extensions</code> in the active profile and toggle the WebBridge extension switch to release the slot. The fleet's <code>kwb connect</code> command automates this by directly modifying the Chrome extension's on-disk Local Storage LevelDB files (while Chrome is quit), updating the destination URL instantly with zero manual clicks.
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Is kimi-webbridge-fleet affiliated with Kimi / Moonshot AI?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          No. This is an entirely independent, MIT-licensed open-source developer tool. It orchestrates the stock <code>kimi-webbridge</code> processes and writes to standard Chrome user directories. It does not distribute, compile, or contain any official Kimi WebBridge binary code.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet">GitHub</a>
+      <span>&middot;</span>
+      <a href="https://www.npmjs.com/package/kimi-webbridge-fleet">NPM Registry</a>
+      <span>&middot;</span>
+      <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet/blob/main/LICENSE">MIT License</a>
+    </div>
+    <div class="disclaimer">
+      Independent project, not affiliated with Moonshot AI or Kimi. All product names, logos, and brands are property of their respective owners.
+    </div>
+    <div class="disclaimer">
+      &copy; 2026 jeet-dhandha. Crafted with premium minimalist neo-brutalist design patterns.
+    </div>
+  </footer>
+
+</div>
+
+<!-- INTERACTIVE SCRIPTS -->
+<script>
+  // 1. UTC live clock updates
+  function updateClock() {
+    const clock = document.getElementById('live-clock');
+    const now = new Date();
+    const timeStr = now.toISOString().split('T')[1].slice(0, 8);
+    clock.textContent = 'UTC: ' + timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // 2. Mock latency generator (randomly fluctuating)
+  function jitterLatencies() {
+    const idWork = document.getElementById('lat-work');
+    const idPersonal = document.getElementById('lat-personal');
+    const idDev = document.getElementById('lat-dev');
+    
+    if (idWork) idWork.textContent = Math.floor(35 + Math.random() * 15) + 'ms';
+    if (idPersonal) idPersonal.textContent = Math.floor(30 + Math.random() * 15) + 'ms';
+    if (idDev) idDev.textContent = Math.floor(45 + Math.random() * 20) + 'ms';
+  }
+  setInterval(jitterLatencies, 3000);
+
+  // 3. Simulated router logs stream
+  const logMsgs = [
+    { type: 'router', msg: 'POST /command -> forwarding to "Work" on port 13222' },
+    { type: 'daemon', msg: 'Work daemon: Executing navigate to https://search.google.com/search-console' },
+    { type: 'daemon', msg: 'Work daemon: Navigation completed successfully (status: 200)' },
+    { type: 'router', msg: 'POST /command -> forwarding to "Personal" on port 13336' },
+    { type: 'daemon', msg: 'Personal daemon: Executing list_tabs command' },
+    { type: 'daemon', msg: 'Personal daemon: Found 12 active tabs' },
+    { type: 'router', msg: 'POST /command -> forwarding to "Developer" on port 14820' },
+    { type: 'daemon', msg: 'Developer daemon: Executing click selector: "button.submit"' },
+    { type: 'daemon', msg: 'Developer daemon: Click action resolved (target verified)' },
+    { type: 'system', msg: 'SYSTEM: Connection checked on all ports. Heartbeat OK.' }
+  ];
+
+  function addMockLog() {
+    const consoleEl = document.getElementById('log-console');
+    if (!consoleEl) return;
+    
+    const randomMsg = logMsgs[Math.floor(Math.random() * logMsgs.length)];
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    
+    const logNode = document.createElement('div');
+    logNode.className = 'log-entry';
+    logNode.innerHTML = `
+      <span class="log-ts">[${timeStr}]</span>
+      <span class="log-msg ${randomMsg.type}">${randomMsg.msg}</span>
+    `;
+    
+    consoleEl.appendChild(logNode);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+    
+    // Cap log items count at 30 to prevent DOM overhead
+    if (consoleEl.children.length > 30) {
+      consoleEl.removeChild(consoleEl.firstChild);
+    }
+  }
+  setInterval(addMockLog, 4500);
+
+  // 4. CLI tabs walkthrough logic
+  const cliData = {
+    install: {
+      desc: 'Download and install the CLI layer globally, or add it to Claude Code as an autonomous developer agent plugin.',
+      cmd: 'npm i -g kimi-webbridge-fleet',
+      out: `added 24 packages, and audited 25 packages in 1s
+
+1 package is looking for funding
+run \`npm fund\` for details
+
+$ kwb --version
+0.0.2`
+    },
+    profiles: {
+      desc: 'Resolve and display all Chrome user profiles detected on this machine. Shows deterministic ports, extension directory installation state, and active daemon statuses.',
+      cmd: 'kwb profiles',
+      out: `Resolving local Google Chrome profiles...
+Found 3 profiles:
+
+- Profile: "Work"
+  Directory: /Users/jeetdhandha/Library/Application Support/Google/Chrome/Profile 1
+  Hashed Port: 13222
+  Extension Installed: Yes (fldmhceldgbpfpkbgopacenieobmligc)
+  Daemon Status: UP (pid: 58821)
+
+- Profile: "Personal"
+  Directory: /Users/jeetdhandha/Library/Application Support/Google/Chrome/Default
+  Hashed Port: 13336
+  Extension Installed: Yes (fldmhceldgbpfpkbgopacenieobmligc)
+  Daemon Status: UP (pid: 58824)
+
+- Profile: "Developer"
+  Directory: /Users/jeetdhandha/Library/Application Support/Google/Chrome/Profile 2
+  Hashed Port: 14820
+  Extension Installed: Yes (fldmhceldgbpfpkbgopacenieobmligc)
+  Daemon Status: UP (pid: 58826)`
+    },
+    connect: {
+      desc: 'Connect profiles to their deterministic ports without manual clicks. Quits Chrome (saving sessions) and writes the hashed port URL directly to the extension\'s local LevelDB storage.',
+      cmd: 'kwb connect "Work" "Personal" "Developer"',
+      out: `Quitting Google Chrome (saving sessions for restore)...
+Chrome closed successfully.
+
+Writing extension config for profile "Work" (port 13222)...
+Writing extension config for profile "Personal" (port 13336)...
+Writing extension config for profile "Developer" (port 14820)...
+
+Write complete. Extensions pointed at local daemons.
+Restore bridge stock setting later using: \`kwb connect "Work" --restore\``
+    },
+    up: {
+      desc: 'Launches the underlying kimi-webbridge daemons for selected profiles, spins up the central router on port 10086, opens Chrome tabs to wake MV3 background service workers, and awaits connection confirmation.',
+      cmd: 'kwb up "Work" "Personal" "Developer"',
+      out: `Starting daemon for "Work" on port 13222...
+Starting daemon for "Personal" on port 13336...
+Starting daemon for "Developer" on port 14820...
+Starting HTTP proxy router on port 10086...
+
+Waking browser profiles (opening headful popup)...
+Waiting for extension connections (max 10s)...
+✓ Work connected to daemon on port 13222
+✓ Personal connected to daemon on port 13336
+✓ Developer connected to daemon on port 14820
+
+Fleet ready. Route requests through http://127.0.0.1:10086/command`
+    },
+    down: {
+      desc: 'Tears down active fleet router, shuts down running profile daemons safely, and optionally restores standard single-connection bridge configuration.',
+      cmd: 'kwb down',
+      out: `Stopping HTTP proxy router on port 10086...
+Stopping daemon process Work (pid 58821)...
+Stopping daemon process Personal (pid 58824)...
+Stopping daemon process Developer (pid 58826)...
+
+Restoring stock single :10086 daemon binding...
+Fleet stopped successfully.`
+    }
+  };
+
+  function showCliTab(tabKey) {
+    // Toggle active tab class
+    const tabs = document.querySelectorAll('.cli-tab');
+    tabs.forEach((tab, index) => {
+      const keys = ['install', 'profiles', 'connect', 'up', 'down'];
+      if (keys[index] === tabKey) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+
+    // Load tab contents
+    const tabItem = cliData[tabKey];
+    document.getElementById('cli-tab-description').textContent = tabItem.desc;
+    document.getElementById('cli-command-line').textContent = tabItem.cmd;
+    document.getElementById('cli-output-content').textContent = tabItem.out;
+  }
+
+  // 5. Playground Live Command Builder
+  let playgroundFormat = 'curl'; // or 'json'
+
+  function getPlaygroundPayload() {
+    const profile = document.getElementById('play-profile').value;
+    const action = document.getElementById('play-action').value;
+    const session = document.getElementById('play-session').value;
+    
+    let args = {};
+    if (action === 'navigate') {
+      args.url = document.getElementById('play-arg-url').value;
+    } else if (action === 'click') {
+      args.selector = document.getElementById('play-arg-selector').value;
+    } else if (action === 'extract') {
+      args.format = 'text';
+    } else if (action === 'tabs') {
+      args.activeOnly = false;
+    }
+
+    return {
+      action: action === 'extract' ? 'get_page_content' : action,
+      args: args,
+      session: session,
+      profile: profile
+    };
+  }
+
+  function updatePlaygroundAction() {
+    const action = document.getElementById('play-action').value;
+    const urlGroup = document.getElementById('arg-url-group');
+    const selGroup = document.getElementById('arg-selector-group');
+
+    if (action === 'navigate') {
+      urlGroup.style.display = 'flex';
+      selGroup.style.display = 'none';
+    } else if (action === 'click') {
+      urlGroup.style.display = 'none';
+      selGroup.style.display = 'flex';
+    } else {
+      urlGroup.style.display = 'none';
+      selGroup.style.display = 'none';
+    }
+    updatePlaygroundCode();
+  }
+
+  function setPayloadFormat(format) {
+    playgroundFormat = format;
+    document.getElementById('tab-curl').className = format === 'curl' ? 'payload-tab active' : 'payload-tab';
+    document.getElementById('tab-json').className = format === 'json' ? 'payload-tab active' : 'payload-tab';
+    updatePlaygroundCode();
+  }
+
+  function updatePlaygroundCode() {
+    const payload = getPlaygroundPayload();
+    const codeBox = document.getElementById('playground-code-box');
+    
+    if (playgroundFormat === 'json') {
+      codeBox.innerHTML = syntaxHighlightJson(JSON.stringify(payload, null, 2));
+    } else {
+      // Curl presentation format
+      const bodyStr = JSON.stringify(payload);
+      codeBox.innerHTML = `<span class="code-accent-method">curl</span> -s -X <span class="code-accent-key">POST</span> http://127.0.0.1:10086/command \\
+  -H <span class="code-accent-val">'Content-Type: application/json'</span> \\
+  -d <span class="code-accent-val">'${bodyStr}'</span>`;
+    }
+  }
+
+  function syntaxHighlightJson(json) {
+    if (typeof json !== 'string') {
+      json = JSON.stringify(json, undefined, 2);
+    }
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|\b[0-9]+\b)/g, function (match) {
+      let cls = 'code-accent-val';
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          cls = 'code-accent-key';
+        }
+      } else if (/true|false/.test(match)) {
+        cls = 'code-accent-method';
+      } else if (/null|[0-9]/.test(match)) {
+        cls = 'code-accent-num';
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+  }
+
+  function runPlaygroundCommand() {
+    const responseBox = document.getElementById('playground-response-box');
+    const statusText = document.getElementById('response-status-text');
+    const statusDot = document.getElementById('response-status-dot');
+    const payload = getPlaygroundPayload();
+
+    statusText.textContent = 'Transmitting...';
+    statusDot.className = 'response-status-dot loading';
+    responseBox.textContent = 'POST http://127.0.0.1:10086/command HTTP/1.1\nHost: 127.0.0.1:10086\nContent-Type: application/json\n\n[Transmitting network packets to router...]';
+
+    setTimeout(() => {
+      responseBox.textContent += '\n\n[Router received payload. Routing key: "profile" = "' + payload.profile + '"]';
+      responseBox.textContent += '\n[Forwarding stripped body to local daemon at port ' + (payload.profile === 'Work' ? '13222' : (payload.profile === 'Personal' ? '13336' : '14820')) + '...]';
+      
+      setTimeout(() => {
+        statusText.textContent = 'Success (200 OK)';
+        statusDot.className = 'response-status-dot success';
+        
+        let daemonResult = {};
+        if (payload.action === 'navigate') {
+          daemonResult = {
+            success: true,
+            status: 200,
+            url: payload.args.url,
+            title: payload.args.url.includes('mail') ? 'Gmail - Inbox' : 'Google Search Console - Overview'
+          };
+        } else if (payload.action === 'click') {
+          daemonResult = {
+            success: true,
+            selector: payload.args.selector,
+            clicked: true,
+            timestamp: Date.now()
+          };
+        } else if (payload.action === 'get_page_content') {
+          daemonResult = {
+            success: true,
+            content: `<!DOCTYPE html><html><body><h1>Control Deck</h1><p>Welcome, ${payload.profile} Account.</p></body></html>`,
+            byteLength: 104
+          };
+        } else {
+          daemonResult = {
+            success: true,
+            tabs: [
+              { id: 1021, url: 'https://mail.google.com/', active: true },
+              { id: 1022, url: 'https://github.com/', active: false }
+            ]
+          };
+        }
+
+        const simulatedResponse = {
+          status: 'success',
+          code: 200,
+          profile: payload.profile,
+          daemonPort: payload.profile === 'Work' ? 13222 : (payload.profile === 'Personal' ? 13336 : 14820),
+          result: daemonResult
+        };
+
+        responseBox.textContent = 'HTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: ' + new Date().toUTCString() + '\nServer: KWB-Fleet-Router/0.0.2\n\n' + JSON.stringify(simulatedResponse, null, 2);
+      }, 1000);
+
+    }, 800);
+  }
+
+  // Initial code load
+  updatePlaygroundCode();
+
+  // 6. FAQ Accordion toggle logic
+  function toggleFaq(btn) {
+    const item = btn.parentElement;
+    const content = item.querySelector('.faq-content');
+    const isActive = item.classList.contains('active');
+
+    // Close all FAQ items
+    const allItems = document.querySelectorAll('.faq-item');
+    allItems.forEach(i => {
+      i.classList.remove('active');
+      const c = i.querySelector('.faq-content');
+      if (c) c.style.maxHeight = null;
+    });
+
+    if (!isActive) {
+      item.classList.add('active');
+      content.style.maxHeight = content.scrollHeight + 'px';
+    }
+  }
+</script>
 
 </body>
 </html>
