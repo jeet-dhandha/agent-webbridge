@@ -108,6 +108,8 @@ async function pickDefaultPort() {
   return firstUp;
 }
 
+const activeQueues = new Map(); // port -> Promise
+
 async function proxyCommand(bodyObj) {
   let port;
   let routedTo;
@@ -129,6 +131,13 @@ async function proxyCommand(bodyObj) {
     return { statusCode: 503, json: { ok: false, error: "no daemon available to route to" } };
   }
   const { profile, ...forward } = bodyObj; // strip our routing key
+
+  let queue = activeQueues.get(port) || Promise.resolve();
+  let resolveLock;
+  const lock = new Promise(r => resolveLock = r);
+  activeQueues.set(port, lock);
+
+  await queue;
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 300000);
   try {
@@ -144,6 +153,7 @@ async function proxyCommand(bodyObj) {
     return { statusCode: 502, json: { ok: false, error: `proxy to :${port} failed: ${e.message}`, routedTo } };
   } finally {
     clearTimeout(t);
+    resolveLock();
   }
 }
 
