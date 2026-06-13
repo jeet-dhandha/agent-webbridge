@@ -11,16 +11,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// The CWS (web-store) build's id is published and stable — match it directly.
-export const KIMI_EXT_ID = "fldmhceldgbpfpkbgopacenieobmligc";
-// A "Load unpacked" (dev-mode) build's id is NOT stable: Chrome derives it from the
-// manifest "key" if present, else from a hash of the load PATH. So we do NOT trust any
-// fixed dev id — we identify the extension by NAME and read back whatever id Chrome
-// assigned. This is the one dev id we've observed; kept only as a last-resort fallback.
-export const KIMI_EXT_ID_ALT = "hinhmbbmelmmgiehkfmmkmfndadahmkk";
-export const KIMI_EXT_IDS = [KIMI_EXT_ID, KIMI_EXT_ID_ALT];
-// The authoritative signal for a dev/unpacked build (its id varies; its name does not).
-export const KIMI_EXT_NAME = "Kimi WebBridge";
+// Only the official Chrome Web Store build is supported. Its id is published and stable,
+// and it lives on disk under <profile>/Extensions/<id>/ — that folder is the true source
+// of record. (The old unpacked/dev id "hinhmbbm…" was removed: it was unstable, its code
+// is content-unverified, and it was a constant source of confusion.)
+// agent-webbridge: our own clean-room extension. The id is derived from the manifest `key`
+// (our RSA keypair) via computeExtIdFromManifestKey, so dev (unpacked) == prod (CWS) id.
+export const KIMI_EXT_ID = "ifodkkbkmngjlkhiphcjmbceeolhpfeo";
+export const KIMI_EXT_IDS = [KIMI_EXT_ID];
+// Display name of the extension (informational only).
+export const KIMI_EXT_NAME = "Agent WebBridge";
 
 export const ROUTER_PORT = 10086; // reserved
 const PORT_BASE = 10100;
@@ -139,13 +139,10 @@ export function installedExtensions(dir) {
   });
 }
 
-// Is this entry our extension? The published CWS id is authoritative; otherwise match by
-// NAME (the dev/unpacked id is not stable, but the name is). The known dev id is only a
-// fallback so we still recognize it if a manifest can't be read.
+// Is this entry our extension? Only the official Web Store id counts — we no longer match
+// unpacked/dev builds (by name or by the old ALT id).
 function isKimiExt(e) {
-  if (e.id === KIMI_EXT_ID) return true;
-  if (e.name && e.name.trim().toLowerCase() === KIMI_EXT_NAME.toLowerCase()) return true;
-  return e.id === KIMI_EXT_ID_ALT;
+  return e.id === KIMI_EXT_ID;
 }
 
 // The kimi-webbridge extension installed in a profile (CWS or unpacked), or null.
@@ -171,8 +168,13 @@ export function kimiExtId(dir) {
   return null;
 }
 
-// Whether the kimi-webbridge extension is installed in a profile (CWS OR unpacked).
+// Whether the official kimi-webbridge extension is installed in a profile. The store
+// build always lives on disk under Extensions/<id>/, so check that folder first (the true
+// source of record), then fall back to the registry.
 export function hasKimiExtension(dir) {
+  try {
+    if (fs.existsSync(path.join(chromeUserDataDir(), dir, "Extensions", KIMI_EXT_ID))) return true;
+  } catch {}
   return kimiExtId(dir) !== null;
 }
 
@@ -197,10 +199,10 @@ export function listProfiles() {
       ...p,
       port: portByDir.get(p.dir),
       wsUrl: `ws://127.0.0.1:${portByDir.get(p.dir)}/ws`,
-      hasExtension: true,
-      extId: "fldmhceldgbpfpkbgopacenieobmligc",
-      extType: k?.location ?? "unpacked",
-      extEnabled: true,
+      hasExtension: !!k,
+      extId: k?.id ?? null,
+      extType: k?.location ?? null,
+      extEnabled: !!k?.enabled,
       isLastUsed: p.dir === lastUsed,
     };
   });

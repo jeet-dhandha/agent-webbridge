@@ -1,356 +1,153 @@
-# kimi-webbridge-fleet — Kimi WebBridge with multiple Chrome profiles & logins at once
+# agent-webbridge — drive your real Chrome, across many profiles, in parallel
 
-> Let one AI agent drive **several of your real Chrome profiles at once** — each with its own Google login — instead of one at a time. A drop-in layer over [Kimi WebBridge](https://www.kimi.com/features/webbridge): no patching, your existing `:10086` calls keep working — you just add a `"profile"` field.
+> Open-source (MIT), clean-room browser automation for AI agents. It drives **your real Chrome** — with your **real login sessions** — across **multiple Chrome profiles at once**, and runs **multiple tabs per profile concurrently**. No closed-source dependency, no account, no telemetry, no `curl | bash` installer.
 
-<p align="center">
-  <img src="docs/demo.gif" alt="An AI agent drives two Chrome profiles (Work and Personal) at once through one router on :10086, routed by a profile field" width="100%">
-  <br><em>Illustration of the flow — one AI agent driving two profiles at once. Not a screen recording.</em>
-</p>
+`agent-webbridge` is a lightweight Node daemon (only runtime dependency: [`ws`](https://www.npmjs.com/package/ws)) plus a clean-room MV3 Chrome extension. An AI agent posts a command to a local router; the router fans it out to the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools Protocol **per tab**. Everything stays on `127.0.0.1` — no data ever leaves your machine.
 
-[Kimi WebBridge](https://www.kimi.com/features/webbridge) lets an AI agent drive your real Chrome with your real logins. By design it has a **single connection slot**: one daemon, one extension, one profile. If you have a work account and a personal account, only one can be driven at a time — to switch, you open `chrome://extensions` in the profile holding the slot and toggle WebBridge off (2–3 clicks, every switch).
+## Why
 
-`kimi-webbridge-fleet` removes that limit **without patching anything**. It runs one stock daemon per profile on its own port, and puts a small router on the usual `:10086` so your existing calls keep working — you just add a `"profile"` field.
+It evolved from `kimi-webbridge-fleet` by **replacing the two closed pieces** that project depended on — the 9.5 MB closed-source `kimi-webbridge` Go daemon and the un-patchable official "Kimi WebBridge" Chrome Web Store extension — with our own clean-room daemon and extension. The result is the same capability with **no closed-source dependency, no account, no telemetry, and no bootstrap installer**.
 
-<p align="center">
-  <img src="docs/how-it-works.svg" alt="How kimi-webbridge-fleet works: an agent posts to a router on :10086, which routes by profile to one daemon per Chrome profile" width="100%">
-</p>
+The killer feature is **true per-tab parallelism**.
 
-## Before / after
+The official Kimi WebBridge extension funnels every CDP call through **one global "current tab"** — so it can drive exactly one tab per profile. `agent-webbridge` attaches `chrome.debugger` **per tab** (a `Map` keyed by tab), so **N tabs in one profile run concurrently**.
 
-<p align="center">
-  <img src="docs/before-after.svg" alt="Before: one daemon, one slot, other profiles rejected. After: one daemon per profile, all live at once." width="100%">
-</p>
+This is proven live and it **scales**: 2, 5, and **10 tabs in a single profile** each finish in **~2 seconds flat** (measured 2007 / 2007 / 2010 ms, with every tab's interval overlapping every other). The same work run serially would take 4 s → 10 s → **20 s**. Wall-clock stays flat as you add tabs — that's true N× per-profile parallelism.
 
-## How it works
-
-The stock daemon enforces two singletons:
-
-1. **Daemon singleton** — `kimi-webbridge start` refuses to launch if anything answers `http://127.0.0.1:10086/status` (the probe is hardcoded to `:10086`, regardless of `--addr`).
-2. **Slot singleton** — one daemon accepts exactly one extension connection.
-
-The key observation: the daemon singleton only guards **`:10086`**. Leave `:10086` empty and you can start as many daemons as you like on other ports — each its own independent slot. So fleet:
-
-- starts **one stock daemon per profile** on a deterministic port (`10100 + hash(profileDir)`), each with its own state dir;
-- runs a **router on `:10086`** that proxies `/command` to the right daemon based on a top-level `"profile"` field;
-- leaves each profile's extension to connect to its own daemon's `/ws` **directly** (the router only proxies HTTP).
-
-No binary patching, nothing that breaks on a Kimi WebBridge upgrade.
-
-> **Implementing this natively?** If you maintain Kimi WebBridge (or want to send a patch), [`docs/UPSTREAM-NATIVE-MULTIPROFILE.md`](docs/UPSTREAM-NATIVE-MULTIPROFILE.md) is an explicit, agent-followable spec for adding multi-profile support **inside** the daemon + extension — grounded in the observed protocol, with acceptance tests. With those changes, fleet becomes unnecessary.
-
-## Platform & scope
-
-**macOS + Google Chrome only, right now.** The implementation leans on
-macOS-specific commands and Chrome-specific paths:
-
-| Used for | macOS command / path (this tool) | Linux/Windows equivalent (not yet implemented) |
-|---|---|---|
-| Open a profile window / wake the extension | `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --profile-directory=… <urls>` (binary direct, headful) | `google-chrome --profile-directory=…` / `start chrome …` |
-| Is Chrome running | `pgrep -x "Google Chrome"` | `pgrep chrome` / `tasklist` |
-| Quit Chrome (to write `storage.local`) | `osascript … quit` then `pkill` | `pkill chrome` / `taskkill` |
-| Force-install policy | `defaults write com.google.Chrome …` | policy JSON in `/etc/opt/chrome/policies/…` / registry |
-| Profiles + sessions + extension registry | `~/Library/Application Support/Google/Chrome` | `~/.config/google-chrome` / `%LOCALAPPDATA%\…\Chrome\User Data` |
-
-Porting is mostly swapping those helpers (`src/profiles.mjs`, `src/extension.mjs`).
-PRs welcome. **Chromium/Brave/Edge** would also need their own paths and extension id.
-
-## Requirements
-
-- **macOS** + **Google Chrome**, and a working [Kimi WebBridge](https://www.kimi.com/features/webbridge) install (see below).
-- Node.js ≥ 18 (no npm dependencies — pure built-ins; runs under `bun` too).
-
-### Installing Kimi WebBridge (prerequisite)
-
-Two steps, straight from [kimi.com/features/webbridge](https://www.kimi.com/features/webbridge) (the "With Local Agent" flow):
-
-**1. Get the Chrome extension** — [Kimi WebBridge on the Chrome Web Store](https://chromewebstore.google.com/detail/kimi-webbridge/fldmhceldgbpfpkbgopacenieobmligc).
-
-**2. Install the local daemon** with the official bootstrap installer:
-
-```bash
-curl -fsSL https://cdn.kimi.com/webbridge/install.sh | bash
-```
-
-This downloads the binary to **`~/.kimi-webbridge/bin/kimi-webbridge`** (the path fleet orchestrates), starts the daemon, and installs the WebBridge skill into detected AI-agent runtimes.
-
-```bash
-# verify it's installed and the stock daemon answers
-~/.kimi-webbridge/bin/kimi-webbridge status
-# keep it current
-~/.kimi-webbridge/bin/kimi-webbridge upgrade
-```
+Combine that with multiple profiles and you get two axes of concurrency at once: **N profiles × N tabs per profile**, all driven from a single endpoint.
 
 ## Install
 
-**As a Claude Code skill/plugin** — so your agent can drive the fleet itself:
+**1. The daemon + CLI** (via npm):
 
 ```bash
-/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet
-/plugin install kimi-webbridge-fleet@kwb
+npm i -g agent-webbridge
 ```
 
-**As a CLI** — via npm, no clone:
+This puts the `awb` command on your PATH (with `kwb` kept as an alias) and brings the Node daemon. The only runtime dependency is `ws`.
+
+**2. The Chrome extension** — install the clean-room MV3 extension (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`):
+
+- **Chrome Web Store** — install the published "agent-webbridge" extension, or
+- **Load unpacked** (during development) — see [Dev](#dev).
+
+**Requirements:** macOS + Google Chrome, and Node.js ≥ 18.
+
+## 60-second Quickstart
 
 ```bash
-npx kimi-webbridge-fleet profiles      # one-off
-npm i -g kimi-webbridge-fleet          # puts `kwb` on your PATH
-```
+# 1. One-time setup — detect the extension, prepare profiles
+awb setup
 
-**From source** — for hacking / PRs:
+# 2. Point a profile's extension at its own daemon and bring up the fleet + router
+awb connect "Work" "Personal"
+awb up "Work" "Personal"
 
-```bash
-git clone https://github.com/jeet-dhandha/kimi-webbridge-fleet.git
-cd kimi-webbridge-fleet
-npm link        # optional: puts `kwb` on your PATH
-# or just run:  node bin/kwb.mjs <cmd>
-```
-
-## Quickstart
-
-```bash
-# 1. See your profiles, their assigned ports, and which have the extension
-kwb profiles
-
-# 2. Point each profile's extension at its OWN daemon — zero clicks (no popup).
-#    This writes the extension's local_url on disk, which needs Chrome closed, so
-#    kwb connect quits Chrome for you (your session is saved for restore).
-kwb connect "Work" "Personal"
-
-# 3. Bring up the daemons + router on :10086, reopen each window, WAKE each extension,
-#    and poll until each reports "✓ connected". (If Chrome is already fully quit,
-#    `kwb up` alone performs the connect write for you — step 2 is optional then.)
-kwb up "Work" "Personal"
-
-# 4. Drive any profile by name — same call, one extra field:
+# 3. Drive any profile by name — same endpoint, one extra field
 curl -s -X POST http://127.0.0.1:10086/command \
   -H 'Content-Type: application/json' \
   -d '{"action":"navigate","args":{"url":"https://search.google.com/search-console"},"session":"audit","profile":"Work"}'
 
-# 5. When done
-kwb down            # stops the fleet, restores the stock :10086 daemon
+# 4. When done
+awb down
 ```
 
-A request with no `"profile"` is routed to your default (last-used profile whose daemon is up, or `KWB_DEFAULT_PROFILE`).
+Every command is a `POST /command` on the router at `127.0.0.1:10086`. A `"session"` groups a task's tabs into a Chrome tab group; a `"profile"` selects which Chrome profile to drive.
 
-## Example — two live logins, no extension dance
+## Tools
 
-You want a morning digest: unread **Reddit** DMs from your Personal account *and* unread **Slack**
-mentions from your Work email — pulled, cross-referenced, summarized. Stock Kimi WebBridge gives
-you **one** slot, so you'd drive one account, then toggle WebBridge off in `chrome://extensions` to free
-the slot for the other — 2–3 clicks every switch, serial, and you lose the live session. Fleet keeps **both connected at
-once**; same call, you just name the profile:
+Full parity with the official bridge — **13 tools, all verified live in a real browser**:
 
-```bash
-# Reddit — Personal profile
-curl -s -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' \
-  -d '{"action":"navigate","args":{"url":"https://www.reddit.com/message/unread/"},"session":"digest","profile":"Personal"}'
+| Tool | What it does |
+|---|---|
+| `navigate` | Open a URL in a (new or existing) tab |
+| `find_tab` | Locate an existing tab by URL / title |
+| `evaluate` | Run JavaScript in the page and return the result |
+| `snapshot` | Accessibility tree with stable `@e` refs for elements |
+| `click` | Click an element (by `@e` ref) |
+| `fill` | Set a value on native inputs **and** `contenteditable` fields |
+| `network` | Capture network requests |
+| `upload` | Upload a file to a file input |
+| `screenshot` | Capture a screenshot of the page |
+| `save_as_pdf` | Save the current page as a PDF |
+| `list_tabs` | List the tabs in the current session |
+| `close_tab` | Close a tab |
+| `close_session` | Close a session and its tab group |
 
-# Slack — Work profile, same instant, nothing toggled off
-curl -s -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' \
-  -d '{"action":"navigate","args":{"url":"https://app.slack.com/client"},"session":"digest","profile":"Work"}'
+## Architecture
+
+```
+  AI agent / caller
+        │  HTTP POST /command
+        ▼
+  ┌───────────────────────────┐
+  │ router  (127.0.0.1:10086) │   routes by "profile"
+  └───────────────────────────┘
+        │
+        ├──────────────┬───────────────┐
+        ▼              ▼               ▼
+  ┌───────────┐  ┌───────────┐   ┌───────────┐
+  │  daemon   │  │  daemon   │   │  daemon   │   one Node daemon per profile
+  │ (Profile  │  │ (Profile  │   │ (Profile  │   on a deterministic hashed port
+  │   "Work") │  │"Personal")│   │    …)     │
+  └───────────┘  └───────────┘   └───────────┘
+        │  WebSocket
+        ▼
+  ┌───────────────────────────┐
+  │  MV3 extension            │   clean-room, per profile
+  └───────────────────────────┘
+        │  chrome.debugger  (a Map: one attach PER TAB)
+        ▼
+  ┌───────────────────────────┐
+  │  Chrome DevTools Protocol │   tab 1 ║ tab 2 ║ tab 3  (concurrent)
+  └───────────────────────────┘
 ```
 
-Read both, merge, act — two real sessions, zero juggling. Same trick scales to many Google
-accounts (Gmail / Drive / Ads / Search Console) running side by side.
+A caller POSTs to the **router**; the router proxies the command to the right **per-profile daemon** (chosen by the `"profile"` field) over its deterministic hashed port; the daemon relays over a **WebSocket** to that profile's **MV3 extension**; the extension attaches `chrome.debugger` **per tab** and issues **CDP** calls.
 
-## Zero-click connect (no popup)
+## Parallelism model
 
-Pointing a profile's extension at its own daemon port used to be a manual click in the
-extension popup. Fleet now does it for you, with **no popup, no CDP, no dependencies** —
-in two halves, both pure Node:
+Two independent axes multiply:
 
-1. **Write the URL.** The extension's daemon URL is a plain `local_url` key in its
-   `chrome.storage.local` LevelDB (which, unlike Secure Preferences, is **not**
-   integrity-protected). `kwb connect` writes it directly while Chrome is closed (LevelDB
-   is single-writer), replacing the popup's *Connect* click. The value **persists**, so
-   later `kwb up` runs just reconnect.
-2. **Wake the worker.** Writing the URL isn't enough on its own: the Kimi WebBridge MV3
-   service worker only re-reads `local_url` when it *starts*, but it registers no
-   `chrome.runtime.onStartup` listener, so Chrome never auto-starts it on launch — on an
-   already-set-up profile the write would otherwise sit unused. `kwb up` wakes the worker
-   by opening the extension's own popup page (`chrome-extension://<id>/popup.html`) as a
-   tab — the headful equivalent of clicking the toolbar icon. Chrome is launched via its
-   binary directly (headful), since macOS `open` doesn't reliably forward a
-   `chrome-extension://` URL.
+- **Cross-profile** — one daemon per Chrome profile, each on its own deterministic hashed port, each with its own real login session. N profiles run side by side.
+- **Per-tab** — within a single profile, the extension keeps a `Map` of `chrome.debugger` attachments, one per tab. N tabs in that profile run concurrently — the thing the official single-"current-tab" extension cannot do.
 
-This works for both **Chrome-Web-Store** installs and **unpacked / developer-mode**
-builds (whose extension id Chrome assigns unpredictably — fleet identifies the extension
-by name and reads back whichever id it was given). To point a profile back at the stock
-single `:10086` bridge: `kwb connect "Work" --restore`.
+Total concurrency = **N profiles × N tabs per profile**, all addressed through the one router endpoint. Proven live: 2, 5, and **10 tabs in a single profile** each finish in ~2 s (2007 / 2007 / 2010 ms) — flat wall-clock, **10× parallelism** — versus serial time that grows linearly with tab count.
 
-> Why not CDP / `--remote-debugging-port`? Branded Chrome 136+ refuses remote debugging on
-> the default user-data-dir where real profiles live, and `--load-extension` is ignored in
-> Google Chrome 137+. The on-disk write + popup wake sidesteps both.
+## CLI reference
 
-## Multi-Tab Concurrency & Patched Extension
-
-By default, the official CWS extension does not support concurrent command execution (concurrency > 1) on the same Chrome profile. Because it uses a single global variable to track the debugged tab in its service worker, running multiple commands in parallel causes debugger attachments to collide, resulting in `Debugger is not attached` or `Detached while handling command` errors.
-
-To solve this, this repository contains a pre-patched version of the Kimi WebBridge extension in the [kimi-webbridge-extension/](file:///Users/jeetdhandha/Work/kimi-webbridge-fleet/kimi-webbridge-extension/) directory. The patch implements a Promise-based queue lock inside the service worker's `_e` function, serializing commands safely within the profile. This allows you to run **multiple concurrent tabs in parallel** on each profile with 100% stability.
-
-### Installing the Patched Extension
-
-To use the patched extension:
-
-1. **Remove CWS Extension:** Open Chrome and uninstall the official CWS "Kimi WebBridge" extension from any profiles you want to drive (right-click the extension icon and select **Remove from Chrome...**).
-2. **Load Unpacked Extension:**
-   - Go to `chrome://extensions/` in the target profile.
-   - Enable **Developer Mode** in the top-right corner.
-   - Click **Load unpacked** in the top-left corner.
-   - Select the [kimi-webbridge-extension/](file:///Users/jeetdhandha/Work/kimi-webbridge-fleet/kimi-webbridge-extension/) directory in this repo.
-3. **Alternative (Cold Start):** Quit Chrome fully, then run `kwb install <profile>` (or `kwb up` if configured) to launch Chrome and automatically load the unpacked extension.
-
-Since the unpacked extension includes the original public key in its `manifest.json`, Chrome derives the exact same extension ID (`fldmhceldgbpfpkbgopacenieobmligc`), making the transition completely seamless.
-
-## CLI
+The CLI is `awb` (with `kwb` kept as an alias — both invoke the same binary).
 
 | Command | What it does |
 |---|---|
-| `kwb profiles` | List profiles, hashed ports, extension presence + type (`store`/`unpacked`), daemon up? |
-| `kwb resolve <query>` | Resolve a name / email / dir to one profile |
-| `kwb tabs <profile>` | List a profile's **normal** open tabs (read from Chrome's on-disk session — not the bridge) |
-| `kwb status` | Fleet status (every profile's daemon + `extensionConnected`) |
-| `kwb state` | Show the last recorded start (timestamp, per-profile connected, all-connected?) and last stop (manual / idle) |
-| `kwb connect <profile...>` | Point each profile's extension at its own daemon, zero clicks (writes `local_url` on disk; quits Chrome to do so) |
-| `kwb connect <profile...> --restore` | Point them back at the stock `:10086` bridge |
-| `kwb up <profile...>` | Stop legacy `:10086`, start the named profiles' daemons + router, reopen windows, **wake each extension**, poll until connected |
-| `kwb up --all-ext` | Bring up every profile that already has the extension |
-| `kwb up --no-open` | Start daemons + router only; don't open windows |
-| `kwb up --no-connect` | Don't touch `storage.local`; just open windows |
-| `kwb down [--no-restore]` | Stop router + fleet daemons; restore the legacy `:10086` daemon |
-| `kwb install --forcelist` | Enable Chrome force-install across **all** profiles (needs a Chrome restart) |
-| `kwb install --missing` | List profiles lacking the extension |
+| `awb setup` | One-time setup: detect the extension and prepare profiles |
+| `awb connect <profile…>` | Point each profile's extension at its own daemon |
+| `awb up <profile…>` | Start the named profiles' daemons + the router, open windows, connect |
+| `awb down` | Stop the router + fleet daemons |
+| `awb status` | Fleet status — every profile's daemon + whether its extension is connected |
+| `awb doctor` | Diagnose the environment (Chrome, profiles, daemon, extension) |
+| `awb profiles` | List Chrome profiles, their hashed ports, and extension presence |
 
-`<profile>` is anything that resolves uniquely: the profile **name** (`"Work"`), an **email**, or the Chrome **directory** (`"Profile 2"`).
+`<profile>` is anything that resolves uniquely — the profile **name** (`"Work"`), an **email**, or the Chrome **directory** (`"Profile 2"`).
 
-Running `kwb` with no command (or an unknown one) prints the usage line.
+## Dev
 
-### Debug / internals
+To run the extension from source during development:
 
-Each module is runnable on its own for inspection (no daemon needed):
+1. Open `chrome://extensions/` in the target profile.
+2. Enable **Developer mode** (top-right).
+3. Click **Load unpacked** (top-left).
+4. Select the [`agent-webbridge-extension/`](agent-webbridge-extension/) directory in this repo.
 
-```bash
-node src/profiles.mjs                      # dump all profiles as JSON
-node src/profiles.mjs "Work"               # resolve one profile
-node src/storage.mjs read  "Profile 8"     # read the extension's on-disk local_url
-node src/storage.mjs store "Profile 8"     # locate its storage.local LevelDB dir
-node src/extension.mjs status              # forcelist + unpacked-ext path
-node src/extension.mjs missing             # profiles lacking the extension
-node src/extension.mjs enable-forcelist    # / disable-forcelist
-node src/snss.mjs "Work"                   # a profile's open tabs (from Chrome's SNSS session)
-node src/fleet.mjs status                  # per-profile daemon status table
-node src/fleet.mjs start "Work"            # / stop "Work" — one daemon, directly
-```
+Because the unpacked extension ships its public key in `manifest.json`, Chrome derives the same stable id (`ifodkkbkmngjlkhiphcjmbceeolhpfeo`) every time, so the dev build and the Web Store build are interchangeable.
 
-## Kimi WebBridge daemon (the layer underneath)
+## Verified
 
-Fleet supervises the **stock** `kimi-webbridge` daemon — it contains no Kimi WebBridge code
-of its own. Manage the daemon (and get its help) directly with its binary:
+Daemon contract test **11/11 PASS** · adversarial interface audit **0 defects** · M1 live **7/7** + scaling **6/6** (2 / 5 / 10 tabs in one profile all fully parallel, flat ~2 s wall-clock) · M2 live **19/19** (all 13 tools verified in a real browser, Chrome for Testing 149) · **real-consumer gate**: the external `yc_scan.ts` scraper ran end-to-end against live ycombinator.com through the stack — harvested **144 companies**, scraped 5 in parallel (10-tab concurrency), exit 0.
 
-```bash
-~/.kimi-webbridge/bin/kimi-webbridge --help        # list all daemon commands
-~/.kimi-webbridge/bin/kimi-webbridge <cmd> --help  # help for one command
-```
+## Platform
 
-| Command | What it does |
-|---|---|
-| `kimi-webbridge status` | Daemon status (with fleet up, `:10086` is the router, so this shows the whole fleet) |
-| `kimi-webbridge start` | Start the daemon in the background |
-| `kimi-webbridge stop` | Stop the daemon |
-| `kimi-webbridge restart` | Restart the daemon |
-| `kimi-webbridge logs` | Show daemon logs |
-| `kimi-webbridge upgrade` | Download + install the latest release |
-| `kimi-webbridge install-skill` | Install the WebBridge skill into detected AI-agent runtimes |
-| `kimi-webbridge uninstall` | Stop the daemon and remove `~/.kimi-webbridge/` |
-| `kimi-webbridge completion` | Generate a shell autocompletion script |
-
-> `kwb up` / `kwb down` already call `kimi-webbridge start` / `stop` for you to free and
-> restore `:10086`; reach for the binary directly only for `logs`, `upgrade`, or manual
-> recovery.
-
-## Reading a profile's open tabs
-
-Kimi WebBridge's `list_tabs` only returns tabs from its own session. To answer "what does the user actually have open in profile X", fleet reads Chrome's own session journal (SNSS) straight from disk — no bridge, no running daemon required:
-
-```bash
-kwb tabs "Work"
-# Work (Profile 2) :13222 — 6 open tab(s)
-#   [..] Search Console — https://search.google.com/search-console/...
-#   [..] Gmail — https://mail.google.com/...
-```
-
-## Auto-installing the extension into other profiles
-
-```bash
-kwb install --missing          # which profiles lack the extension
-kwb install --forcelist        # add it to Chrome's force-install policy (all profiles; restart Chrome)
-```
-
-Fleet recognizes the extension whether it's installed from the **Chrome Web Store** or
-loaded **unpacked** (developer mode) — `kwb profiles` shows which (`store` / `unpacked`).
-
-> Chrome can't inject an extension into an already-running profile from the outside, and
-> `--load-extension` is **ignored** in branded Google Chrome 137+. So installation is via
-> the force-install policy above (or the Web Store, or "Load unpacked" in `chrome://extensions`),
-> and takes effect on a Chrome restart. That's a Chrome constraint, not a fleet one.
-
-## Configuration
-
-Environment overrides (sensible macOS defaults otherwise):
-
-| Var | Purpose |
-|---|---|
-| `KWB_DEFAULT_PROFILE` | Profile to use when a call omits `"profile"` |
-| `KWB_CHROME_DIR` | Chrome user-data dir (e.g. Chrome Beta) |
-| `KWB_CHROME_BIN` | Chrome binary path |
-| `KWB_EXT_PATH` | Path to the unpacked Kimi WebBridge extension |
-| `KWB_KIMI_BIN` | Path to the `kimi-webbridge` binary |
-| `KWB_ROUTER_PORT` | Router port (default `10086`) |
-| `KWB_IDLE_TIMEOUT_MIN` | Minutes of no `/command` before the fleet auto-closes (default `120`; `0` disables). Fractional allowed. |
-| `KWB_IDLE_NO_RESTORE` | On idle auto-close, leave `:10086` empty instead of restoring the stock daemon |
-
-## Notes & limitations
-
-- **No popup step.** Pointing each profile's extension at its port is fully automated (`kwb connect` + the wake in `kwb up`) — see [Zero-click connect](#zero-click-connect-no-popup). Writing `local_url` requires Chrome closed, so `kwb connect` quits Chrome (session saved) for the few seconds it takes.
-- **Idle auto-close.** If no `/command` is routed for `KWB_IDLE_TIMEOUT_MIN` minutes (default `120`), the router closes the fleet itself — it stops the daemon **processes only** and **leaves your browser tabs open** (the extensions just disconnect). The start/stop is recorded in `~/.kimi-webbridge/multi/run/fleet-state.json` (`kwb state`). Set `KWB_IDLE_TIMEOUT_MIN=0` to disable.
-- **macOS first.** Paths assume macOS Chrome; Linux support is a small change to the path helpers (PRs welcome).
-- **Not affiliated with Moonshot AI / Kimi.** This is an independent layer that orchestrates the stock daemon and reads Chrome's own files. It contains no Kimi WebBridge code.
-
-## FAQ
-
-Short answers to what people actually search for. (TL;DR: stock Kimi WebBridge is **one login at a time**; fleet makes it **many at once**.)
-
-### Can Kimi WebBridge use multiple Chrome profiles at once?
-
-Not on its own — stock Kimi WebBridge has a **single connection slot**, so exactly one Chrome profile is driven at a time. `kimi-webbridge-fleet` adds it: one stock daemon per profile plus a router on `:10086`, so every profile stays connected simultaneously. You drive each by adding a `"profile"` field to the same call.
-
-### Can Kimi WebBridge drive multiple Google accounts / logins at the same time?
-
-Yes, with fleet. Each Chrome profile carries its own Google login, so running one daemon per profile lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side — see the [two-live-logins example](#example--two-live-logins-no-extension-dance).
-
-### Does Kimi WebBridge support multiple accounts simultaneously?
-
-Stock Kimi WebBridge is built around a single primary browser/login (its own docs describe a single-instance deployment). Running **multiple simultaneous accounts** is exactly the gap `kimi-webbridge-fleet` fills — without patching the daemon or the extension.
-
-### Why does Kimi WebBridge only allow one login at a time?
-
-The stock daemon enforces two singletons: it refuses to start if anything already answers `:10086`, and one daemon accepts exactly one extension connection. Fleet sidesteps both by running each profile's daemon on its own port behind a router — see [How it works](#how-it-works).
-
-### Kimi WebBridge: second profile rejected / "slot held by another session"?
-
-That's the single connection slot — the extension in your second profile can't claim a slot the first profile already holds. Fleet gives each profile its **own** daemon and slot, so they never compete.
-
-### How do I switch profiles in Kimi WebBridge without toggling the extension off?
-
-Stock WebBridge makes you open `chrome://extensions` in the profile holding the slot and toggle WebBridge off — 2–3 clicks every switch. Fleet removes the dance: `kwb connect` points each profile's extension at its own daemon **on disk, zero clicks, no popup**, and all profiles stay live at once. See [Zero-click connect](#zero-click-connect-no-popup).
-
-### What is Kimi WebBridge?
-
-[Kimi WebBridge](https://www.kimi.com/features/webbridge) is Moonshot AI's browser extension + local daemon that lets an AI agent (Claude Code, Cursor, Codex, Kimi, Hermes) drive your real Chrome using your real logins, with everything running locally. `kimi-webbridge-fleet` is an independent layer on top that removes its one-profile-at-a-time limit.
-
-### Is kimi-webbridge-fleet affiliated with Kimi / Moonshot AI?
-
-No. It's an independent, MIT-licensed orchestration layer that supervises the stock `kimi-webbridge` daemon and reads Chrome's own files — it contains **no** Kimi WebBridge code.
+**macOS-first.** The profile launcher / connect layer uses AppleScript, so macOS + Google Chrome is the supported platform today. Linux / Windows support is a documented follow-up.
 
 ## License
 

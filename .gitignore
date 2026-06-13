@@ -2,6 +2,12 @@ node_modules/
 *.log
 .DS_Store
 
+# Chrome for Testing — downloaded locally for the live test harness (~500MB), never committed
+chrome/
+
+# packed extension zips for CWS upload (build artifact)
+dist/
+
 # runtime state (per-machine; never committed)
 run/
 state/

@@ -1,0 +1,51 @@
+name: release
+
+# Cuts a release when you push a version tag (e.g. `git tag v1.0.0 && git push --tags`),
+# or on manual dispatch. It gates on the browser-free daemon contract test, builds the
+# Chrome Web Store extension zip, creates a GitHub Release with that zip attached, and
+# (if an NPM_TOKEN secret is configured) publishes the npm package.
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to create the GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+
+      - name: Daemon contract test (browser-free gate)
+        run: node test/contract.mjs
+
+      - name: Build Chrome Web Store extension zip
+        run: node scripts/pack-extension.mjs
+
+      - name: Create GitHub Release with the extension zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release create "v${VERSION}" \
+            dist/agent-webbridge-extension-*.zip \
+            --title "v${VERSION}" \
+            --generate-notes \
+            || gh release upload "v${VERSION}" dist/agent-webbridge-extension-*.zip --clobber
+
+      - name: Publish to npm (only if NPM_TOKEN is set)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public

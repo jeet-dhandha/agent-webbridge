@@ -1,9 +1,10 @@
 {
-  "name": "kimi-webbridge-fleet",
-  "version": "0.0.2",
-  "description": "Kimi WebBridge with multiple Chrome profiles & logins at once — drive several Google accounts simultaneously, not one at a time. Fixes the single connection slot / one-login limit with one daemon per profile + a router on :10086.",
+  "name": "agent-webbridge",
+  "version": "1.0.0",
+  "description": "Clean-room, open-source browser automation for AI agents — drive your real Chrome (real logins) across multiple profiles IN PARALLEL. A lightweight Node daemon + MV3 extension, no closed-source dependency.",
   "type": "module",
   "bin": {
+    "awb": "bin/kwb.mjs",
     "kwb": "bin/kwb.mjs"
   },
   "exports": {
@@ -14,7 +15,12 @@
     "./router": "./src/router.mjs"
   },
   "scripts": {
-    "kwb": "node ./bin/kwb.mjs"
+    "awb": "node ./bin/kwb.mjs",
+    "kwb": "node ./bin/kwb.mjs",
+    "test": "node test/contract.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
   },
   "engines": {
     "node": ">=18"
@@ -22,6 +28,7 @@
   "files": [
     "bin/",
     "src/",
+    "agent-webbridge-extension/",
     "skills/",
     ".claude-plugin/",
     "SKILL.md",
@@ -31,32 +38,32 @@
     "LICENSE"
   ],
   "keywords": [
-    "kimi",
-    "kimi-webbridge",
-    "webbridge",
-    "moonshot-ai",
+    "agent-webbridge",
     "browser-automation",
     "web-automation",
     "chrome",
-    "chrome-profiles",
-    "multi-chrome-profile",
+    "chrome-extension",
+    "cdp",
+    "chrome-devtools-protocol",
     "ai-agent",
     "claude-code",
+    "mcp",
     "multi-profile",
     "multi-account",
-    "multi-login",
-    "multiple-accounts",
-    "google-accounts",
-    "cdp"
+    "parallel",
+    "chrome-profiles",
+    "puppeteer-alternative",
+    "real-browser",
+    "automation"
   ],
   "license": "MIT",
   "author": "jeet-dhandha",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jeet-dhandha/kimi-webbridge-fleet.git"
+    "url": "git+https://github.com/jeet-dhandha/agent-webbridge.git"
   },
-  "homepage": "https://github.com/jeet-dhandha/kimi-webbridge-fleet#readme",
+  "homepage": "https://github.com/jeet-dhandha/agent-webbridge#readme",
   "bugs": {
-    "url": "https://github.com/jeet-dhandha/kimi-webbridge-fleet/issues"
+    "url": "https://github.com/jeet-dhandha/agent-webbridge/issues"
   }
 }

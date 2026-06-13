@@ -1,15 +1,15 @@
 {
-  "name": "kwb",
-  "owner": { "name": "jeet-dhandha", "email": "jeet.dhandha@lio.io" },
+  "name": "agent-webbridge",
+  "owner": { "name": "jeet-dhandha", "email": "jeet.dhandha.2511@gmail.com" },
   "plugins": [
     {
-      "name": "kimi-webbridge-fleet",
+      "name": "agent-webbridge",
       "source": "./",
-      "description": "Drive multiple real Chrome profiles with their live Google logins simultaneously through Kimi WebBridge — multi-account browser automation in the user's actual Chrome (not headless like Playwright/Firecrawl).",
+      "description": "Clean-room, open-source (MIT) browser automation for AI agents. Drives the user's real Chrome with its live login sessions across multiple Chrome profiles in parallel, attaching chrome.debugger per tab so N tabs in one profile run concurrently (not headless like Playwright/Firecrawl). A lightweight Node daemon plus an MV3 Chrome extension — no closed-source dependency, no account, no telemetry.",
       "author": { "name": "jeet-dhandha" },
-      "homepage": "https://github.com/jeet-dhandha/kimi-webbridge-fleet",
+      "homepage": "https://github.com/jeet-dhandha/agent-webbridge",
       "license": "MIT",
-      "keywords": ["kimi-webbridge", "browser-automation", "chrome", "multi-profile", "claude-code"]
+      "keywords": ["agent-webbridge", "browser-automation", "chrome", "multi-profile", "parallel", "claude-code"]
     }
   ]
 }

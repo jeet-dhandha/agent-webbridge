@@ -3,8 +3,8 @@
 // not, what one thing do I fix?"
 //
 // Pre-mortem FF1: the #1 first-run failure is a silent environment gap (no
-// Chrome, no kimi-webbridge binary, extension never installed, :10086 already
-// taken by a stale daemon). Each of those used to surface as a confusing error
+// Chrome, the bundled agent-webbridge daemon missing, extension never installed,
+// :10086 already taken by a stale daemon). Each of those used to surface as a confusing error
 // three commands later. `doctor` front-loads them into a single PASS/WARN/FAIL
 // report with the exact remedy, and exits non-zero if anything is FAIL so it's
 // usable in a setup script.
@@ -100,15 +100,17 @@ export async function runDoctor() {
         ),
   );
 
-  // 5. kimi-webbridge daemon binary — the engine each profile's daemon runs.
+  // 5. agent-webbridge daemon binary — the engine each profile's daemon runs.
+  // This ships inside the package (bin/agent-webbridge.mjs), so it should always
+  // be present; a miss usually means a broken install or a bad KWB_KIMI_BIN.
   checks.push(
     fs.existsSync(KIMI_BIN)
-      ? check("kimi-webbridge binary", PASS, KIMI_BIN)
+      ? check("agent-webbridge daemon", PASS, KIMI_BIN)
       : check(
-          "kimi-webbridge binary",
+          "agent-webbridge daemon",
           FAIL,
           `${KIMI_BIN} (missing)`,
-          "install Kimi WebBridge first (it provides ~/.kimi-webbridge/bin/kimi-webbridge), or set KWB_KIMI_BIN.",
+          "the bundled daemon (bin/agent-webbridge.mjs) is missing — reinstall with `npm i -g agent-webbridge`, or unset/correct KWB_KIMI_BIN.",
         ),
   );
 
@@ -132,16 +134,16 @@ export async function runDoctor() {
     if (withExt.length === 0) {
       checks.push(
         check(
-          "Kimi WebBridge extension",
+          "agent-webbridge extension",
           WARN,
           "not installed in any profile",
-          "install it (CWS, or `kwb install --forcelist` to push to all profiles) — `kwb up` needs it to connect.",
+          "install it from the Chrome Web Store (or `kwb setup` to wire it into your profiles) — `kwb up` needs it to connect.",
         ),
       );
     } else if (enabled.length === 0) {
       checks.push(
         check(
-          "Kimi WebBridge extension",
+          "agent-webbridge extension",
           WARN,
           `present in ${withExt.length} profile(s) but all disabled`,
           "enable it in chrome://extensions for the profile(s) you want to drive.",
@@ -149,12 +151,12 @@ export async function runDoctor() {
       );
     } else {
       const names = enabled.map((p) => `${p.name}[${p.extType}]`).join(", ");
-      checks.push(check("Kimi WebBridge extension", PASS, `enabled in ${enabled.length}/${profiles.length}: ${names}`));
+      checks.push(check("agent-webbridge extension", PASS, `enabled in ${enabled.length}/${profiles.length}: ${names}`));
     }
   }
 
   // 8. Router port :10086 — must be free (or held by OUR router) before `kwb up`,
-  // because `kimi-webbridge start`'s singleton probe is hardwired to :10086.
+  // because the router's singleton probe is hardwired to :10086.
   const portStatus = await daemonStatus(ROUTER_PORT);
   if (!portStatus) {
     checks.push(check(`Router port :${ROUTER_PORT}`, PASS, "free"));
@@ -165,7 +167,7 @@ export async function runDoctor() {
       check(
         `Router port :${ROUTER_PORT}`,
         WARN,
-        "held by the stock kimi-webbridge daemon",
+        "held by another process (e.g. a stale daemon)",
         "that's fine — `kwb up` stops it automatically before starting the fleet.",
       ),
     );
@@ -178,7 +180,7 @@ export async function runDoctor() {
     fs.accessSync(RUN, fs.constants.W_OK);
   } catch (e) {
     runOk = false;
-    checks.push(check("Run state dir", FAIL, `${RUN} not writable (${e.code || e.message})`, "fix permissions on ~/.kimi-webbridge/multi/run."));
+    checks.push(check("Run state dir", FAIL, `${RUN} not writable (${e.code || e.message})`, "fix permissions on ~/.agent-webbridge/multi/run."));
   }
   if (runOk) checks.push(check("Run state dir", PASS, RUN));
 

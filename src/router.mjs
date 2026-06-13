@@ -108,7 +108,37 @@ async function pickDefaultPort() {
   return firstUp;
 }
 
-const activeQueues = new Map(); // port -> Promise
+// Per-profile (per-port) concurrency limiter.
+//
+// The stock CWS extension executes one command at a time (its background.js funnels every
+// tool call through one global commandQueue), so the router historically forced strict
+// serialization per port too — that's why 10 tabs in one profile never ran in parallel.
+//
+// Our patched dev build (scripts/patch-extension-parallel.mjs) replaces that global queue
+// with per-tab queues, so DIFFERENT tabs execute concurrently. We now allow up to
+// KWB_PER_PROFILE_CONCURRENCY in-flight commands per profile and let the extension keep
+// same-tab order.
+//
+// Safe for BOTH builds: a profile still on the UNPATCHED extension just serializes the
+// concurrent commands inside its own global queue (no speed-up, but no corruption — the
+// shared CDP cursor is never raced). Only the patched build actually parallelizes. Set
+// KWB_PER_PROFILE_CONCURRENCY=1 to force the old strict-serial proxy behavior.
+const PER_PROFILE_CONCURRENCY = Math.max(1, Number(process.env.KWB_PER_PROFILE_CONCURRENCY || 10));
+const portSem = new Map(); // port -> { active, waiters: [] }
+
+function acquirePort(port) {
+  let s = portSem.get(port);
+  if (!s) { s = { active: 0, waiters: [] }; portSem.set(port, s); }
+  if (s.active < PER_PROFILE_CONCURRENCY) { s.active++; return Promise.resolve(); }
+  return new Promise((resolve) => s.waiters.push(resolve));
+}
+function releasePort(port) {
+  const s = portSem.get(port);
+  if (!s) return;
+  const next = s.waiters.shift();
+  if (next) next();        // hand the held slot directly to the next waiter (active unchanged)
+  else if (s.active > 0) s.active--;
+}
 
 async function proxyCommand(bodyObj) {
   let port;
@@ -132,12 +162,9 @@ async function proxyCommand(bodyObj) {
   }
   const { profile, ...forward } = bodyObj; // strip our routing key
 
-  let queue = activeQueues.get(port) || Promise.resolve();
-  let resolveLock;
-  const lock = new Promise(r => resolveLock = r);
-  activeQueues.set(port, lock);
-
-  await queue;
+  // Gate on the per-port limiter instead of a strict serial queue: up to
+  // PER_PROFILE_CONCURRENCY commands to this profile run at once.
+  await acquirePort(port);
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 300000);
   try {
@@ -153,7 +180,7 @@ async function proxyCommand(bodyObj) {
     return { statusCode: 502, json: { ok: false, error: `proxy to :${port} failed: ${e.message}`, routedTo } };
   } finally {
     clearTimeout(t);
-    resolveLock();
+    releasePort(port);
   }
 }
 
@@ -190,5 +217,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => {
   const idle = IDLE_MIN > 0 ? `idle auto-shutdown after ${IDLE_MIN}m of no /command` : "idle auto-shutdown disabled";
-  console.log(`[kwb-router] listening on http://127.0.0.1:${PORT} (proxying /command by profile; ${idle})`);
+  console.log(`[kwb-router] listening on http://127.0.0.1:${PORT} (proxying /command by profile; up to ${PER_PROFILE_CONCURRENCY} concurrent/profile; ${idle})`);
 });

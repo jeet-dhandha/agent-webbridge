@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-export const RUN = path.join(os.homedir(), ".kimi-webbridge", "multi", "run");
+export const RUN = path.join(os.homedir(), ".agent-webbridge", "multi", "run");
 export const ROUTER_PID = path.join(RUN, "router.pid");
 export const ROUTER_LOG = path.join(RUN, "router.log");
 export const STATE_FILE = path.join(RUN, "fleet-state.json");

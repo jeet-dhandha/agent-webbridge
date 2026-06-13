@@ -233,12 +233,26 @@ function createFreshStore(storeDir, wsUrl) {
 // the extension has never written storage.local. Throws if the extension is not
 // installed in the profile.
 export function setLocalUrl(profileDir, wsUrl) {
-  const existing = extStoreDir(profileDir);
-  if (existing) return appendLocalUrl(existing, wsUrl);
-  const extId = kimiExtId(profileDir);
-  if (!extId) throw new Error(`extension not installed in profile "${profileDir}"`);
-  const storeDir = path.join(chromeUserDataDir(), profileDir, "Local Extension Settings", extId);
-  return createFreshStore(storeDir, wsUrl);
+  let ok = false;
+  const base = path.join(chromeUserDataDir(), profileDir, "Local Extension Settings");
+  for (const id of KIMI_EXT_IDS) {
+    const storeDir = path.join(base, id);
+    try {
+      if (fs.existsSync(path.join(storeDir, "CURRENT"))) {
+        appendLocalUrl(storeDir, wsUrl);
+      } else {
+        createFreshStore(storeDir, wsUrl);
+      }
+      ok = true;
+    } catch (e) {
+      // ignore individual failures, try next
+    }
+  }
+  if (!ok) {
+    const storeDir = path.join(base, KIMI_EXT_IDS[0]);
+    return createFreshStore(storeDir, wsUrl);
+  }
+  return { mode: "multi", profileDir };
 }
 
 // CLI (debug): node storage.mjs read <ProfileDir> | inspect <storeDir/log>

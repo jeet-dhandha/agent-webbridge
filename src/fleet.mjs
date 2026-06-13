@@ -14,11 +14,16 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
 
+// Default to OUR clean-room Node daemon (bin/agent-webbridge.mjs in this package),
+// resolved relative to this file so it works in-checkout AND when installed via npm.
+// KWB_KIMI_BIN still overrides (e.g. to fall back to the legacy closed-source kimi binary).
+const _PKG_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url))); // src/ -> package root
 export const KIMI_BIN =
-  process.env.KWB_KIMI_BIN || path.join(os.homedir(), ".kimi-webbridge", "bin", "kimi-webbridge");
-const STATE_ROOT = path.join(os.homedir(), ".kimi-webbridge", "multi", "state");
+  process.env.KWB_KIMI_BIN || path.join(_PKG_ROOT, "bin", "agent-webbridge.mjs");
+const STATE_ROOT = path.join(os.homedir(), ".agent-webbridge", "multi", "state");
 
 function stateHome(dir) {
   return path.join(STATE_ROOT, dir.replace(/[^A-Za-z0-9_-]+/g, "_"));
@@ -53,7 +58,7 @@ export async function routerPortBusy() {
 
 function pidFromState(dir) {
   try {
-    const p = path.join(stateHome(dir), ".kimi-webbridge", "daemon.pid");
+    const p = path.join(stateHome(dir), ".agent-webbridge", "daemon.pid");
     return parseInt(fs.readFileSync(p, "utf8").trim(), 10) || null;
   } catch {
     return null;

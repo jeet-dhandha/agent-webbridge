@@ -1,7 +1,51 @@
 # Changelog
 
-All notable changes to **kimi-webbridge-fleet** are documented here.
-This project adheres to [Semantic Versioning](https://semver.org/).
+All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
+here. This project adheres to [Semantic Versioning](https://semver.org/).
+
+## [1.0.0] — 2026-06-13
+
+**The pivot to a fully clean-room, open-source stack.** `kimi-webbridge-fleet` evolved into
+**agent-webbridge** by replacing the two closed pieces it used to supervise — the 9.5 MB
+closed-source "kimi-webbridge" Go daemon and the un-patchable official "Kimi WebBridge" Chrome
+Web Store extension — with our own. The result: **no closed-source dependency, no account, no
+telemetry, no `curl | bash` installer.** MIT, clean-room, contains no Kimi WebBridge code.
+
+### Added
+- **Clean-room Node daemon (`src/daemon/`).** Drop-in replacement for the closed Go daemon; the
+  only runtime dependency is `ws`. Speaks the same HTTP `/command` + `/status` contract and a
+  WebSocket `/ws` to the extension. Self-backgrounds on `start`. Shipped via npm.
+- **Clean-room MV3 Chrome extension (`agent-webbridge-extension/`,** stable id
+  `ifodkkbkmngjlkhiphcjmbceeolhpfeo`**).** Replaces the official CWS extension and is fully
+  patchable. Permissions: `debugger`, `tabs`, `tabGroups`, `storage`, `alarms`; host_permissions
+  `["<all_urls>"]`. Connects **only** to a daemon on `127.0.0.1` — no remote server, ever.
+- **True per-tab parallelism — the killer feature.** The official extension funneled every CDP
+  call through one global "current tab" (one tab per profile). Ours attaches `chrome.debugger`
+  **per tab** (a `Map`), so N tabs in one profile run concurrently. Proven live: two tabs
+  evaluate in parallel at **2007 ms wall vs ~4000 ms serial**.
+- **Full 13-tool parity, all verified live in a real browser:** `navigate`, `find_tab`,
+  `evaluate`, `snapshot` (accessibility tree with stable `@e` refs), `click`, `fill` (native
+  inputs **and** contenteditable), `network` (request capture), `upload`, `screenshot`,
+  `save_as_pdf`, `list_tabs`, `close_tab`, `close_session`. A "session" groups a task's tabs into
+  a Chrome tab group.
+- **npm package `agent-webbridge`.** `npm i -g agent-webbridge` brings the daemon + CLI.
+- **CLI `awb`, with `kwb` kept as an alias.** Existing subcommands are unchanged: `setup`,
+  `connect`, `up`, `down`, `status`, `doctor`, `profiles`.
+- **Verification harness.** Browser-free daemon contract test (`test/contract.mjs`, `npm test`,
+  11/11 PASS) plus isolated Chrome-for-Testing live gates (`scratch/live_m1.mjs` 7/7 — per-tab
+  parallelism; `scratch/live_m2.mjs` 19/19 — all 13 tools). Adversarial interface audit: 0 defects.
+
+### Changed
+- **Replaced the closed stack.** No longer supervises the closed Go daemon or the official CWS
+  extension; the fleet orchestration in `src/` now sits on pieces we fully own and can patch.
+- Architecture unchanged in shape — caller → router (`127.0.0.1:10086`) → per-profile daemon
+  (deterministic hashed port) → WebSocket → extension → per-tab CDP — but every box below the
+  router is now our own code.
+
+### Notes
+- macOS-first (the profile launcher/connect layer uses AppleScript); Linux/Windows is a
+  documented follow-up. Node `>=18`.
+- No closed-source dependency, no account, no telemetry. Nothing leaves the machine.
 
 ## [0.0.2] — 2026-06-11
 
@@ -52,5 +96,6 @@ routed by a top-level `"profile"` field.
 - macOS + Google Chrome only. Requires the stock Kimi WebBridge daemon + extension.
 - Not affiliated with Moonshot AI / Kimi; contains no Kimi WebBridge code.
 
+[1.0.0]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.0
 [0.0.2]: https://github.com/jeet-dhandha/kimi-webbridge-fleet/releases/tag/v0.0.2
 [0.0.1]: https://github.com/jeet-dhandha/kimi-webbridge-fleet/releases/tag/v0.0.1
