@@ -92,6 +92,26 @@ Parallelism is **cross-profile** (N profiles) **× per-tab** (N tabs/profile): f
 `/command` requests at once — across different profiles, or at different tabs within the same
 profile — and they run concurrently.
 
+### High-throughput batch jobs (fan-out + resume)
+
+For a large worklist (hundreds–thousands of items — scrape N companies, check N accounts,
+fill N forms), drive it as a **fleet fan-out**:
+
+- **Total concurrency = #profiles × tabs-per-profile.** Bring up several profiles
+  (`awb up "P1" "P2" …`), split the worklist into one chunk per profile, and within each
+  profile keep up to M `/command` requests (M tabs) in flight at once — e.g.
+  **5 profiles × 10 tabs = 50 items processed concurrently**. Per-tab parallelism is real
+  (`chrome.debugger` is attached per tab), so tabs in one profile don't block each other.
+- **Make it resumable.** Write results to disk **incrementally** — rewrite/append the output
+  file after *each* item, not once at the end. On (re)start, load the existing output, skip the
+  items already done, and process only the remainder. An interrupted run (crash, `awb down`,
+  machine sleep) then resumes where it stopped instead of redoing everything — and you can
+  safely stop a run to re-tune concurrency, then relaunch.
+- **Mind the shared egress IP.** All profiles and tabs share one outbound IP. Fanning wider
+  speeds up visiting **many distinct sites**, but for a step that hammers **one** service
+  (e.g. a search engine), more parallel requests get rate-limited / CAPTCHA'd sooner — not
+  finished faster. Throttle those steps.
+
 ## Tools
 
 13 tools, full parity, all verified live in a real browser:

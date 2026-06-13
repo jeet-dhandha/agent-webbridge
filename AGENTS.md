@@ -38,7 +38,11 @@ caller ──HTTP POST /command──▶ router (127.0.0.1:10086)
 
 Parallelism is two-dimensional: **cross-profile** (N profiles, each its own daemon) ×
 **per-tab** (N tabs/profile, each its own debugger attachment). A "session" groups a task's tabs
-into a Chrome tab group.
+into a Chrome tab group. For large batch jobs this composes into a **fleet fan-out**: split a
+worklist across N profiles × M tabs (total concurrency = N×M) and write output **incrementally**
+so an interrupted run resumes from the remainder instead of redoing work — see the
+high-throughput section in [SKILL.md](SKILL.md). All profiles share one egress IP, so widening
+fan-out helps when visiting many distinct sites but not when hammering a single rate-limited service.
 
 ## Repo layout
 
