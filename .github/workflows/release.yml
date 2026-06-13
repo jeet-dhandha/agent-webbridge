@@ -16,6 +16,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      # Mapped here because the `secrets` context is not allowed in step `if:`
+      # conditionals (it fails workflow validation). We gate on `env.NPM_TOKEN`.
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +49,7 @@ jobs:
             || gh release upload "v${VERSION}" dist/agent-webbridge-extension-*.zip --clobber
 
       - name: Publish to npm (only if NPM_TOKEN is set)
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: ${{ env.NPM_TOKEN != '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
