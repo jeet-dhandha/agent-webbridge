@@ -21,3 +21,7 @@ docs/LAUNCH-POSTS.md
 docs/PUBLISHING.md
 docs/SEO-GEO.md
 docs/SEO-POSTS.md
+
+# local live-test / scrape harnesses — hardcode local absolute paths, never committed
+scratch/
+build-next-reality-check.html
