@@ -17,13 +17,12 @@ router on `http://127.0.0.1:10086` proxies `/command` to the right daemon by a t
 > exists so skill indexers that expect a top-level `SKILL.md` can discover it. (The `skills/`
 > directory name is kept for backward compatibility; the product is **agent-webbridge**.)
 
-agent-webbridge evolved from `kimi-webbridge-fleet` by **replacing** the two closed pieces it
-used to depend on — a closed-source Go daemon and an un-patchable official extension — with our
-own clean-room daemon (`src/daemon/`, only runtime dep is `ws`) and clean-room MV3 Chrome
-extension (`agent-webbridge-extension/`, stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`). The
-result has **no** closed-source dependency, **no** account, **no** telemetry, and **no**
-`curl|bash` installer. It is **localhost-only**: the extension connects only to a daemon you run
-on `127.0.0.1`; no data leaves the machine and no remote server is ever contacted.
+agent-webbridge is **clean-room and standalone**: its own daemon (`src/daemon/`, only runtime
+dep is `ws`) and its own MV3 Chrome extension (`agent-webbridge-extension/`, stable id
+`ifodkkbkmngjlkhiphcjmbceeolhpfeo`). **No** closed-source dependency, **no** account, **no**
+telemetry, and **no** `curl|bash` installer. It is **localhost-only**: the extension connects
+only to a daemon you run on `127.0.0.1`; no data leaves the machine and no remote server is ever
+contacted.
 
 ## When to use
 

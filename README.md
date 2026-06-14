@@ -6,11 +6,11 @@
 
 ## Why
 
-It evolved from `kimi-webbridge-fleet` by **replacing the two closed pieces** that project depended on — the 9.5 MB closed-source `kimi-webbridge` Go daemon and the un-patchable official "Kimi WebBridge" Chrome Web Store extension — with our own clean-room daemon and extension. The result is the same capability with **no closed-source dependency, no account, no telemetry, and no bootstrap installer**.
+It's **clean-room and standalone** — its own lightweight Node daemon and its own MV3 Chrome extension, with **no closed-source dependency, no account, no telemetry, and no bootstrap installer**. Install it from npm, load the extension once, and drive your real Chrome over localhost.
 
 The killer feature is **true per-tab parallelism**.
 
-The official Kimi WebBridge extension funnels every CDP call through **one global "current tab"** — so it can drive exactly one tab per profile. `agent-webbridge` attaches `chrome.debugger` **per tab** (a `Map` keyed by tab), so **N tabs in one profile run concurrently**.
+Most browser-automation bridges funnel every CDP call through **one global "current tab"** — so they drive exactly one tab per profile at a time. `agent-webbridge` attaches `chrome.debugger` **per tab** (a `Map` keyed by tab), so **N tabs in one profile run concurrently**.
 
 This is proven live and it **scales**: 2, 5, and **10 tabs in a single profile** each finish in **~2 seconds flat** (measured 2007 / 2007 / 2010 ms, with every tab's interval overlapping every other). The same work run serially would take 4 s → 10 s → **20 s**. Wall-clock stays flat as you add tabs — that's true N× per-profile parallelism.
 

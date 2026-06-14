@@ -11,13 +11,12 @@ end-user "how do I drive it" doc, see `README.md`; for the exhaustive contract, 
 > Scope: **macOS-first** (the profile launcher / connect layer uses AppleScript). Linux/Windows
 > is a documented follow-up. Node `>=18`.
 
-## What this is (and what it replaced)
+## What this is
 
-agent-webbridge **evolved from `kimi-webbridge-fleet`** by replacing the two closed pieces that
-fleet used to supervise — the 9.5 MB closed-source "kimi-webbridge" Go daemon and the
-un-patchable official "Kimi WebBridge" Chrome Web Store extension — with **our own clean-room
-daemon and extension**. The fleet orchestration layer (multi-profile routing, connect, lifecycle)
-carried over and now sits on top of pieces we fully own and can patch.
+agent-webbridge is a **clean-room, standalone** browser-automation stack: our own daemon and our
+own MV3 Chrome extension, plus a multi-profile orchestration layer (routing, connect, lifecycle)
+on top. Every piece is ours — fully owned and patchable — with **no closed-source dependency,
+no account, and no telemetry**.
 
 The killer feature this unlocked: **true per-tab parallelism**. The official extension funnels
 every CDP call through one global "current tab" (so effectively one tab per profile). Our
@@ -143,7 +142,7 @@ curl -s -X POST http://127.0.0.1:10086/command \
 - No data leaves the machine; no remote server is ever contacted; no analytics; no account.
 - The daemon's only runtime dependency is `ws`. Keep it that way — no new runtime deps without
   a very good reason.
-- MIT, clean-room. Contains **no** Kimi WebBridge code. Not affiliated with Moonshot AI / Kimi.
+- MIT, clean-room — every line is ours. No closed-source dependency, no account, no telemetry.
 
 ## House rules
 
