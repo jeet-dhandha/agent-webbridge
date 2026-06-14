@@ -218,6 +218,9 @@ async function main() {
   const launcher = spawn(process.execPath, [BIN, "start", "--addr", `${HOST}:${port}`], {
     cwd: REPO,
     stdio: "ignore",
+    // Short handshake-reaper window so the "silent socket gets terminated" test is fast.
+    // Real/stub connections send hello within ms, well inside this, so they're unaffected.
+    env: { ...process.env, AWB_HELLO_TIMEOUT_MS: "1200" },
   });
   await new Promise((res) => launcher.on("exit", res));
 
@@ -377,10 +380,175 @@ async function main() {
     );
   }
 
+  // 5) Forced reconnect (`awb up` recovery path): POST /reconnect must drop the bound
+  //    socket — so a stale/zombie worker the daemon still believes is connected gets
+  //    evicted — and a FRESH worker must then be able to re-handshake into the slot.
+  {
+    // (a) A worker connects; the daemon sees it.
+    let stubC;
+    try {
+      stubC = await connectStub(port);
+    } catch (e) {
+      check("reconnect: fresh stub handshake", false, e.message);
+      return finish(port);
+    }
+    let cClosed = false;
+    stubC.on("close", () => { cClosed = true; });
+    const upC = await waitForExtension(port, true);
+    check(
+      "reconnect: status connected:true before /reconnect",
+      Boolean(upC && upC.extension_connected === true),
+      JSON.stringify(upC)
+    );
+
+    // (b) /reconnect reports it dropped a bound socket, the daemon immediately reports
+    //     disconnected, and the (stale) worker's socket actually closes.
+    const { json: rj } = await httpJson("POST", port, "/reconnect");
+    check(
+      "reconnect: POST /reconnect → ok && dropped:true",
+      Boolean(rj && rj.ok === true && rj.dropped === true),
+      JSON.stringify(rj)
+    );
+    const downC = await waitForExtension(port, false);
+    check(
+      "reconnect: status connected:false right after /reconnect",
+      Boolean(downC && downC.extension_connected === false),
+      JSON.stringify(downC)
+    );
+    await sleep(200);
+    check("reconnect: dropped worker's socket received close", cClosed === true);
+
+    // (c) a FRESH worker re-handshakes into the now-empty slot and serves commands —
+    //     this is the live SW that `awb up` wakes after the drop, displacing the stale one.
+    let stubD;
+    try {
+      stubD = await connectStub(port);
+    } catch (e) {
+      check("reconnect: replacement worker handshake", false, e.message);
+      return finish(port);
+    }
+    const upD = await waitForExtension(port, true);
+    check(
+      "reconnect: status connected:true after replacement worker",
+      Boolean(upD && upD.extension_connected === true),
+      JSON.stringify(upD)
+    );
+    {
+      const { json } = await httpJson("POST", port, "/command", {
+        action: "list_tabs",
+        args: {},
+        session: "s1",
+      });
+      check(
+        "reconnect: command works on the replacement worker",
+        Boolean(json && json.ok === true && json.success === true && Array.isArray(json.tabs)),
+        JSON.stringify(json)
+      );
+    }
+    try { stubD.close(); } catch {}
+    await waitForExtension(port, false);
+
+    // (d) /reconnect with nothing connected is a harmless no-op (dropped:false).
+    const { json: rj2 } = await httpJson("POST", port, "/reconnect");
+    check(
+      "reconnect: POST /reconnect with no socket → ok && dropped:false",
+      Boolean(rj2 && rj2.ok === true && rj2.dropped === false),
+      JSON.stringify(rj2)
+    );
+  }
+
+  // 6) Impostor rejection: a SECOND, unidentified extension (no extensionId in its hello —
+  //    the signature of a leftover/legacy webbridge build) must NOT be able to displace the
+  //    real one. Without this gate the two flap over the single slot every few seconds and
+  //    tool calls become non-deterministic (the live root cause behind "list_tabs sometimes
+  //    returns 0").
+  {
+    // The real extension connects and is adopted.
+    let real;
+    try {
+      real = await connectStub(port);
+    } catch (e) {
+      check("impostor: real extension handshake", false, e.message);
+      return finish(port);
+    }
+    const realUp = await waitForExtension(port, true);
+    check(
+      "impostor: real extension connected (id=stub-ext)",
+      Boolean(realUp && realUp.extension_connected === true && realUp.extension_id === "stub-ext"),
+      JSON.stringify(realUp)
+    );
+
+    // An impostor connects and sends a hello WITHOUT an extensionId.
+    const impostor = new WebSocket(`ws://${HOST}:${port}/ws`);
+    let impAck = false;
+    let impClosed = false;
+    impostor.on("message", (raw) => {
+      try {
+        const m = JSON.parse(typeof raw === "string" ? raw : raw.toString());
+        if (m && m.type === "hello_ack") impAck = true;
+      } catch {}
+    });
+    impostor.on("close", () => { impClosed = true; });
+    await new Promise((res, rej) => {
+      impostor.on("open", () => {
+        impostor.send(JSON.stringify({ type: "hello", payload: { extensionVersion: "1.9.13" } }));
+        res();
+      });
+      impostor.on("error", rej);
+    });
+    await sleep(500);
+
+    // The impostor must be shut out: no hello_ack, its socket closed, and the real
+    // extension must STILL own the slot and serve commands.
+    check("impostor: unidentified hello got NO hello_ack", impAck === false);
+    check("impostor: daemon closed the impostor socket", impClosed === true);
+    const stillReal = await httpJson("GET", port, "/status");
+    check(
+      "impostor: real extension still connected (id=stub-ext, not displaced)",
+      Boolean(
+        stillReal.json &&
+          stillReal.json.extension_connected === true &&
+          stillReal.json.extension_id === "stub-ext"
+      ),
+      JSON.stringify(stillReal.json)
+    );
+    {
+      const { json } = await httpJson("POST", port, "/command", {
+        action: "list_tabs",
+        args: {},
+        session: "s1",
+      });
+      check(
+        "impostor: command still routes to the real extension",
+        Boolean(json && json.ok === true && json.success === true && Array.isArray(json.tabs)),
+        JSON.stringify(json)
+      );
+    }
+    try { real.close(); } catch {}
+    try { impostor.close(); } catch {}
+    await waitForExtension(port, false);
+  }
+
+  // 7) Handshake-timeout reaper: a socket that completes the WS upgrade but never sends a
+  //    valid hello is never adopted, so the ping keepalive can't reap it. The daemon must
+  //    terminate it after AWB_HELLO_TIMEOUT_MS (set short for this run) so it can't leak.
+  {
+    const silent = new WebSocket(`ws://${HOST}:${port}/ws`);
+    let opened = false, closed = false;
+    silent.on("open", () => { opened = true; });
+    silent.on("close", () => { closed = true; });
+    await sleep(300);
+    check("reaper: silent (no-hello) socket opened", opened === true);
+    const deadline = Date.now() + 3000; // > AWB_HELLO_TIMEOUT_MS (1200) + margin
+    while (!closed && Date.now() < deadline) await sleep(100);
+    check("reaper: un-adopted silent socket was terminated by the handshake timeout", closed === true);
+    try { silent.close(); } catch {}
+  }
+
   return finish(port);
 }
 
-// 5) Shut the daemon down and report.
+// 6) Shut the daemon down and report.
 async function finish(port) {
   try {
     await httpJson("POST", port, "/shutdown");

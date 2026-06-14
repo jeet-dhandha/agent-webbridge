@@ -128,6 +128,12 @@ function main() {
   chrome.runtime.onMessage.addListener((m, _sender, reply) => {
     const type = m && m.type;
     if (type === "GET_STATUS") {
+      // GET_STATUS is also the service-worker wake trigger the fleet relies on (popup.js
+      // sends it on load; `awb up` opens the popup to fire it). On an ALREADY-running worker
+      // main() won't re-run, so kick a reconnect here too — otherwise a wake after the daemon
+      // dropped our socket would idle until the 5s reconnect timer. reconnectIfNeeded() is a
+      // no-op when already connected.
+      ws.reconnectIfNeeded();
       reply({ connected: ws.isConnected() });
     } else if (type === "CONNECT") {
       ws.reconnectIfNeeded();

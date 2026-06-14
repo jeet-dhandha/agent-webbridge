@@ -585,31 +585,6 @@ export function focusProfileWindow(extId) {
   }
 }
 
-export function isProfileWindowOpen(extId) {
-  if (!extId || !isChromeRunning()) return false;
-  try {
-    const applescript = `
-      tell application "Google Chrome"
-        repeat with w in windows
-          set tabsList to every tab of w
-          repeat with t in tabsList
-            try
-              if URL of t contains "${extId}" then
-                return true
-              end if
-            end try
-          end repeat
-        end repeat
-      end tell
-      return false
-    `;
-    const out = execFileSync("osascript", ["-e", applescript], { encoding: "utf8" });
-    return out.trim() === "true";
-  } catch {
-    return false;
-  }
-}
-
 export function closeBlankWindows() {
   if (!isChromeRunning()) return;
   try {

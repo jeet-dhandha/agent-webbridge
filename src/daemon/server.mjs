@@ -57,6 +57,16 @@ export function startServer({ host = "127.0.0.1", port } = {}) {
         return;
       }
 
+      if (req.method === "POST" && req.url === "/reconnect") {
+        // Force-drop the bound extension socket so a stale/zombie connection is
+        // displaced; the live worker then re-handshakes (`awb up` waking it). This is
+        // what lets `awb up` alone recover a daemon stuck talking to a dead worker,
+        // without a full `awb down && awb up`.
+        const dropped = hub.forceReconnect();
+        sendJson(res, 200, { ok: true, dropped });
+        return;
+      }
+
       if (req.method === "POST" && req.url === "/command") {
         try {
           const raw = await readBody(req);

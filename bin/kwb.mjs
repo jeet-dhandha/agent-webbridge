@@ -71,7 +71,6 @@ import {
   launchChrome,
   cleanupAnnoyingTabs,
   closeBlankWindows,
-  isProfileWindowOpen,
   unpackedExtPath,
   openUrlInProfile,
   devBuildExtId,
@@ -213,19 +212,28 @@ async function cmdUp(args) {
   const noConnect = args.includes("--no-connect");
   for (let i = 0; i < targets.length; i++) {
     const p = targets[i];
-    // Open the window AND wake the dormant service worker (opens the extension's popup
-    // as a background tab) so it reads local_url and connects. Without the wake, an MV3
-    // worker on an already-set-up profile never starts on launch, so the URL we wrote is
-    // never applied. Profiles without the extension (or --no-connect) just get a window.
+    // Force a FRESH reconnect rather than trusting a possibly-stale "already connected"
+    // state. A daemon can keep a zombie extension socket — it reports connected:true, but
+    // the worker behind it is dead or serving old code (e.g. after an MV3 suspend/wake or
+    // an extension reload), so commands like list_tabs hang or return stale data, and a
+    // plain `awb up` used to no-op ("already connected") and never displace it. Now we:
+    //   1. ask the daemon to drop its current socket (POST /reconnect), and
+    //   2. wake the service worker (opens the extension popup as a background tab),
+    // so the LIVE worker re-handshakes into the slot (adoptSocket = newest-wins evicts the
+    // stale one). A dormant worker won't notice a dropped socket on its own — hence the
+    // wake; the popup tab is cleaned up by cleanupAnnoyingTabs once connected.
     if (!noConnect && p.extId) {
-      const status = await daemonStatus(p.port);
-      const windowOpen = isProfileWindowOpen(p.extId);
-      if (status?.extension_connected === true && windowOpen) {
-        console.log(`• already connected: ${p.name} (${p.extType} ext)`);
-      } else {
-        wakeExtension(p.dir, p.extId);
-        console.log(`• opened + woke ${p.name} (${p.extType} ext)`);
-      }
+      const r = await daemonReconnect(p.port);
+      wakeExtension(p.dir, p.extId);
+      const note =
+        r.reason === "unreachable"
+          ? " (daemon unreachable — woke anyway)"
+          : r.reason === "unsupported"
+            ? " (daemon predates /reconnect — restart it to enable single-step recovery)"
+            : r.dropped
+              ? " (dropped a bound socket)"
+              : "";
+      console.log(`• forced reconnect + woke ${p.name} (${p.extType} ext)${note}`);
     } else {
       openChromeProfile(p.dir);
       console.log(`• opened Chrome window: ${p.name}`);
@@ -244,9 +252,10 @@ async function cmdUp(args) {
     const connected = await waitConnected(p.port, 12000);
     connections.push({ dir: p.dir, name: p.name, port: p.port, extId: p.extId, extType: p.extType, connected });
     console.log(`  ${connected ? "✓ connected   " : "… not connected"} ${p.name.padEnd(18)} → :${p.port}`);
-    if (connected) {
-      cleanupAnnoyingTabs(p.extId);
-    }
+    // Close the wake popup tab whether or not the poll saw "connected" — the wake always
+    // opens it, and waiting on `connected` could otherwise orphan it on a slow handshake.
+    // cleanupAnnoyingTabs is a best-effort AppleScript no-op when there's no popup tab.
+    if (p.extId) cleanupAnnoyingTabs(p.extId);
   }
 
   // Record the last start so we can later confirm everything came up (kwb state).
@@ -263,6 +272,25 @@ async function cmdUp(args) {
     profiles: connections,
   });
   console.log(`• recorded start @ ${startedAt} — ${okCount}/${connections.length} connected (kwb state)`);
+}
+
+// Ask a daemon to drop its currently bound extension socket (POST /reconnect) so a
+// stale/zombie connection is displaced and the live worker can re-handshake. Best-effort:
+// returns the parsed { ok, dropped } body, or null if the daemon is unreachable or too old
+// to have the endpoint (a pre-/reconnect daemon 404s — restart it to pick up the route).
+async function daemonReconnect(port) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 2500);
+  try {
+    const r = await fetch(`http://127.0.0.1:${port}/reconnect`, { method: "POST", signal: ctl.signal });
+    // A daemon that predates this endpoint 404s (route falls through to "not found").
+    if (!r.ok) return { ok: false, reason: "unsupported" };
+    return { ok: true, ...(await r.json()) }; // { ok, dropped }
+  } catch {
+    return { ok: false, reason: "unreachable" };
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 // Poll a daemon's /status until extension_connected is true or the deadline passes.
