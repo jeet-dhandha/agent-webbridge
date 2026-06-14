@@ -63,7 +63,6 @@ import { listOpenTabs } from "../src/snss.mjs";
 import { startDaemon, stopDaemon, fleetStatus, daemonStatus, KIMI_BIN } from "../src/fleet.mjs";
 import {
   profilesMissingExtension,
-  enableForceInstall,
   launchWithExtension,
   openChromeProfile,
   wakeExtension,
@@ -838,9 +837,14 @@ async function cmdCheck(args) {
     });
   }
 
+  // Exit 0 only when there's at least one profile AND every one is ready — so an agent
+  // polling `--json` can't read an empty/zero-profile result as "ready" (an empty array
+  // makes rows.every(...) vacuously true). Same gate as the text path below.
+  const allReady = rows.length > 0 && rows.every((r) => r.ready);
+
   if (json) {
     console.log(JSON.stringify({ extensionFolder: { present: folderPresent, path: extPath, id: extId }, profiles: rows }, null, 2));
-    return rows.every((r) => r.ready) ? 0 : 1;
+    return allReady ? 0 : 1;
   }
 
   console.log("agent-webbridge — readiness check\n");
@@ -855,7 +859,7 @@ async function cmdCheck(args) {
   }
   const ready = rows.filter((r) => r.ready).length;
   console.log(`\n${ready}/${rows.length} profile(s) ready.`);
-  return ready === rows.length && rows.length > 0 ? 0 : 1;
+  return allReady ? 0 : 1;
 }
 
 async function main() {
@@ -929,17 +933,18 @@ async function main() {
       await cmdInstallDev(args);
       break;
     case "install":
+      // NOTE: the old `--forcelist` (CWS ExtensionInstallForcelist policy) was removed with
+      // the pivot — there is no Chrome Web Store listing, so the policy could only pin
+      // profiles into a broken "managed"/failed-install state. Use `awb setup` (Load unpacked).
       if (args.includes("--missing")) {
         const miss = profilesMissingExtension();
         console.log(`${miss.length} missing:`);
         for (const p of miss) console.log(`  ${p.dir.padEnd(10)} ${p.name}`);
-      } else if (args.includes("--forcelist")) {
-        console.log(JSON.stringify(enableForceInstall(), null, 2));
-      } else if (args[0]) {
+      } else if (args[0] && !args[0].startsWith("--")) {
         const p = resolveProfile(args[0]);
         console.log(JSON.stringify(launchWithExtension(p.dir), null, 2));
       } else {
-        console.error("usage: kwb install <profile> | --missing | --forcelist");
+        console.error("usage: awb install <profile> | --missing   (to install the extension, use `awb setup <profile>`)");
         process.exit(1);
       }
       break;

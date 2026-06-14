@@ -39,11 +39,11 @@ awb setup "Work"          # or any profile name / email / "Profile 2"
 ## 60-second Quickstart
 
 ```bash
-# 1. One-time setup — detect the extension, prepare profiles
-awb setup
+# 1. One-time install — walks you through "Load unpacked", then connects + brings the fleet up.
+#    Pass the profile(s) you want to drive (name / email / "Profile 2").
+awb setup "Work" "Personal"
 
-# 2. Point a profile's extension at its own daemon and bring up the fleet + router
-awb connect "Work" "Personal"
+# 2. Already set up? Just bring the fleet up (setup already did this on first run).
 awb up "Work" "Personal"
 
 # 3. Drive any profile by name — same endpoint, one extra field

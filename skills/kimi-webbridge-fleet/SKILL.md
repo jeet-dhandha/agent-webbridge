@@ -110,6 +110,12 @@ profile — and they run concurrently.
 For a large worklist (hundreds–thousands of items — scrape N companies, check N accounts,
 fill N forms), drive it as a **fleet fan-out**:
 
+- **Defaults (unless the user specifies otherwise): 5 tabs per profile, across 2 profiles.**
+  First **check what's available** (`awb status` / `awb check --json` / `awb profiles`): use
+  **2 profiles** if at least two are set up + connected, otherwise fall back to **1 profile**.
+  Within each profile keep **5 concurrent tabs**. If the user asks for a specific
+  tabs-per-profile number, use that instead (per-profile parallelism is proven safe up to
+  **10 tabs**; 5 is the gentler default).
 - **Total concurrency = #profiles × tabs-per-profile.** Bring up several profiles
   (`awb up "P1" "P2" …`), split the worklist into one chunk per profile, and within each
   profile keep up to M `/command` requests (M tabs) in flight at once — e.g.
