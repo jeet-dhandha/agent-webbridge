@@ -5,7 +5,7 @@ node_modules/
 # Chrome for Testing — downloaded locally for the live test harness (~500MB), never committed
 chrome/
 
-# packed extension zips for CWS upload (build artifact)
+# packed extension zips for the GitHub Release (build artifact)
 dist/
 
 # runtime state (per-machine; never committed)

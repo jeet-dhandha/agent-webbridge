@@ -16,7 +16,7 @@
 
   <!-- ===== BEFORE ===== -->
   <rect x="40" y="40" width="490" height="440" rx="14" fill="#fef2f2" stroke="#fecaca" stroke-width="2"/>
-  <text x="64" y="78" class="h" fill="#b91c1c">Stock Kimi WebBridge</text>
+  <text x="64" y="78" class="h" fill="#b91c1c">Typical browser bridge</text>
   <text x="64" y="104" class="lbl2">One daemon. One slot. One profile — the rest are rejected.</text>
 
   <rect x="180" y="140" width="210" height="60" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
@@ -42,7 +42,7 @@
 
   <!-- ===== AFTER ===== -->
   <rect x="590" y="40" width="490" height="440" rx="14" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="2"/>
-  <text x="614" y="78" class="h" fill="#15803d">kimi-webbridge-fleet</text>
+  <text x="614" y="78" class="h" fill="#15803d">agent-webbridge</text>
   <text x="614" y="104" class="lbl2">One daemon per profile. A router up front. All live at once.</text>
 
   <rect x="700" y="140" width="270" height="56" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>

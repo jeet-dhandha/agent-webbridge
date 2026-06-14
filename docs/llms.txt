@@ -1,36 +1,39 @@
-# kimi-webbridge-fleet
+# agent-webbridge
 
-> Kimi WebBridge with multiple Chrome profiles and Google logins at once. Stock Kimi WebBridge
-> (Moonshot AI's browser extension + local daemon that lets an AI agent drive your real Chrome
-> with your real logins) has a single connection slot — one daemon, one extension, one profile,
-> so only one login can be driven at a time. kimi-webbridge-fleet removes that limit without
-> patching anything: it runs one stock daemon per Chrome profile on its own deterministic port,
-> and a router on the usual :10086 that proxies each request to the right daemon based on a
-> top-level "profile" field. Existing :10086 calls keep working; you just add "profile".
-> Platform: macOS + Google Chrome. License: MIT. Independent project, not affiliated with Moonshot AI / Kimi.
+> Open-source (MIT), clean-room browser automation for AI agents. It drives your real Chrome —
+> with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs
+> per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash
+> installer. It is a lightweight Node daemon (only runtime dep: `ws`) plus a clean-room MV3 Chrome
+> extension: an AI agent posts a command to a local router (127.0.0.1:10086), which fans it out to
+> the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools
+> Protocol per tab. Everything stays on 127.0.0.1. Killer feature: true per-tab parallelism — it
+> attaches the debugger per tab (a Map keyed by tab), so N tabs in one profile run concurrently
+> (2/5/10 tabs each finish in ~2s flat, vs 4s/10s/20s serial). Two axes of concurrency: N profiles
+> × N tabs per profile. 13 tools, all verified live in a real browser.
+> Platform: macOS + Google Chrome, Node.js ≥ 18. License: MIT.
 
 ## Answers to common questions
 
-- Can Kimi WebBridge use multiple Chrome profiles at once? Not on its own — it has a single
-  connection slot. kimi-webbridge-fleet adds it: one daemon per profile + a router on :10086.
-- Can Kimi WebBridge drive multiple Google accounts/logins simultaneously? Yes, with fleet —
-  each Chrome profile has its own Google login, so one daemon per profile drives them side by side.
-- Does Kimi WebBridge support multiple accounts at the same time? Stock WebBridge is single-login;
-  multi-account is the gap kimi-webbridge-fleet fills.
-- Why does Kimi WebBridge only allow one login at a time? The daemon refuses to start if anything
-  answers :10086, and one daemon accepts exactly one extension connection. Fleet gives each
-  profile its own daemon and port behind a router.
-- How do I switch profiles without toggling the extension off? `kwb connect` points each
-  profile's extension at its own daemon on disk — zero clicks, no popup — keeping all live at once.
+- Can I drive multiple Chrome profiles at once? Yes. Most browser bridges funnel every call through
+  a single global "current tab", so they drive one tab per profile at a time. agent-webbridge runs a
+  daemon per profile behind a router on :10086 — every profile stays connected; add a "profile" field.
+- Can I drive multiple Google accounts/logins simultaneously? Yes — each Chrome profile has its own
+  Google login, so Gmail, Drive, Ads, and Search Console accounts run side by side.
+- Can I run multiple tabs in one profile concurrently? Yes — the killer feature. The DevTools
+  Protocol attaches per tab, so 2/5/10 tabs in one profile each finish in ~2s flat (vs serial).
+- Why do most browser bridges only allow one login at a time? They enforce a single connection slot
+  and one global current tab. agent-webbridge gives each profile its own daemon and port behind a
+  router, plus per-tab attachment for true concurrency.
+- How do I switch profiles without toggling an extension off? `awb connect` points each profile's
+  extension at its own daemon on disk — zero clicks, no popup — keeping all profiles live at once.
 
 ## Docs
 
-- [README (full docs)](https://github.com/jeet-dhandha/kimi-webbridge-fleet/blob/main/README.md): install, quickstart, CLI, configuration, how it works.
-- [Landing page + FAQ](https://jeet-dhandha.github.io/kimi-webbridge-fleet/): structured FAQ for the multi-profile / multi-login questions.
-- [npm package](https://www.npmjs.com/package/kimi-webbridge-fleet): `npx kimi-webbridge-fleet` / `npm i -g kimi-webbridge-fleet`.
-- [Kimi WebBridge (the layer underneath)](https://www.kimi.com/features/webbridge): Moonshot AI's official browser extension + daemon that fleet orchestrates.
+- [README (full docs)](https://github.com/jeet-dhandha/agent-webbridge/blob/main/README.md): install, quickstart, CLI, configuration, how it works.
+- [Landing page + FAQ](https://jeet-dhandha.github.io/agent-webbridge/): structured FAQ for the multi-profile / per-tab-parallelism questions.
+- [npm package](https://www.npmjs.com/package/agent-webbridge): `npx agent-webbridge` / `npm i -g agent-webbridge`.
 
 ## Install
 
-- CLI: `npx kimi-webbridge-fleet profiles` or `npm i -g kimi-webbridge-fleet` (puts `kwb` on PATH).
-- Claude Code plugin: `/plugin marketplace add jeet-dhandha/kimi-webbridge-fleet` then `/plugin install kimi-webbridge-fleet@kwb`.
+- CLI: `npx agent-webbridge profiles` or `npm i -g agent-webbridge` (puts `awb` on PATH, with `kwb` kept as an alias).
+- Claude Code plugin: `/plugin marketplace add jeet-dhandha/agent-webbridge` then `/plugin install agent-webbridge@agent-webbridge`.

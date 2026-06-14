@@ -5,38 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- Primary: the <title> is the strongest on-page signal a README can't set -->
-<title>Multi Chrome Profile WebBridge for Mac — Profile-Based Scraping &amp; Automation Solution</title>
-<meta name="description" content="A multi-profile scraping and browser automation solution for macOS using Kimi WebBridge. Run multiple valid Chrome profiles and logged-in Google sessions in parallel with zero manual toggling.">
-<link rel="canonical" href="https://jeet-dhandha.github.io/kimi-webbridge-fleet/">
+<title>agent-webbridge — Clean-Room Browser Automation for AI Agents (Multi-Profile, Parallel)</title>
+<meta name="description" content="Open-source (MIT), clean-room browser automation for AI agents. Drive your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and run multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/">
 <meta name="robots" content="index,follow">
 
 <!-- Open Graph — GitHub/Slack/Twitter/LLM-scraper snippet -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="kimi-webbridge-fleet">
-<meta property="og:title" content="Multi Chrome Profile WebBridge for Mac — Profile-Based Scraping Solution">
-<meta property="og:description" content="Perform profile-based scraping and browser automation using Kimi WebBridge on Mac. Drive several valid Chrome profiles concurrently.">
-<meta property="og:url" content="https://jeet-dhandha.github.io/kimi-webbridge-fleet/">
-<meta property="og:image" content="https://opengraph.githubassets.com/ad76ef61b875c229665170ec93e26babda6396709ea1032599f9fa4dbb30fc50/jeet-dhandha/kimi-webbridge-fleet">
+<meta property="og:site_name" content="agent-webbridge">
+<meta property="og:title" content="agent-webbridge — Clean-Room Browser Automation for AI Agents">
+<meta property="og:description" content="Drive your real Chrome — with your real login sessions — across multiple Chrome profiles at once, with true per-tab parallelism. Open-source, MIT, no closed-source dependency, no telemetry.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Multi Chrome Profile WebBridge for Mac — Profile-Based Scraping Solution">
-<meta name="twitter:description" content="Perform profile-based scraping and browser automation using Kimi WebBridge on Mac. Drive several valid Chrome profiles concurrently.">
-<meta name="twitter:image" content="https://opengraph.githubassets.com/ad76ef61b875c229665170ec93e26babda6396709ea1032599f9fa4dbb30fc50/jeet-dhandha/kimi-webbridge-fleet">
+<meta name="twitter:title" content="agent-webbridge — Clean-Room Browser Automation for AI Agents">
+<meta name="twitter:description" content="Drive your real Chrome — with your real login sessions — across multiple Chrome profiles at once, with true per-tab parallelism. Open-source, MIT, no closed-source dependency, no telemetry.">
+<meta name="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
 
 <!-- Structured data: SoftwareApplication (Google rich result + LLM-parseable facts) -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "kimi-webbridge-fleet",
-  "alternateName": "Kimi WebBridge Fleet (multi-profile)",
+  "name": "agent-webbridge",
+  "alternateName": "agent-webbridge (multi-profile, per-tab parallelism)",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS",
-  "description": "An independent layer over Kimi WebBridge that drives multiple Chrome profiles and Google logins at once — a multiple valid profile-based scraping and automation solution for macOS.",
-  "url": "https://jeet-dhandha.github.io/kimi-webbridge-fleet/",
-  "downloadUrl": "https://www.npmjs.com/package/kimi-webbridge-fleet",
-  "codeRepository": "https://github.com/jeet-dhandha/kimi-webbridge-fleet",
+  "description": "Open-source (MIT), clean-room browser automation for AI agents. It drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/",
+  "downloadUrl": "https://www.npmjs.com/package/agent-webbridge",
+  "codeRepository": "https://github.com/jeet-dhandha/agent-webbridge",
   "license": "https://opensource.org/licenses/MIT",
-  "keywords": "kimi webbridge, multiple chrome profiles, multiple logins, multi-account, multiple google accounts, browser automation, scraping, ai agent",
+  "keywords": "multiple chrome profiles, multi-account, browser automation, scraping, ai agent, parallel, claude code",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "author": { "@type": "Person", "name": "jeet-dhandha" }
@@ -51,33 +51,28 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Can Kimi WebBridge use multiple Chrome profiles at once?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Not on its own — stock Kimi WebBridge has a single connection slot, so exactly one Chrome profile is driven at a time. kimi-webbridge-fleet adds it: a profile-based proxy architecture, so every Chrome profile stays connected simultaneously. You drive each by adding a \"profile\" field to the same call." }
+      "name": "Can I drive multiple Chrome profiles at once?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Most browser-automation bridges funnel every call through a single global \"current tab\", so they drive exactly one tab per profile at a time. agent-webbridge runs a daemon per profile behind one local router, so every Chrome profile stays connected simultaneously. You drive each by adding a \"profile\" field to the same call." }
     },
     {
       "@type": "Question",
-      "name": "Can Kimi WebBridge drive multiple Google accounts or logins at the same time?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes, with kimi-webbridge-fleet. Each Chrome profile carries its own Google login, so running one daemon per profile lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side from a single command interface." }
+      "name": "Can I drive multiple Google accounts or logins at the same time?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Each Chrome profile carries its own Google login, so agent-webbridge lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side from a single command interface — no logging in and out." }
     },
     {
       "@type": "Question",
-      "name": "Does Kimi WebBridge support multiple accounts simultaneously?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Stock Kimi WebBridge is built around a single primary browser and login. Running multiple simultaneous accounts is the gap kimi-webbridge-fleet fills, without patching the daemon or the extension." }
+      "name": "Can I run multiple tabs in one profile concurrently?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — this is the killer feature. agent-webbridge attaches the Chrome DevTools Protocol per tab (a Map keyed by tab), so N tabs in one profile run in parallel. Measured: 2, 5, and 10 tabs in a single profile each finish in about 2 seconds flat, versus 4s, 10s, and 20s if they ran serially." }
     },
     {
       "@type": "Question",
-      "name": "Why does Kimi WebBridge only allow one login at a time?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The stock daemon enforces two singletons: it refuses to start if anything already answers its central address, and one daemon accepts exactly one extension connection. kimi-webbridge-fleet sidesteps both by running isolated daemons for each profile behind a central routing gateway." }
+      "name": "Why do most browser bridges only allow one login at a time?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Most bridges enforce a single connection slot and a single global current tab, so exactly one profile and one tab can be driven at a time. agent-webbridge sidesteps that with isolated daemons per profile behind a central router, plus per-tab DevTools Protocol attachment for true concurrency." }
     },
     {
       "@type": "Question",
-      "name": "How do I switch profiles in Kimi WebBridge without toggling the extension off?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Stock WebBridge makes you open chrome://extensions in the profile holding the slot and toggle WebBridge off — a few clicks every switch. kimi-webbridge-fleet points each profile's extension at its own daemon on disk with zero clicks and no popup, and keeps all profiles live at once." }
-    },
-    {
-      "@type": "Question",
-      "name": "Is kimi-webbridge-fleet affiliated with Kimi or Moonshot AI?",
-      "acceptedAnswer": { "@type": "Answer", "text": "No. It is an independent, MIT-licensed orchestration layer that supervises the stock kimi-webbridge daemon and reads Chrome's own files. It contains no Kimi WebBridge code." }
+      "name": "How do I switch profiles without toggling an extension off?",
+      "acceptedAnswer": { "@type": "Answer", "text": "You don't. agent-webbridge points each profile's extension at its own daemon on disk with zero clicks and no popup, and keeps all profiles live at once — so there is nothing to toggle when you switch." }
     }
   ]
 }
@@ -831,7 +826,7 @@
   <!-- TOP DECK: SYSTEM METRICS AND ROUTER STATS -->
   <header>
     <div class="header-left">
-      <span>KWB-FLEET-CONTROL v0.0.2</span>
+      <span>AWB-CONTROL v0.0.2</span>
       <span class="status-indicator">
         <span class="status-pulse"></span>
         <span>SYSTEM ONLINE</span>
@@ -847,16 +842,16 @@
     
     <!-- LEFT CARD: INTRODUCTION AND QUICK ACTIONS -->
     <div class="card">
-      <div class="card-header-sub">Fleet Configuration Overview</div>
-      <h1 class="card-title">Multi Chrome Profile WebBridge for Mac</h1>
+      <div class="card-header-sub">Configuration Overview</div>
+      <h1 class="card-title">Clean-Room Browser Automation for AI Agents</h1>
       <p class="card-desc">
-        <strong>kimi-webbridge-fleet</strong> is an advanced, multiple-profile browser scraping and automation engine. Unlock concurrent data collection across several valid Chrome profiles and Google logins at once, executing parallel scraping routines seamlessly without manual session juggling.
+        <strong>agent-webbridge</strong> is open-source (MIT), clean-room browser automation for AI agents. It drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer.
       </p>
-      
+
       <div class="actions-row">
-        <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet" class="btn btn-accent">GitHub Repository &rarr;</a>
-        <a href="https://www.npmjs.com/package/kimi-webbridge-fleet" class="btn">NPM Package</a>
-        <a href="#install-section" class="btn">View Skill Setup</a>
+        <a href="https://github.com/jeet-dhandha/agent-webbridge" class="btn btn-accent">GitHub Repository &rarr;</a>
+        <a href="https://www.npmjs.com/package/agent-webbridge" class="btn">NPM Package</a>
+        <a href="#install-section" class="btn">View Setup</a>
       </div>
 
       <div class="metrics-grid">
@@ -865,16 +860,16 @@
           <span class="metric-label">Concurrent Accounts</span>
         </div>
         <div class="metric-item">
-          <span class="metric-value">0</span>
-          <span class="metric-label">Manual Juggling</span>
+          <span class="metric-value">N&times;N</span>
+          <span class="metric-label">Profiles &times; Tabs in Parallel</span>
         </div>
         <div class="metric-item">
           <span class="metric-value">macOS</span>
           <span class="metric-label">Optimized Target</span>
         </div>
         <div class="metric-item">
-          <span class="metric-value">100%</span>
-          <span class="metric-label">Native KWB Core</span>
+          <span class="metric-value">MIT</span>
+          <span class="metric-label">Open Source</span>
         </div>
       </div>
     </div>
@@ -973,7 +968,7 @@
 
     <!-- RIGHT SIDE: GIF SCREENPLAY PREVIEW -->
     <div class="card" style="padding: 1rem; align-items: center; justify-content: center; background-color: #ffffff;">
-      <img src="demo.gif" alt="Live Demonstration of an AI agent driving Work and Personal profiles simultaneously through Kimi WebBridge Fleet" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 4px;">
+      <img src="demo.gif" alt="Live demo of an AI agent driving Work and Personal Chrome profiles simultaneously through agent-webbridge" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 4px;">
       <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; line-height: 1.4;">
         ● SCREENPLAY PREVIEW: One AI agent driving several profiles (Work and Personal) in parallel, opening distinct URLs and loading data simultaneously.
       </div>
@@ -999,14 +994,13 @@
       Download and install the CLI layer globally, or add it to Claude Code as an autonomous developer agent plugin.
     </div>
     <div class="cli-terminal">
-      <div class="cli-input-line" id="cli-command-line">npm i -g kimi-webbridge-fleet</div>
+      <div class="cli-input-line" id="cli-command-line">npm i -g agent-webbridge</div>
       <div class="cli-output-line" id="cli-output-content">
-added 24 packages, and audited 25 packages in 1s
+added 1 package, and audited 2 packages in 1s
 
-1 package is looking for funding
-run `npm fund` for details
+found 0 vulnerabilities
 
-$ kwb --version
+$ awb --version
 0.0.2
       </div>
     </div>
@@ -1095,13 +1089,13 @@ $ kwb --version
 
   <div class="diagram-deck">
     <div class="diagram-visual">
-      <img src="before-after.svg" alt="Before/After layout showing stock Kimi WebBridge vs. Kimi WebBridge Fleet routing setup">
+      <img src="before-after.svg" alt="Before/after: a single-slot browser bridge (one tab per profile) vs agent-webbridge routing N profiles × N tabs">
     </div>
     <div class="diagram-notes">
       <div class="diagram-note-item">
-        <div class="diagram-note-h">The Single-Session Limitation</div>
+        <div class="diagram-note-h">The Single-Slot Limitation</div>
         <div class="diagram-note-p">
-          Stock Kimi WebBridge allows only a single active browser instance. Attempting to connect a second Chrome profile results in connection rejection, requiring manual toggle adjustments.
+          Most browser-automation bridges enforce a single connection slot and one global "current tab", so they drive exactly one tab per profile at a time. Attempting to connect a second Chrome profile results in connection rejection, requiring manual toggle adjustments.
         </div>
       </div>
       <div class="diagram-note-item">
@@ -1128,72 +1122,60 @@ $ kwb --version
   <div class="faq-list">
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Can Kimi WebBridge use multiple Chrome profiles at once?</span>
+        <span>Can I drive multiple Chrome profiles at once?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Not on its own. Stock Kimi WebBridge enforces a single connection slot, meaning only one Chrome profile is driven at a time. <code>kimi-webbridge-fleet</code> overcomes this by running one stock daemon per profile and placing a router on <code>10086</code>. Every profile stays connected simultaneously, allowing you to select the target by passing a <code>"profile"</code> field in the request payload.
+          Yes. Most browser-automation bridges enforce a single connection slot, meaning only one Chrome profile is driven at a time. <code>agent-webbridge</code> runs a daemon per profile and places a router on <code>10086</code>. Every profile stays connected simultaneously, allowing you to select the target by passing a <code>"profile"</code> field in the request payload.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Can Kimi WebBridge drive multiple Google accounts / logins at the same time?</span>
+        <span>Can I drive multiple Google accounts / logins at the same time?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Yes, using the fleet package. Each Chrome profile carries its own independent Google session and credentials. Because the fleet spawns a separate daemon for each profile, actions directed at Gmail, Search Console, Ads, or Google Drive for different logins can execute side-by-side.
+          Yes. Each Chrome profile carries its own independent Google session and credentials. Because <code>agent-webbridge</code> runs a separate daemon for each profile, actions directed at Gmail, Search Console, Ads, or Google Drive for different logins can execute side-by-side.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Does Kimi WebBridge support multiple accounts simultaneously?</span>
+        <span>Can I run multiple tabs in one profile concurrently?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Stock Kimi WebBridge does not. It is built around a single primary browser window and login session. Multi-account orchestration is the exact capabilities gap filled by <code>kimi-webbridge-fleet</code>, which does so without needing to patch the underlying daemon binaries or rewrite the extension code.
+          Yes — this is the killer feature. <code>agent-webbridge</code> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tab), so N tabs in one profile run in parallel. Measured: 2, 5, and 10 tabs in a single profile each finish in about 2 seconds flat, versus 4s, 10s, and 20s if they ran serially. Two axes of concurrency: N profiles × N tabs per profile.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Why does Kimi WebBridge only allow one login at a time?</span>
+        <span>Why do most browser bridges only allow one login at a time?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          The daemon enforces two singletons: it refuses to start if port <code>10086</code> is occupied, and a single daemon process will only connect to one browser extension at a time. The fleet layer sidesteps these constraints by assigning isolated local directories and distinct ports to each daemon process, keeping the central port free for the proxy router.
+          Most bridges enforce two singletons: a process refuses to start if port <code>10086</code> is occupied, and a single daemon will only connect to one browser extension at a time. <code>agent-webbridge</code> sidesteps these constraints by assigning isolated local directories and distinct ports to each daemon process, keeping the central port free for its router.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>How do I switch profiles in Kimi WebBridge without toggling the extension off?</span>
+        <span>How do I switch profiles without toggling an extension off?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Under the stock setup, you must manually open <code>chrome://extensions</code> in the active profile and toggle the WebBridge extension switch to release the slot. The fleet's <code>kwb connect</code> command automates this by directly modifying the Chrome extension's on-disk Local Storage LevelDB files (while Chrome is quit), updating the destination URL instantly with zero manual clicks.
-        </div>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Is kimi-webbridge-fleet affiliated with Kimi / Moonshot AI?</span>
-        <span class="faq-trigger-icon">+</span>
-      </button>
-      <div class="faq-content">
-        <div class="faq-inner">
-          No. This is an entirely independent, MIT-licensed open-source developer tool. It orchestrates the stock <code>kimi-webbridge</code> processes and writes to standard Chrome user directories. It does not distribute, compile, or contain any official Kimi WebBridge binary code.
+          You don't have to. The <code>awb connect</code> command points each profile's extension at its own daemon by directly writing the destination URL to the Chrome extension's on-disk Local Storage LevelDB files (while Chrome is quit), with zero manual clicks — and keeps every profile live at once.
         </div>
       </div>
     </div>
@@ -1202,14 +1184,11 @@ $ kwb --version
   <!-- FOOTER -->
   <footer>
     <div class="footer-links">
-      <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet">GitHub</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub</a>
       <span>&middot;</span>
-      <a href="https://www.npmjs.com/package/kimi-webbridge-fleet">NPM Registry</a>
+      <a href="https://www.npmjs.com/package/agent-webbridge">NPM Registry</a>
       <span>&middot;</span>
-      <a href="https://github.com/jeet-dhandha/kimi-webbridge-fleet/blob/main/LICENSE">MIT License</a>
-    </div>
-    <div class="disclaimer">
-      Independent project, not affiliated with Moonshot AI or Kimi. All product names, logos, and brands are property of their respective owners.
+      <a href="https://github.com/jeet-dhandha/agent-webbridge/blob/main/LICENSE">MIT License</a>
     </div>
     <div class="disclaimer">
       &copy; 2026 jeet-dhandha. Crafted with premium minimalist neo-brutalist design patterns.
@@ -1284,19 +1263,18 @@ $ kwb --version
   // 4. CLI tabs walkthrough logic
   const cliData = {
     install: {
-      desc: 'Download and install the CLI layer globally, or add it to Claude Code as an autonomous developer agent plugin.',
-      cmd: 'npm i -g kimi-webbridge-fleet',
-      out: `added 24 packages, and audited 25 packages in 1s
+      desc: 'Download and install the CLI globally, or add it to Claude Code as an autonomous developer agent plugin.',
+      cmd: 'npm i -g agent-webbridge',
+      out: `added 1 package, and audited 2 packages in 1s
 
-1 package is looking for funding
-run \`npm fund\` for details
+found 0 vulnerabilities
 
-$ kwb --version
+$ awb --version
 0.0.2`
     },
     profiles: {
       desc: 'Resolve and display all Chrome user profiles detected on this machine. Shows deterministic ports, extension directory installation state, and active daemon statuses.',
-      cmd: 'kwb profiles',
+      cmd: 'awb profiles',
       out: `Resolving local Google Chrome profiles...
 Found 3 profiles:
 
@@ -1320,7 +1298,7 @@ Found 3 profiles:
     },
     connect: {
       desc: 'Connect profiles to their deterministic ports without manual clicks. Quits Chrome (saving sessions) and writes the hashed port URL directly to the extension\'s local LevelDB storage.',
-      cmd: 'kwb connect "Work" "Personal" "Developer"',
+      cmd: 'awb connect "Work" "Personal" "Developer"',
       out: `Quitting Google Chrome (saving sessions for restore)...
 Chrome closed successfully.
 
@@ -1329,11 +1307,11 @@ Writing extension config for profile "Personal" (port 13336)...
 Writing extension config for profile "Developer" (port 14820)...
 
 Write complete. Extensions pointed at local daemons.
-Restore bridge stock setting later using: \`kwb connect "Work" --restore\``
+Restore the default setting later using: \`awb connect "Work" --restore\``
     },
     up: {
-      desc: 'Launches the underlying kimi-webbridge daemons for selected profiles, spins up the central router on port 10086, opens Chrome tabs to wake MV3 background service workers, and awaits connection confirmation.',
-      cmd: 'kwb up "Work" "Personal" "Developer"',
+      desc: 'Launches the agent-webbridge daemons for selected profiles, spins up the central router on port 10086, opens Chrome tabs to wake MV3 background service workers, and awaits connection confirmation.',
+      cmd: 'awb up "Work" "Personal" "Developer"',
       out: `Starting daemon for "Work" on port 13222...
 Starting daemon for "Personal" on port 13336...
 Starting daemon for "Developer" on port 14820...
@@ -1348,14 +1326,14 @@ Waiting for extension connections (max 10s)...
 Fleet ready. Route requests through http://127.0.0.1:10086/command`
     },
     down: {
-      desc: 'Tears down active fleet router, shuts down running profile daemons safely, and optionally restores standard single-connection bridge configuration.',
-      cmd: 'kwb down',
+      desc: 'Tears down the active router, shuts down running profile daemons safely, and optionally restores the default single-connection configuration.',
+      cmd: 'awb down',
       out: `Stopping HTTP proxy router on port 10086...
 Stopping daemon process Work (pid 58821)...
 Stopping daemon process Personal (pid 58824)...
 Stopping daemon process Developer (pid 58826)...
 
-Restoring stock single :10086 daemon binding...
+Restoring default single :10086 daemon binding...
 Fleet stopped successfully.`
     }
   };
@@ -1523,7 +1501,7 @@ Fleet stopped successfully.`
           result: daemonResult
         };
 
-        responseBox.textContent = 'HTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: ' + new Date().toUTCString() + '\nServer: KWB-Fleet-Router/0.0.2\n\n' + JSON.stringify(simulatedResponse, null, 2);
+        responseBox.textContent = 'HTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: ' + new Date().toUTCString() + '\nServer: AWB-Router/0.0.2\n\n' + JSON.stringify(simulatedResponse, null, 2);
       }, 1000);
 
     }, 800);

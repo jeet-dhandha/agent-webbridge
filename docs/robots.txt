@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jeet-dhandha.github.io/kimi-webbridge-fleet/sitemap.xml
+Sitemap: https://jeet-dhandha.github.io/agent-webbridge/sitemap.xml
