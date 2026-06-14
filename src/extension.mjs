@@ -1,19 +1,15 @@
-// extension.mjs — detect which Chrome profiles lack the kimi-webbridge extension
-// and install it into them.
+// extension.mjs — detect which Chrome profiles lack the agent-webbridge extension
+// and help install it into them.
 //
 // Chrome design constraint: you CANNOT inject an unpacked extension into an
-// already-running Chrome's existing profile from the outside. So there are two
-// honest install paths, each with a trigger requirement:
+// already-running Chrome's existing profile from the outside. The honest install
+// path on a real profile is therefore a manual "Load unpacked" in
+// chrome://extensions (Developer mode on) pointed at agent-webbridge-extension/.
+// `awb setup` walks the user/agent through that and polls until it lands.
 //
-//   1. Force-install policy (RECOMMENDED, all profiles at once, persistent).
-//      Writes the CWS extension id to Chrome's ExtensionInstallForcelist policy.
-//      Chrome then silently installs it in EVERY profile — but only after a
-//      Chrome restart. On MDM-managed Macs the managed plist may override this.
-//
-//   2. --load-extension cold start (single profile, ephemeral).
-//      Launches one profile with the unpacked extension loaded. Only takes
-//      effect if Chrome is NOT already running (flags apply to the primary
-//      process only); otherwise it just opens a window without the extension.
+// (--load-extension cold start works only for automated tests on Chrome for
+// Testing: it launches one profile with the unpacked extension loaded, and only
+// if Chrome is NOT already running. Branded Chrome 137+ ignores the flag.)
 
 import { execFileSync, spawn } from "node:child_process";
 import crypto from "node:crypto";
@@ -31,7 +27,7 @@ export function chromeBinary() {
 }
 
 export function unpackedExtPath() {
-  const defaultPath = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "kimi-webbridge-extension");
+  const defaultPath = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "agent-webbridge-extension");
   const p = process.env.KWB_EXT_PATH || defaultPath;
   if (!fs.existsSync(path.join(p, "manifest.json"))) {
     throw new Error(`unpacked extension not found at ${p} (set KWB_EXT_PATH to override)`);
@@ -43,7 +39,7 @@ export function unpackedExtPath() {
 // Chrome's algorithm: SHA-256 the DER-encoded SubjectPublicKeyInfo, then map the first
 // 16 bytes to the alphabet "a".."p" (each byte becomes two chars: high nibble, low nibble).
 // The `key` field is optional in a manifest; without it, Chrome falls back to hashing the
-// load path, which is non-portable. Our kimi-webbridge-extension manifest DOES ship a
+// load path, which is non-portable. Our agent-webbridge-extension manifest DOES ship a
 // `key`, so the id is stable for THIS exact checkout. If the key ever changes, the id
 // changes and prior `local_url` writes go to the wrong store.
 export function computeExtIdFromManifestKey(publicKeyPem) {
