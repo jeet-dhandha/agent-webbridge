@@ -3,6 +3,36 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] — 2026-06-14
+
+**Bug fix: tool calls (`list_tabs`, etc.) no longer flap when a second webbridge extension is
+present.** Symptom seen live: `list_tabs` oscillating between the real tabs and an empty list
+on a ~5-second cycle while `/status` reported `connected:true` the whole time.
+
+### Fixed
+- **The daemon no longer lets an unidentified extension hijack the WebSocket slot.** With two
+  webbridge extensions installed in the same Chrome profile (e.g. a leftover legacy build
+  alongside the current one), both connected to the daemon and fought over its single
+  extension slot: `adoptSocket`'s blind newest-connection-wins let each evict the other on its
+  5-second reconnect, so tool calls hit whichever extension happened to own the slot at the
+  time. The hub now adopts a socket **only after a valid hello**, and **rejects hellos with no
+  `extensionId`**, so the real extension stays pinned and a stray/legacy one is shut out.
+- Hardened the rest of the WS connection handling around that change: a socket that connects
+  but never sends a valid hello is now reaped after a handshake timeout (it's never adopted,
+  so the ping keepalive couldn't reap it); `pong`/`tool_result` frames are only honored from
+  the currently-adopted socket; and the extension's wake path (`GET_STATUS`) now triggers a
+  reconnect on an already-running worker, so `awb up` re-establishes the link immediately
+  instead of waiting out the 5-second reconnect timer.
+
+### Added
+- **`POST /reconnect`** on the per-profile daemon — force-drops the currently bound extension
+  socket so the live worker re-handshakes. `awb up` now uses it to force a fresh reconnect
+  instead of no-op'ing "already connected", giving single-step recovery of a wedged connection
+  (no `awb down && awb up` needed).
+- **`AWB_WSHUB_DEBUG=<file>`** — opt-in WS-hub connection log (CONNECT / HELLO / CLOSE with peer
+  address + extension id/version), off by default. This is the instrumentation that pinpointed
+  the slot-flap above.
+
 ## [1.0.1] — 2026-06-14
 
 **Load-unpacked install, agent-driven — and a fully clean rebrand.** There is no Chrome Web
@@ -132,6 +162,8 @@ routed by a top-level `"profile"` field.
 - macOS + Google Chrome only. Requires the stock Kimi WebBridge daemon + extension.
 - Not affiliated with Moonshot AI / Kimi; contains no Kimi WebBridge code.
 
+[1.0.2]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.2
+[1.0.1]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.1
 [1.0.0]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.0
 [0.0.2]: https://github.com/jeet-dhandha/kimi-webbridge-fleet/releases/tag/v0.0.2
 [0.0.1]: https://github.com/jeet-dhandha/kimi-webbridge-fleet/releases/tag/v0.0.1
