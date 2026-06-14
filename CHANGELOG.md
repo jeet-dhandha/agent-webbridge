@@ -3,6 +3,42 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] — 2026-06-14
+
+**Load-unpacked install, agent-driven — and a fully clean rebrand.** There is no Chrome Web
+Store listing, so "Load unpacked" is now the single, first-class install path, and the landing
+page + docs drop the Kimi brand entirely.
+
+### Added
+- **`awb check [profile…] [--json]`** — a read-only install-readiness probe an orchestrating
+  agent can poll: per profile it reports `developerMode`, `loaded`, `enabled`, `daemonUp`,
+  `connected`, a `ready` boolean, and a single `nextStep` hint. Exits non-zero until every
+  selected profile is ready.
+- **`profiles.developerModeOn(dir)`** — reads `extensions.ui.developer_mode` from Secure
+  Preferences (the precondition for "Load unpacked").
+- **`INSTALL.md`** — standalone install guide (npm path + manual release-zip path +
+  troubleshooting); shipped in the npm package and attached to the GitHub Release.
+
+### Changed
+- **`awb setup` is Load-unpacked-only.** It resolves the in-repo extension folder + stable id,
+  repairs corrupt installs, opens `chrome://extensions`, prints the exact folder, and **polls**
+  the registry until the load lands (no blocking Enter — an agent can drive it), then connects
+  and brings the fleet up. New flags: `--no-open`, `--no-up`, `--timeout`.
+- **Dropped the Chrome Web Store path** from `awb setup`, `awb install-dev`, the doctor hint,
+  and `scripts/pack-extension.mjs` (the zip is now the downloadable "Load unpacked" bundle).
+- **Full clean rebrand:** removed every Kimi/Moonshot reference and the now-false "orchestrates
+  the stock Kimi daemon" positioning from the landing page (`docs/`), README, SKILL.md, AGENTS.md,
+  and the plugin description; reframed the per-tab-parallelism comparison generically;
+  regenerated `docs/demo.gif`; fixed the GitHub Pages SEO URLs.
+
+### Fixed
+- `unpackedExtPath()` resolved to the deleted `../kimi-webbridge-extension` dir, breaking
+  `awb setup`/`awb up` on a clean checkout — now points at `agent-webbridge-extension/`.
+
+### Removed
+- `docs/cws/` (Chrome Web Store submission copy) and two unlinked reverse-engineering docs —
+  obsolete under the no-CWS, clean-room positioning.
+
 ## [1.0.0] — 2026-06-13
 
 **The pivot to a fully clean-room, open-source stack.** `kimi-webbridge-fleet` evolved into
