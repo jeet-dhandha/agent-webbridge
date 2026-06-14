@@ -178,6 +178,24 @@ export function hasKimiExtension(dir) {
   return kimiExtId(dir) !== null;
 }
 
+// Whether Chrome's "Developer mode" toggle (chrome://extensions top-right) is ON for a
+// profile. "Load unpacked" is only available with this on, and Chrome disables unpacked
+// extensions when it's off — so it's a precondition for the agent-webbridge dev extension.
+// The flag lives at extensions.ui.developer_mode in "Secure Preferences" (HMAC-protected,
+// but we only READ it). Returns true/false, or null if it has never been toggled (the key
+// is absent until the user flips it once — treat that as "off/unknown").
+export function developerModeOn(dir) {
+  const base = path.join(chromeUserDataDir(), dir);
+  for (const f of ["Secure Preferences", "Preferences"]) {
+    try {
+      const j = JSON.parse(fs.readFileSync(path.join(base, f), "utf8"));
+      const v = j?.extensions?.ui?.developer_mode ?? j?.account_values?.extensions?.ui?.developer_mode;
+      if (typeof v === "boolean") return v;
+    } catch {}
+  }
+  return null;
+}
+
 // Full profile list with deterministic, collision-free ports.
 // Collisions (two dirs hashing to the same base port) are resolved by a stable
 // linear probe in sorted-dir order, so the mapping is reproducible for a fixed

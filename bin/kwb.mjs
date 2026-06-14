@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-// kwb.mjs — one entry point for the kimi-webbridge multi-profile layer.
+// kwb.mjs — one entry point for the agent-webbridge multi-profile layer.
+// (Installed as `awb`, with `kwb` kept as an alias.)
 //
-//   kwb doctor                   read-only environment self-check (Chrome, kimi
+//   awb doctor                   read-only environment self-check (Chrome, daemon
 //                                binary, profiles, extension, :10086) — run FIRST
+//   awb check <profile...>       machine-readable readiness (folder? dev-mode?
+//                                loaded? connected?) — what an agent polls; --json
 //   kwb profiles                 list profiles, hashed ports, ext presence, daemon up?
 //   kwb resolve <query>          resolve a name/email/dir to one profile
 //   kwb tabs <profile>           list a profile's NORMAL open tabs (from disk, no bridge)
@@ -25,35 +28,27 @@
 // Idle auto-close: the router stops the fleet itself after KWB_IDLE_TIMEOUT_MIN minutes
 // (default 120) with no /command — daemon processes only, browser tabs left open. The
 // last start/stop is recorded in run/fleet-state.json (see `kwb state`).
-//   kwb install --forcelist      enable CWS force-install across ALL profiles (needs Chrome restart)
-//   kwb install --missing        list profiles lacking the extension
-//   kwb install-dev <profile...> guided dev-build install: open CWS if the ext
-//                                is missing, poll every 5s for up to 600s for
-//                                install, run `kwb down` on timeout / Ctrl-C,
-//                                then open chrome://extensions and prompt the
-//                                user to enable Developer mode + Load unpacked
-//                                the repo's kimi-webbridge-extension/ folder
-//                                (replacing the CWS build with our local dev
-//                                build, which is what the multi-tab work in
-//                                1d4961c / 76f2d9b needs to be tested against).
-//                                After Load unpacked, opens
-//                                chrome://extensions/?id=<devId> focused on the
-//                                dev card and prompts the user to click Reload
-//                                — this is the iterate-on-background.js loop.
+//   awb setup <profile...>       canonical install: open chrome://extensions, print the
+//                                exact agent-webbridge-extension/ folder to "Load unpacked",
+//                                POLL until it lands, then connect + bring the fleet up.
+//                                No Chrome Web Store — agent-webbridge ships only as an
+//                                unpacked build. --reinstall / --no-open / --no-up / --timeout.
+//   awb install --missing        list profiles lacking the extension
+//   awb install-dev <profile...> DEV iterate loop: chrome://extensions handoff, then a
+//                                Reload-the-dev-card step for iterating on background.js.
 //                                A CORRUPT extension (disabled / stale unpacked path /
 //                                missing payload / orphaned files) is auto-removed on
 //                                disk first, then reinstalled clean; --reinstall forces
 //                                that removal even for a healthy build.
-//                                --skip-cws / --no-open / --no-reload / --reinstall
-//                                tweak the flow.
+//                                --no-open / --no-reload / --reinstall tweak the flow.
 //
 // Zero-click connect has TWO halves, both pure Node / no deps / no CDP:
 //   1. WRITE the URL: the extension's daemon URL is a plain `local_url` key in its
-//      storage.local LevelDB (NOT integrity-protected). `kwb connect` writes it directly
+//      storage.local LevelDB (NOT integrity-protected). `awb connect` writes it directly
 //      while Chrome is closed, replacing the manual popup click. The value persists.
-//   2. WAKE the worker: the kimi MV3 service worker only re-reads local_url when it
+//   2. WAKE the worker: the MV3 service worker only re-reads local_url when it
 //      STARTS, but it registers no onStartup listener, so Chrome never auto-starts it on
-//      launch — the write alone does nothing on an already-set-up profile. `kwb up` wakes
+//      launch — the write alone does nothing on an already-set-up profile. `awb up` wakes
 //      it by opening the extension's own popup page as a tab (see extension.mjs
 //      wakeExtension), which is the headful equivalent of clicking the toolbar icon.
 // (CDP can't do either on real profiles: branded Chrome 136+ blocks remote-debugging on
@@ -63,7 +58,7 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { listProfiles, resolveProfile, kimiExtId, hasKimiExtension, ROUTER_PORT } from "../src/profiles.mjs";
+import { listProfiles, resolveProfile, kimiExtId, developerModeOn, ROUTER_PORT } from "../src/profiles.mjs";
 import { listOpenTabs } from "../src/snss.mjs";
 import { startDaemon, stopDaemon, fleetStatus, daemonStatus, KIMI_BIN } from "../src/fleet.mjs";
 import {
@@ -89,7 +84,6 @@ import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
 import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
 import { runDoctor, printDoctor } from "../src/doctor.mjs";
 
-const CWS_KIMI_WEBBRIDGE_URL = "https://chromewebstore.google.com/detail/kimi-webbridge/fldmhceldgbpfpkbgopacenieobmligc";
 const EXTENSION_INSTALL_POLL_MS = 5000;       // check every 5 seconds
 const EXTENSION_INSTALL_TIMEOUT_MS = 300000;  // for up to 5 minutes
 
@@ -99,7 +93,7 @@ const EXTENSION_INSTALL_TIMEOUT_MS = 300000;  // for up to 5 minutes
 // changed. Warn loudly rather than misbehave silently.
 if (process.platform !== "darwin") {
   console.error(
-    `⚠️  kimi-webbridge-fleet currently supports macOS + Google Chrome only ` +
+    `⚠️  agent-webbridge currently supports macOS + Google Chrome only ` +
       `(this machine is "${process.platform}"). Commands like \`open\`/\`defaults\` ` +
       `and the Chrome paths will not work. See README → Platform & scope.`,
   );
@@ -355,28 +349,56 @@ async function cmdDown(args) {
   try { patchState({ stoppedAt: new Date().toISOString(), stoppedReason: "manual" }); } catch {}
 }
 
-// `kwb setup <profile...>` — the canonical install/setup for the OFFICIAL extension.
+// `awb setup <profile...>` — the canonical, Load-unpacked install for the agent-webbridge
+// extension. There is NO Chrome Web Store listing; the only honest way onto a real Chrome
+// profile is a manual "Load unpacked" in chrome://extensions with Developer mode on. This
+// command makes that one-click-for-a-human / one-poll-for-an-agent:
+//   1. RESOLVE the in-repo extension folder + its stable id (fail fast on a bad checkout).
+//   2. REPAIR — remove a corrupt install (or, with --reinstall, a healthy one) from disk,
+//      Chrome closed, so the fresh load lands clean.
+//   3. INSTALL — for each profile still missing it, open chrome://extensions and print the
+//      exact folder to "Load unpacked", then POLL the registry every 5s (up to --timeout,
+//      default 5min) until the extension appears. No blocking Enter — the poll is exactly
+//      what an orchestrating agent watches (see `awb check --json`).
+//   4. WIRE each profile to its daemon and bring the fleet up (skip with --no-up).
 //
-// One flow that does detection, removal, install, and bring-up:
-//   1. DETECT via the on-disk Extensions/<id>/ folder (the true source of record) plus the
-//      registry. 2. REMOVE — integrated into setup — sweeps a corrupt install (and, with
-//      --reinstall, a healthy one) from every on-disk location before reinstalling.
-//   3. INSTALL via the Chrome Web Store, POLLING every 5s for up to 5min for the folder to
-//      appear. 4. WIRE each profile to its daemon and bring the fleet up.
-//
-// `--reinstall` forces removal even if the current install looks healthy.
+//   --reinstall   remove the current extension from disk first, then reload clean
+//   --no-open     don't open chrome://extensions (you / your agent drive the browser); just poll
+//   --no-up       stop once the extension is loaded; don't connect + start the fleet
+//   --timeout N   seconds to wait for each Load-unpacked (default 300)
 async function cmdSetupInteractive(args) {
   const reinstall = args.includes("--reinstall");
-  const targets = args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
+  const noOpen = args.includes("--no-open");
+  const noUp = args.includes("--no-up");
+  const tIdx = args.indexOf("--timeout");
+  const timeoutMs =
+    tIdx >= 0 && args[tIdx + 1] ? Math.max(5, parseInt(args[tIdx + 1], 10) || 300) * 1000 : EXTENSION_INSTALL_TIMEOUT_MS;
+  const targets = args
+    .filter((a, i) => !a.startsWith("--") && !(tIdx >= 0 && i === tIdx + 1))
+    .map((q) => resolveProfile(q));
   if (!targets.length) {
-    console.error("usage: kwb setup <profile...> [--reinstall]");
-    console.error("  --reinstall  remove the current extension from disk first, then reinstall clean");
+    console.error("usage: awb setup <profile...> [--reinstall] [--no-open] [--no-up] [--timeout <seconds>]");
+    console.error("  Installs the agent-webbridge extension via Chrome 'Load unpacked' (there is no Chrome");
+    console.error("  Web Store listing), then wires each profile to its daemon and brings the fleet up.");
     process.exit(1);
   }
 
-  // Phase 1 — detect + remove. Check folders + registry. Remove a corrupt install (or, with
-  // --reinstall, any install) from ALL on-disk locations so the CWS install lands clean.
-  // Needs Chrome closed (the stores are locked while it runs).
+  // 1. Resolve the in-repo extension folder + its stable id up front so a bad checkout fails
+  //    fast, before we touch Chrome. The id is derived from the manifest `key`, so the
+  //    Load-unpacked build's id == the published stable id.
+  let extPath, extId;
+  try {
+    extPath = unpackedExtPath();
+    extId = devBuildExtId();
+  } catch (e) {
+    console.error(`✗ ${e.message}`);
+    process.exit(1);
+  }
+  console.log(`• extension folder to Load unpacked: ${extPath}`);
+  console.log(`• extension id (stable, from manifest.key): ${extId}\n`);
+
+  // 2. Repair pass — remove a corrupt install (or, with --reinstall, any install) from disk
+  //    with Chrome closed, so the fresh Load unpacked lands clean.
   const removals = [];
   for (const p of targets) {
     const h = extensionHealth(p.dir);
@@ -389,7 +411,7 @@ async function cmdSetupInteractive(args) {
     } else if (h.installed) {
       console.log(`• "${p.name}": already installed (${h.location}).`);
     } else {
-      console.log(`• "${p.name}": not installed.`);
+      console.log(`• "${p.name}": not installed yet.`);
     }
   }
   if (removals.length) {
@@ -397,13 +419,13 @@ async function cmdSetupInteractive(args) {
       console.log("• closing Chrome to remove extension artifacts on disk (session saved for restore)…");
       const q = quitChrome();
       if (!q.stopped) {
-        console.error("✗ could not quit Chrome — close it manually and re-run `kwb setup`.");
+        console.error("✗ could not quit Chrome — close it manually and re-run `awb setup`.");
         process.exit(1);
       }
       console.log(`• Chrome closed${q.forced ? " (forced)" : ""}`);
     }
-    for (const { p, extId } of removals) {
-      const r = removeExtensionOnDisk(p.dir, extId);
+    for (const { p, extId: rid } of removals) {
+      const r = removeExtensionOnDisk(p.dir, rid);
       console.log(
         r.ok
           ? `  ✓ ${p.name}: removed ${r.removed.length} on-disk item(s)${r.removed.length ? ` — ${r.removed.join(", ")}` : ""}`
@@ -412,38 +434,54 @@ async function cmdSetupInteractive(args) {
     }
   }
 
-  // Phase 2 — install via the Chrome Web Store, polling the on-disk folder every 5s for up
-  // to 5min. hasKimiExtension() checks Extensions/<id>/ (the true source), so detection is
-  // file-based, not a guess from the registry.
+  // 3. Install pass — for each profile still missing the extension, open chrome://extensions
+  //    and poll the registry until "Load unpacked" lands it. Detection is registry-based
+  //    (kimiExtId): unpacked builds run from their source dir and never land in Extensions/,
+  //    so the registry is the ONLY source that sees them.
   for (const p of targets) {
-    if (hasKimiExtension(p.dir)) {
-      console.log(`• "${p.name}": extension present on disk — skipping CWS install.`);
+    if (kimiExtId(p.dir)) {
+      console.log(`• "${p.name}": extension already present — skipping install.`);
       continue;
     }
-    console.log(`\n👉 "${p.name}": opening the Chrome Web Store — click "Add to Chrome".`);
-    console.log(`   ${CWS_KIMI_WEBBRIDGE_URL}`);
-    openUrlInProfile({ profileDir: p.dir, windowId: null, url: CWS_KIMI_WEBBRIDGE_URL });
+    const dm = developerModeOn(p.dir);
+    const dmNote = dm === true ? " — already on ✓" : dm === false ? " — currently OFF" : "";
+    console.log(`\n👉 "${p.name}" (${p.dir}) — install the extension:`);
+    console.log(`     1. Toggle "Developer mode" ON (top-right of chrome://extensions)${dmNote}.`);
+    console.log(`     2. Click "Load unpacked".`);
+    console.log(`     3. Select this folder:  ${extPath}`);
+    console.log(`   (No Enter needed — this command auto-detects the load and continues.)`);
+    if (!noOpen) {
+      const r = openUrlInProfile({ profileDir: p.dir, windowId: null, url: "chrome://extensions" });
+      console.log(`   ↪ opened chrome://extensions in "${p.name}" (mode=${r.mode}${r.error ? `, error=${r.error}` : ""})`);
+    }
 
-    const deadline = Date.now() + EXTENSION_INSTALL_TIMEOUT_MS;
+    const deadline = Date.now() + timeoutMs;
     let installed = false;
     let tick = 0;
     while (Date.now() < deadline) {
       await sleep(EXTENSION_INSTALL_POLL_MS);
-      if (hasKimiExtension(p.dir)) { installed = true; break; }
+      if (kimiExtId(p.dir)) { installed = true; break; }
       if (tick++ % 4 === 0) {
         const remain = Math.round((deadline - Date.now()) / 1000);
-        console.log(`   …waiting for install (${remain}s left, checking every ${EXTENSION_INSTALL_POLL_MS / 1000}s)`);
+        const dmNow = developerModeOn(p.dir);
+        const hint = dmNow === false ? " (Developer mode still OFF — toggle it to reveal 'Load unpacked')" : "";
+        console.log(`   …waiting for Load unpacked (${remain}s left, every ${EXTENSION_INSTALL_POLL_MS / 1000}s)${hint}`);
       }
     }
     if (!installed) {
-      console.error(`✗ "${p.name}": extension not installed within ${EXTENSION_INSTALL_TIMEOUT_MS / 1000}s. Re-run \`kwb setup\`.`);
+      console.error(`✗ "${p.name}": extension not loaded within ${timeoutMs / 1000}s. Re-run \`awb setup "${p.name}"\` after Load unpacked.`);
       process.exit(1);
     }
-    console.log(`  ✓ "${p.name}": extension detected on disk (Extensions/${kimiExtId(p.dir)}).`);
+    console.log(`  ✓ "${p.name}": extension detected (id ${kimiExtId(p.dir)}).`);
   }
 
-  // Phase 3 — wire each profile to its daemon (cmdConnect quits Chrome once, writes
-  // local_url) and bring the fleet up.
+  if (noUp) {
+    console.log("\n• --no-up set; extension installed. Run `awb connect <profile...>` then `awb up <profile...>` when ready.");
+    return;
+  }
+
+  // 4. Wire each profile to its daemon (cmdConnect quits Chrome once, writes local_url) and
+  //    bring the fleet up.
   console.log("\n• connecting + starting the fleet…");
   const connectRes = await cmdConnect(targets.map((p) => p.dir), { exitOnDone: false });
   if (!connectRes.ok) {
@@ -453,22 +491,20 @@ async function cmdSetupInteractive(args) {
   await cmdUp(targets.map((p) => p.dir));
 }
 
-// `kwb install-dev <profile...>` — guided dev-build install.
+// `awb install-dev <profile...>` — guided dev-build install + iterate loop.
 //
-// 1. For each target profile that lacks the extension, open the CWS page in a
-//    Chrome window of that profile and start polling for install every 5s
-//    (up to 600s). Reads the registry from disk each tick so the answer is
-//    always fresh — Chrome re-reads extensions.settings on its own poll too.
-// 2. While polling, the user can abort with Ctrl-C or by typing "q" + Enter;
-//    either path runs `kwb down --no-restore` so any daemon / router we may
-//    have started in a previous step is reaped and :10086 stays free.
-// 3. Once the extension shows up, open chrome://extensions for the same
-//    profile and prompt the user to (a) flip on Developer mode and (b) click
-//    "Load unpacked" → pick `kimi-webbridge-extension/` (the repo root copy
-//    the multi-tab work in 1d4961c / 76f2d9b lives in). After Load unpacked,
-//    the unpacked build's id (dev, not stable) is what Chrome will report in
-//    `kwb profiles` going forward — the CWS build gets shadowed by the new
-//    unpacked entry with the same name.
+// This is the DEVELOPER tool (iterate on background.js / popup.html with a Reload
+// loop). For a plain install, `awb setup` is the canonical, poll-based path.
+//
+// 1. There is no Chrome Web Store step. For each target, go straight to the
+//    chrome://extensions handoff.
+// 2. The user can abort with Ctrl-C or by typing "q" + Enter; either path runs
+//    `awb down --no-restore` so any daemon / router we may have started in a
+//    previous step is reaped and :10086 stays free.
+// 3. Open chrome://extensions for the profile and prompt the user to (a) flip on
+//    Developer mode and (b) click "Load unpacked" → pick `agent-webbridge-extension/`.
+//    The unpacked build's id equals the published stable id (it's derived from the
+//    manifest `key`), so `awb profiles` reports the same id either way.
 // 3.5. Reload handoff — open chrome://extensions/?id=<devId> focused on the
 //      dev card and prompt the user to click Reload. This is the
 //      iterate-on-background.js loop. We can't click Reload programmatically
@@ -485,31 +521,24 @@ async function cmdSetupInteractive(args) {
 //    once (LevelDB is single-writer) and writes local_url atomically; cmdUp
 //    starts the daemons + router + opens windows + wakes each extension.
 //    Critically, we do NOT quit Chrome between phases 3 / 3.5 / 4 — doing so
-//    can roll back an in-flight Secure Preferences write (the previous
-//    install run's bug: the CWS install was detected during the poll, but
-//    our quitChrome force-killed Chrome before the write flushed, so the
-//    entry vanished on next start). Chrome stays open from the user's first
-//    click all the way through the Reload handoff; cmdConnect is the single
-//    authoritative quit.
-//
-// `--skip-cws` assumes the extension is already present (skips the CWS page +
-// poll) and goes straight to the chrome://extensions handoff. Useful when the
-// user just wants to swap the CWS build for our local dev build.
+//    can roll back an in-flight Secure Preferences write (a prior bug: the
+//    install was detected during the poll, but our quitChrome force-killed
+//    Chrome before the write flushed, so the entry vanished on next start).
+//    Chrome stays open from the user's first click all the way through the
+//    Reload handoff; cmdConnect is the single authoritative quit.
 //
 // `--no-reload` skips phase 3.5 entirely. Use on the very first run, before
 // Load unpacked has ever been done — there's nothing to Reload yet.
 //
-// `--no-open` stops after phase 4's connect step; the user runs `kwb up`
+// `--no-open` stops after phase 4's connect step; the user runs `awb up`
 // themselves.
 async function cmdInstallDev(args) {
-  const skipCws = args.includes("--skip-cws");
   const noOpen = args.includes("--no-open");
   const noReload = args.includes("--no-reload");
   const reinstall = args.includes("--reinstall");
   const targets = args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
   if (!targets.length) {
-    console.error("usage: kwb install-dev <profile...> [--skip-cws] [--no-open] [--no-reload] [--reinstall]");
-    console.error("  --skip-cws   assume the CWS extension is already installed, jump to dev-mode handoff");
+    console.error("usage: awb install-dev <profile...> [--no-open] [--no-reload] [--reinstall]");
     console.error("  --no-open    after install, don't auto-start the fleet — leave Chrome for the user to drive");
     console.error("  --no-reload  skip the 'click Reload on the unpacked card' handoff (useful on first run");
     console.error("                when Load unpacked hasn't been done yet, or when you don't want the wizard");
@@ -605,66 +634,32 @@ async function cmdInstallDev(args) {
     process.exit(2);
   };
 
-  // 2. For each target: open CWS if missing, poll for install, then go to chrome://extensions.
-  //    One Chrome process / one window per profile — see openUrlInProfile's note.
+  // 2. For each target: go straight to the chrome://extensions Load-unpacked handoff. There
+  //    is no Chrome Web Store step — agent-webbridge ships only as an unpacked build, so
+  //    "not installed yet" is the normal first-run state, not an error.
   for (let i = 0; i < targets.length; i++) {
     const p = targets[i];
     console.log(`\n👉 [${i + 1}/${targets.length}] profile "${p.name}" (${p.dir}) → :${p.port}`);
 
     // Fresh read of the registry — kimiExtId re-parses the same Chrome file each call.
-    let installed = !!kimiExtId(p.dir);
-    // windowId is remembered across the two URL ops so the chrome://extensions tab lands
-    // in the SAME window the CWS tab opened in (not a fresh second window).
+    const installed = !!kimiExtId(p.dir);
+    // windowId anchors the chrome://extensions + Reload tabs into one window per profile.
     let windowId = null;
-
-    if (!installed && !skipCws) {
-      console.log(`• extension not installed in "${p.name}" — opening Chrome Web Store…`);
-      console.log(`  ${CWS_KIMI_WEBBRIDGE_URL}`);
-      const r = openUrlInProfile({ profileDir: p.dir, windowId: null, url: CWS_KIMI_WEBBRIDGE_URL });
-      windowId = r.windowId;
-      console.log(`  ↪ opened (mode=${r.mode}, windowId=${windowId ?? "?"})`);
-
-      const deadline = Date.now() + EXTENSION_INSTALL_TIMEOUT_MS;
-      const start = Date.now();
-      let tick = 0;
-      while (Date.now() < deadline) {
-        if (aborted) await abortAndDown("user aborted during install poll");
-        if (tick++ % 6 === 0) {
-          const elapsed = Math.round((Date.now() - start) / 1000);
-          const remain = Math.round((deadline - Date.now()) / 1000);
-          console.log(`  …polling (${elapsed}s elapsed, ${remain}s remaining, every ${EXTENSION_INSTALL_POLL_MS / 1000}s) — type "q" + Enter to abort, or Ctrl-C`);
-        }
-        await sleep(EXTENSION_INSTALL_POLL_MS);
-        if (aborted) await abortAndDown("user aborted during install poll");
-        installed = !!kimiExtId(p.dir);
-        if (installed) {
-          console.log(`  ✓ extension detected in "${p.name}" (registry read succeeded)`);
-          break;
-        }
-      }
-      if (!installed) {
-        await abortAndDown(
-          `extension not installed in "${p.name}" within ${EXTENSION_INSTALL_TIMEOUT_MS / 1000}s. Re-run after installing, or pass --skip-cws if it's already there.`,
-        );
-      }
-    } else if (installed) {
-      console.log(`• extension is already installed in "${p.name}" (skipping CWS handoff${skipCws ? " — --skip-cws" : ""}).`);
-      // No window to anchor against — we'll cold-start one in the chrome://extensions step.
-    } else if (skipCws) {
-      await abortAndDown(`--skip-cws set, but no extension is installed in "${p.name}". Install it first or drop --skip-cws.`);
-    }
+    console.log(
+      installed
+        ? `• extension already present in "${p.name}" — opening chrome://extensions to Reload the dev build.`
+        : `• extension not loaded in "${p.name}" — opening chrome://extensions to Load unpacked.`,
+    );
 
     // 3. chrome://extensions handoff — user flips Developer mode on, clicks
-    //    "Load unpacked", and picks the dev build folder. We append the
-    //    chrome://extensions tab to the SAME window the CWS tab opened in
-    //    (windowId is reused), so the user sees one window for the whole wizard.
-    console.log(`\n  → Adding chrome://extensions tab to "${p.name}"'s window (id=${windowId ?? "?"}). Please:`);
+    //    "Load unpacked", and picks the dev build folder. We open the
+    //    chrome://extensions tab in a fresh window for the profile (windowId
+    //    is null on first run), so the user sees one window for the whole wizard.
+    console.log(`\n  → Opening chrome://extensions for "${p.name}". Please:`);
     console.log(`      1. Toggle the "Developer mode" switch ON (top-right).`);
     console.log(`      2. Click "Load unpacked".`);
     console.log(`      3. Select this folder: ${extPath}`);
-    console.log(`         (the in-repo build carrying the multi-tab queue lock from 1d4961c + the`);
-    console.log(`          router-level serialization from 76f2d9b; replaces the CWS build)`);
-    console.log(`      4. After "Kimi WebBridge" appears in the list, press Enter here to continue.`);
+    console.log(`      4. After "Agent WebBridge" appears in the list, press Enter here to continue.`);
     if (windowId) {
       const r = openUrlInProfile({ profileDir: p.dir, windowId, url: "chrome://extensions" });
       console.log(`  ↪ opened (mode=${r.mode}${r.error ? `, error=${r.error}` : ""})`);
@@ -712,7 +707,7 @@ async function cmdInstallDev(args) {
       const mtimeStr = new Date(lastMod).toISOString().replace("T", " ").slice(0, 19);
       console.log(`\n  ↳ Opening chrome://extensions/?id=${devId} focused on the dev card.`);
       console.log(`     Dev build's most recent change: ${mtimeStr} UTC.`);
-      console.log(`     → If the "Kimi WebBridge" card is missing: you haven't Load unpacked yet —`);
+      console.log(`     → If the "Agent WebBridge" card is missing: you haven't Load unpacked yet —`);
       console.log(`       toggle Developer mode ON (top-right), click "Load unpacked", and pick:`);
       console.log(`         ${extPath}`);
       console.log(`       Then come back to this tab and click the "↻ Reload" button on the card.`);
@@ -780,6 +775,89 @@ async function cmdInstallDev(args) {
   await cmdUp(targets.map((p) => p.dir));
 }
 
+// `awb check [profile...] [--json]` — machine-readable install readiness, the thing an
+// orchestrating agent polls while it walks the user through "Load unpacked". For each
+// profile it answers the four questions the agent needs: is the in-repo extension FOLDER
+// present (so there's something to load)? is Developer MODE on? is the extension LOADED +
+// enabled? is the daemon UP and the extension CONNECTED to it? Each profile gets a single
+// `ready` boolean and a `nextStep` hint so the agent always knows the one thing to do next.
+// Read-only: never opens Chrome, never starts a daemon.
+async function cmdCheck(args) {
+  const json = args.includes("--json");
+  const queries = args.filter((a) => !a.startsWith("--"));
+
+  // The in-repo extension folder is a precondition for everything else (nothing to load
+  // without it). Resolve it once; a bad checkout makes every profile un-installable.
+  let extPath = null;
+  let extId = null;
+  let folderPresent = false;
+  try {
+    extPath = unpackedExtPath();
+    extId = devBuildExtId();
+    folderPresent = true;
+  } catch (e) {
+    extPath = e.message;
+  }
+
+  const all = listProfiles();
+  const selected = queries.length ? queries.map((q) => resolveProfile(q)) : all;
+
+  const rows = [];
+  for (const p of selected) {
+    const dm = developerModeOn(p.dir); // true | false | null(unknown)
+    const loaded = !!p.hasExtension;
+    const enabled = !!p.extEnabled;
+    const s = await daemonStatus(p.port);
+    const daemonUp = !!s;
+    const connected = s?.extension_connected ?? false;
+    const ready = folderPresent && loaded && enabled && daemonUp && connected;
+
+    // The single next action for this profile, in dependency order.
+    let nextStep;
+    if (!folderPresent) nextStep = "extension folder missing — reinstall the npm package (agent-webbridge-extension/ is absent)";
+    else if (!loaded) nextStep = dm === false
+      ? "enable Developer mode in chrome://extensions, then Load unpacked the extension folder"
+      : `Load unpacked the extension folder: ${extPath}  (run \`awb setup "${p.name}"\` to be walked through it)`;
+    else if (!enabled) nextStep = `enable the agent-webbridge extension in chrome://extensions for "${p.name}"`;
+    else if (!daemonUp) nextStep = `start the fleet: \`awb up "${p.name}"\``;
+    else if (!connected) nextStep = `extension loaded but not connected — \`awb connect "${p.name}"\` then \`awb up "${p.name}"\``;
+    else nextStep = null; // ready
+
+    rows.push({
+      name: p.name,
+      dir: p.dir,
+      port: p.port,
+      developerMode: dm,
+      loaded,
+      enabled,
+      extType: p.extType,
+      daemonUp,
+      connected,
+      ready,
+      nextStep,
+    });
+  }
+
+  if (json) {
+    console.log(JSON.stringify({ extensionFolder: { present: folderPresent, path: extPath, id: extId }, profiles: rows }, null, 2));
+    return rows.every((r) => r.ready) ? 0 : 1;
+  }
+
+  console.log("agent-webbridge — readiness check\n");
+  console.log(`  extension folder : ${folderPresent ? "✓ present" : "✗ MISSING"}  ${extPath}${extId ? `  (id ${extId})` : ""}\n`);
+  const fmt = (v) => (v === true ? "yes" : v === false ? "no" : "—");
+  for (const r of rows) {
+    const dmStr = r.developerMode === true ? "on" : r.developerMode === false ? "off" : "?";
+    console.log(
+      `  ${r.ready ? "✓" : "✗"} "${r.name}" (${r.dir} :${r.port}) — dev-mode:${dmStr} loaded:${fmt(r.loaded)} enabled:${fmt(r.enabled)} daemon:${r.daemonUp ? "up" : "down"} connected:${fmt(r.connected)}`,
+    );
+    if (r.nextStep) console.log(`      ↳ next: ${r.nextStep}`);
+  }
+  const ready = rows.filter((r) => r.ready).length;
+  console.log(`\n${ready}/${rows.length} profile(s) ready.`);
+  return ready === rows.length && rows.length > 0 ? 0 : 1;
+}
+
 async function main() {
   const [cmd, ...args] = process.argv.slice(2);
   switch (cmd) {
@@ -840,6 +918,9 @@ async function main() {
     case "down":
       await cmdDown(args);
       break;
+    case "check":
+      process.exit(await cmdCheck(args));
+      break;
     case "setup":
     case "setup-interactive":
       await cmdSetupInteractive(args);
@@ -864,7 +945,7 @@ async function main() {
       break;
     default:
       console.error(
-        "usage: kwb <doctor|profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...|setup <profile...>|install-dev <profile...>>",
+        "usage: awb <doctor|check [profile...] [--json]|profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...|setup <profile...>|install-dev <profile...>>",
       );
       process.exit(1);
   }

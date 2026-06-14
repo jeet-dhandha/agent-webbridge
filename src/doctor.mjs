@@ -137,7 +137,7 @@ export async function runDoctor() {
           "agent-webbridge extension",
           WARN,
           "not installed in any profile",
-          "install it from the Chrome Web Store (or `kwb setup` to wire it into your profiles) — `kwb up` needs it to connect.",
+          "run `awb setup <profile>` — it opens chrome://extensions, prints the folder to Load unpacked, and waits. `awb up` needs the extension to connect.",
         ),
       );
     } else if (enabled.length === 0) {
