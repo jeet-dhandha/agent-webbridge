@@ -76,8 +76,10 @@ npm install                       # only dep: ws
 node bin/kwb.mjs profiles         # `awb <cmd>` == `node bin/kwb.mjs <cmd>`
 ```
 
-The Chrome extension installs from the Chrome Web Store, or via **Load unpacked** of
-`agent-webbridge-extension/` during development.
+The Chrome extension installs via Chrome's **"Load unpacked"** of `agent-webbridge-extension/`
+(there is no Chrome Web Store listing). `awb setup <profile…>` walks a user — or an agent
+polling `awb check --json` — through it: it prints the exact folder, opens `chrome://extensions`,
+waits for Developer-mode + Load-unpacked, then connects + brings the fleet up.
 
 ## Tests
 

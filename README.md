@@ -26,10 +26,13 @@ npm i -g agent-webbridge
 
 This puts the `awb` command on your PATH (with `kwb` kept as an alias) and brings the Node daemon. The only runtime dependency is `ws`.
 
-**2. The Chrome extension** — install the clean-room MV3 extension (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`):
+**2. The Chrome extension** — a clean-room MV3 extension (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`) installed via Chrome's built-in **"Load unpacked"**. There is no Chrome Web Store listing — and you don't need one. Let the CLI walk you through it:
 
-- **Chrome Web Store** — install the published "agent-webbridge" extension, or
-- **Load unpacked** (during development) — see [Dev](#dev).
+```bash
+awb setup "Work"          # or any profile name / email / "Profile 2"
+```
+
+`awb setup` prints the exact extension folder, opens `chrome://extensions`, then **polls** while you do the one manual step Chrome requires: toggle **Developer mode** on (top-right) and click **Load unpacked** → pick that folder. As soon as it detects the load, it wires the profile to its daemon and brings the fleet up. Because the extension ships its public key in `manifest.json`, Chrome always derives the same stable id — the folder you load *is* the published build. (Manual steps: [Dev](#dev). Driving install from an agent: [`awb check --json`](#dev).)
 
 **Requirements:** macOS + Google Chrome, and Node.js ≥ 18.
 
@@ -120,7 +123,8 @@ The CLI is `awb` (with `kwb` kept as an alias — both invoke the same binary).
 
 | Command | What it does |
 |---|---|
-| `awb setup` | One-time setup: detect the extension and prepare profiles |
+| `awb setup <profile…>` | One-time install: walk you through "Load unpacked", then connect + bring the fleet up |
+| `awb check [profile…] [--json]` | Read-only readiness probe (folder? dev-mode? loaded? connected?) — what an agent polls during install |
 | `awb connect <profile…>` | Point each profile's extension at its own daemon |
 | `awb up <profile…>` | Start the named profiles' daemons + the router, open windows, connect |
 | `awb down` | Stop the router + fleet daemons |
@@ -137,9 +141,11 @@ To run the extension from source during development:
 1. Open `chrome://extensions/` in the target profile.
 2. Enable **Developer mode** (top-right).
 3. Click **Load unpacked** (top-left).
-4. Select the [`agent-webbridge-extension/`](agent-webbridge-extension/) directory in this repo.
+4. Select the [`agent-webbridge-extension/`](agent-webbridge-extension/) directory in this repo (or run `npm root -g`/`npm i -g agent-webbridge` and load the `agent-webbridge-extension/` inside the installed package). `awb setup` prints the exact path.
 
-Because the unpacked extension ships its public key in `manifest.json`, Chrome derives the same stable id (`ifodkkbkmngjlkhiphcjmbceeolhpfeo`) every time, so the dev build and the Web Store build are interchangeable.
+Because the unpacked extension ships its public key in `manifest.json`, Chrome derives the same stable id (`ifodkkbkmngjlkhiphcjmbceeolhpfeo`) every time — the "dev" build and the released build are the same artifact.
+
+**Driving install from an agent.** `awb check [profile…] --json` is a read-only readiness probe an orchestrating agent can poll: for each profile it reports whether the extension folder is present, **Developer mode** is on, the extension is **loaded + enabled**, and the daemon is **up + connected**, plus a single `nextStep` hint. Loop on it until `ready: true`, guiding the user through the one Chrome click in between.
 
 ## Verified
 

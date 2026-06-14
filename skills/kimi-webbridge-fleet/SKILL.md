@@ -30,7 +30,7 @@ more than one account or with several pages in flight at once:
   Personal, multiple Gmail / Drive / Ads accounts) **at once**.
 - Throughput tasks where **many tabs in one profile** should run **concurrently** — agent-
   webbridge attaches `chrome.debugger` **per tab**, so N tabs in one profile run in parallel
-  (the killer feature vs the official Kimi WebBridge, which funnels every call through one
+  (the killer feature vs typical browser bridges, which funnel every call through one
   global "current tab").
 - Anything you would otherwise reach for a headless tool (Playwright, Firecrawl) for, but where
   the real logged-in session matters — here you get the user's actual Chrome instead.
@@ -54,21 +54,35 @@ Then act on the result:
 
 ## How to use
 
-Full, copy-pasteable setup is in **[AGENTS.md](../../AGENTS.md)** — read it for prerequisites
-(`npm i -g agent-webbridge` for the daemon + CLI; the Chrome extension from the Chrome Web Store
-or "Load unpacked" of `agent-webbridge-extension/` in dev), install, and details. Summary:
+Full, copy-pasteable setup is in **[AGENTS.md](../../AGENTS.md)**. Quick version:
 
 ```bash
-awb setup                       # list profiles, hashed ports, extension presence, daemon up?
-awb connect "Work" "Personal"   # point each extension at its daemon (zero clicks; closes Chrome)
-awb up      "Work" "Personal"   # start each profile's daemon + router on :10086, open windows
-awb status                      # verify: extensionConnected:true per profile
-awb down                        # tear down the fleet
+npm i -g agent-webbridge         # daemon + `awb` CLI (`kwb` stays an alias)
+awb setup "Work" "Personal"      # install the extension (guided Load unpacked) + bring the fleet up
+awb connect "Work" "Personal"    # (re)point each extension at its daemon (zero clicks; closes Chrome)
+awb up      "Work" "Personal"    # start each profile's daemon + router on :10086, open windows
+awb status                       # verify: extensionConnected:true per profile
+awb down                         # tear down the fleet
 ```
 
-(Install with `npm i -g agent-webbridge`, then use the `awb` CLI — `kwb` remains an alias.
-Pre-publish, run `node bin/kwb.mjs <cmd>` from the repo. Run `awb doctor` first for a read-only
+(Pre-publish, run `node bin/kwb.mjs <cmd>` from the repo. Run `awb doctor` first for a read-only
 environment self-check.)
+
+### Installing the extension (one-time, no Chrome Web Store)
+
+The extension installs via Chrome's built-in **"Load unpacked"** — there is **no Chrome Web
+Store listing**, and none is needed. `awb setup <profile…>` automates everything except the one
+click Chrome reserves for a human. When **you (the agent)** run it, *guide the user through that
+click and poll for success* rather than waiting blindly:
+
+1. Run `awb setup "<profile>"`. It prints the **exact extension folder** and opens
+   `chrome://extensions`.
+2. Tell the user to: toggle **Developer mode** ON (top-right) → click **Load unpacked** → select
+   the printed folder.
+3. Poll `awb check "<profile>" --json`. For each profile it reports `developerMode`, `loaded`,
+   `enabled`, `daemonUp`, `connected`, a `ready` boolean, and a single `nextStep` hint. Relay
+   `nextStep` to the user and loop until `ready: true`. (`awb setup` also polls and continues on
+   its own once the load lands, then connects + brings the fleet up.)
 
 **Zero-click connect:** `awb connect` points each profile's extension at its daemon by writing
 `local_url` directly into the extension's on-disk `storage.local` — no popup, no clicks. It

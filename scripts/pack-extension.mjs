@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-// pack-extension.mjs — build the Chrome Web Store upload zip for the agent-webbridge
-// MV3 extension.
+// pack-extension.mjs — build the downloadable release zip for the agent-webbridge MV3
+// extension (attached to the GitHub Release; there is no Chrome Web Store listing).
 //
 // WHAT IT DOES
 //   Zips agent-webbridge-extension/ into dist/agent-webbridge-extension-<version>.zip,
-//   where <version> comes from package.json. Dev-only / junk files are excluded so the
-//   uploaded bundle is exactly what ships to users (CWS rejects bundles that carry
-//   build cruft, .orig backups, .DS_Store, etc.). Prints the absolute output path on
-//   success — nothing else on stdout, so a caller can capture it.
+//   where <version> comes from package.json. The archive has the extension's files at its
+//   root (manifest.json on top), so a user unzips it and points Chrome's "Load unpacked"
+//   at the unzipped folder. Dev-only / junk files are excluded so the bundle is exactly
+//   what ships to users (no build cruft, .orig backups, .DS_Store, etc.). Prints the
+//   absolute output path on success — nothing else on stdout, so a caller can capture it.
 //
 // PORTABILITY
 //   Uses Node builtins only and shells out to the system `zip` CLI (Info-ZIP), which is
@@ -28,7 +29,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EXT_DIR = path.join(ROOT, "agent-webbridge-extension");
 const DIST_DIR = path.join(ROOT, "dist");
 
-// Dev-only / junk files that must never reach the Chrome Web Store bundle. Patterns are
+// Dev-only / junk files that must never reach the released bundle. Patterns are
 // matched against `zip -x` (glob, relative to the extension dir). Keep this list in sync
 // with anything a build/patch step might leave behind.
 const EXCLUDE = [
@@ -71,14 +72,14 @@ const version = pkg.version;
 if (!version) die("package.json has no version field");
 
 // Sanity check: warn (don't fail) if the manifest version drifts from the package
-// version, so the maintainer notices before uploading the wrong number to the CWS.
+// version, so the maintainer notices before cutting a release with the wrong number.
 try {
   const manifestVersion = JSON.parse(fs.readFileSync(manifestPath, "utf8")).version;
   if (manifestVersion && manifestVersion !== version) {
     console.error(
       `pack-extension: note — manifest version (${manifestVersion}) differs from ` +
-        `package version (${version}). The zip name uses the package version; the ` +
-        `Chrome Web Store reads the manifest version. Make sure that's intended.`
+        `package version (${version}). The zip name uses the package version; Chrome ` +
+        `reads the manifest version. Make sure that's intended.`
     );
   }
 } catch {
@@ -92,8 +93,8 @@ const outPath = path.join(DIST_DIR, `agent-webbridge-extension-${version}.zip`);
 fs.rmSync(outPath, { force: true }); // zip appends to an existing archive; start clean
 
 // `zip -r -X out.zip . -x <patterns>` run with cwd = EXT_DIR so the archive has the
-// extension's files at its root (manifest.json at top level), which is what the CWS
-// expects. `-X` strips extra macOS file attributes for a clean, reproducible bundle.
+// extension's files at its root (manifest.json at top level), which is what "Load
+// unpacked" expects. `-X` strips extra macOS file attributes for a clean, reproducible bundle.
 const args = ["-r", "-X", outPath, "."];
 for (const p of EXCLUDE) args.push("-x", p);
 
