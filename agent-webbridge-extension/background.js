@@ -1,6 +1,6 @@
 // background.js — Agent WebBridge MV3 service worker: the dispatcher / entry point.
 //
-// Wires the WS transport to the 13 tool modules. Every incoming tool_call lands in
+// Wires the WS transport to the 14 tool modules. Every incoming tool_call lands in
 // dispatch(), which resolves the target tab, builds the uniform `ctx` object, serializes
 // work per-tab (so different tabs run concurrently — that is the parallelism), and returns
 // a uniform { data } | { error } back to the daemon. No HTTP-envelope quirks live here.
@@ -17,6 +17,7 @@ import click from "./src/tools/click.mjs";
 import fill from "./src/tools/fill.mjs";
 import network from "./src/tools/network.mjs";
 import upload from "./src/tools/upload.mjs";
+import file_chooser_intercept from "./src/tools/file_chooser_intercept.mjs";
 import screenshot from "./src/tools/screenshot.mjs";
 import save_as_pdf from "./src/tools/save_as_pdf.mjs";
 import list_tabs from "./src/tools/list_tabs.mjs";
@@ -32,6 +33,7 @@ const TOOLS = {
   fill,
   network,
   upload,
+  file_chooser_intercept,
   screenshot,
   save_as_pdf,
   list_tabs,
