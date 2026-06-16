@@ -46,7 +46,7 @@ profiles, or per-profile tab parallelism matter.
 ## Health check (always do this first)
 
 ```bash
-awb status        # `kwb` is kept as an alias
+awb status        # `kwb` is kept as a back-compat alias
 ```
 
 Then act on the result:
@@ -62,7 +62,7 @@ Then act on the result:
 Full, copy-pasteable setup is in **[AGENTS.md](AGENTS.md)**. Quick version:
 
 ```bash
-npm i -g agent-webbridge         # daemon + `awb` CLI (`kwb` stays an alias)
+npm i -g agent-webbridge         # daemon + `awb` CLI (`kwb` stays a back-compat alias)
 awb setup "Work" "Personal"      # install the extension (guided Load unpacked) + bring the fleet up
 awb connect "Work" "Personal"    # (re)point each extension at its daemon (zero clicks; closes Chrome)
 awb up      "Work" "Personal"    # start each profile's daemon + router on :10086, open windows
@@ -212,6 +212,18 @@ Rules:
    **first** `navigate`; later calls in the same session don't need it.
 5. Use multiple sessions **only when the user asks for several unrelated tasks at once** — one
    session per task.
+6. **Reuse an existing group — don't fragment.** Before opening tabs, check what's already open
+   (`awb groups`, or `list_tabs` and read each tab's `groupTitle`). If a group for this task
+   already exists (`agent:<session>`), **reuse that exact session name** instead of starting a new
+   one. The daemon already re-joins a group by session name across service-worker restarts —
+   fragmentation comes from the *caller* picking a new name, not from the fleet.
+7. **Parallel sub-agents / workflows share ONE session.** When you fan out several agents/workers
+   for the *same* task, pass them all the **same** session name. Letting each pick its own
+   (`probe-x`, `probe-y`, …) scatters the work across many groups — and orphans them if a worker
+   crashes mid-run. (One task = one group still holds, no matter how many workers.)
+8. **Clean up temporary sessions — even on failure.** For scratch/probe sessions, `close_session`
+   when done *and* on error/early-exit paths. List strays with `awb groups` and prune any with
+   `awb close <session>` (the name shown after `agent:`).
 
 ```bash
 # First tab of the task: set session + human-readable label

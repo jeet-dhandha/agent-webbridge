@@ -25,3 +25,4 @@ docs/SEO-POSTS.md
 # local live-test / scrape harnesses — hardcode local absolute paths, never committed
 scratch/
 build-next-reality-check.html
+.resources/

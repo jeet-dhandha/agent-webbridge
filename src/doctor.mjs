@@ -1,4 +1,4 @@
-// doctor.mjs — `kwb doctor`: one read-only self-check that answers the only
+// doctor.mjs — `awb doctor`: one read-only self-check that answers the only
 // question a new user has before anything works: "is my machine set up, and if
 // not, what one thing do I fix?"
 //
@@ -155,7 +155,7 @@ export async function runDoctor() {
     }
   }
 
-  // 8. Router port :10086 — must be free (or held by OUR router) before `kwb up`,
+  // 8. Router port :10086 — must be free (or held by OUR router) before `awb up`,
   // because the router's singleton probe is hardwired to :10086.
   const portStatus = await daemonStatus(ROUTER_PORT);
   if (!portStatus) {
@@ -168,7 +168,7 @@ export async function runDoctor() {
         `Router port :${ROUTER_PORT}`,
         WARN,
         "held by another process (e.g. a stale daemon)",
-        "that's fine — `kwb up` stops it automatically before starting the fleet.",
+        "that's fine — `awb up` stops it automatically before starting the fleet.",
       ),
     );
   }
@@ -196,7 +196,7 @@ const ICON = { pass: "✓", warn: "!", fail: "✗" };
 
 // Print a human report and return the process exit code (0 unless any FAIL).
 export function printDoctor({ checks, summary }) {
-  console.log("kwb doctor — environment self-check\n");
+  console.log("awb doctor — environment self-check\n");
   for (const c of checks) {
     console.log(`  ${ICON[c.status]} ${c.name.padEnd(26)} ${c.detail}`);
     if (c.hint && c.status !== PASS) console.log(`      ↳ ${c.hint}`);
@@ -207,14 +207,14 @@ export function printDoctor({ checks, summary }) {
     }`,
   );
   if (summary.fail > 0) {
-    console.log("\nFix the ✗ items above, then re-run `kwb doctor`.");
+    console.log("\nFix the ✗ items above, then re-run `awb doctor`.");
     return 1;
   }
   if (summary.warn > 0) {
     console.log("\nReady — the ! items are optional setup, not blockers.");
     return 0;
   }
-  console.log("\nAll good. Try: kwb profiles");
+  console.log("\nAll good. Try: awb profiles");
   return 0;
 }
 

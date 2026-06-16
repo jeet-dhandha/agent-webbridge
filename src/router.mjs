@@ -26,7 +26,7 @@ const PORT = Number(process.env.KWB_ROUTER_PORT || ROUTER_PORT);
 // close the fleet by itself. 0 disables it. Default 120 (~2h). This stops only the local
 // daemon PROCESSES — it never closes the user's browser tabs/windows (the extension simply
 // disconnects). Set KWB_IDLE_NO_RESTORE to leave :10086 empty instead of restoring the
-// stock single daemon (matches `kwb down`).
+// stock single daemon (matches `awb down`).
 const IDLE_MIN = Number(process.env.KWB_IDLE_TIMEOUT_MIN ?? 120);
 const IDLE_MS = IDLE_MIN * 60_000;
 const IDLE_RESTORE = !process.env.KWB_IDLE_NO_RESTORE;
@@ -37,35 +37,35 @@ const bump = () => (lastActivity = Date.now());
 
 // Stop every fleet daemon (process only — leaves Chrome tabs untouched), optionally
 // restore the stock :10086 daemon, record why we stopped, then exit. Same teardown as
-// `kwb down`, but initiated from inside the (idle) router itself.
+// `awb down`, but initiated from inside the (idle) router itself.
 async function idleShutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
   const idleMin = Math.round((Date.now() - lastActivity) / 60_000);
-  console.log(`[kwb-router] idle ${idleMin}m (limit ${IDLE_MIN}m) — closing the fleet daemons (browser tabs left open)`);
+  console.log(`[awb-router] idle ${idleMin}m (limit ${IDLE_MIN}m) — closing the fleet daemons (browser tabs left open)`);
   try {
     for (const p of listProfiles()) {
       if (await daemonStatus(p.port)) {
         await stopDaemon(p); // daemon process only; does NOT close tabs
-        console.log(`[kwb-router] stopped daemon ${p.dir} (:${p.port}) — tabs left open`);
+        console.log(`[awb-router] stopped daemon ${p.dir} (:${p.port}) — tabs left open`);
       }
     }
     if (IDLE_RESTORE) {
       try {
         execFileSync(KIMI_BIN, ["start"], { stdio: "ignore" });
-        console.log("[kwb-router] restored stock :10086 daemon");
+        console.log("[awb-router] restored stock :10086 daemon");
       } catch {}
     }
     try { patchState({ stoppedAt: new Date().toISOString(), stoppedReason: "idle", idleMinutes: idleMin }); } catch {}
   } catch (e) {
-    console.log(`[kwb-router] idle shutdown error: ${e.message}`);
+    console.log(`[awb-router] idle shutdown error: ${e.message}`);
   }
   // Remove the pid file only if it's OURS (guard against a stray router clobbering it).
   try {
     if (fs.readFileSync(ROUTER_PID, "utf8").trim() === String(process.pid)) fs.rmSync(ROUTER_PID, { force: true });
   } catch {}
   try { server.close(); } catch {}
-  console.log("[kwb-router] router exiting (idle)");
+  console.log("[awb-router] router exiting (idle)");
   process.exit(0);
 }
 
@@ -217,5 +217,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => {
   const idle = IDLE_MIN > 0 ? `idle auto-shutdown after ${IDLE_MIN}m of no /command` : "idle auto-shutdown disabled";
-  console.log(`[kwb-router] listening on http://127.0.0.1:${PORT} (proxying /command by profile; up to ${PER_PROFILE_CONCURRENCY} concurrent/profile; ${idle})`);
+  console.log(`[awb-router] listening on http://127.0.0.1:${PORT} (proxying /command by profile; up to ${PER_PROFILE_CONCURRENCY} concurrent/profile; ${idle})`);
 });

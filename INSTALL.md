@@ -11,7 +11,7 @@ The whole thing is open-source (MIT), localhost-only, no account, no telemetry.
 ## Recommended: let the CLI do it
 
 ```bash
-npm i -g agent-webbridge          # installs the daemon + the `awb` CLI (`kwb` is an alias)
+npm i -g agent-webbridge          # installs the daemon + the `awb` CLI (`kwb` is a back-compat alias)
 awb setup "Work"                  # or any profile name / email / "Profile 2"
 ```
 

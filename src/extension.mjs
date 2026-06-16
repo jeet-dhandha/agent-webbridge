@@ -78,7 +78,7 @@ export function devBuildExtId() {
 
 // mtime (ms since epoch) of the dev build's most recently changed source file —
 // background.js, manifest.json, popup.html, chunks, assets, locales, icons. Used by
-// `kwb install-dev` to tell the user "something changed since the last run, click
+// `awb install-dev` to tell the user "something changed since the last run, click
 // Reload in chrome://extensions".
 export function devBuildLastModifiedMs() {
   const dir = unpackedExtPath();

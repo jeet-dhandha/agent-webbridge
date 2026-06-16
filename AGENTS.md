@@ -48,7 +48,7 @@ fan-out helps when visiting many distinct sites but not when hammering a single 
 | Path | What lives here |
 | --- | --- |
 | `bin/agent-webbridge.mjs` | Daemon entrypoint — thin wrapper that runs `src/daemon`. |
-| `bin/kwb.mjs` | The CLI (`awb`, with `kwb` as an alias). Subcommands: `setup`, `connect`, `up`, `down`, `status`, `doctor`, `profiles` (plus `state`, `tabs`, `resolve`, `install`). |
+| `bin/kwb.mjs` | The CLI (`awb`, with `kwb` as a back-compat alias). Subcommands: `setup`, `connect`, `up`, `down`, `status`, `doctor`, `profiles` (plus `state`, `tabs`, `resolve`, `install`). |
 | `src/daemon/` | **Our clean-room daemon.** Only runtime dep is `ws`. `index.mjs` (CLI start/stop/status, self-backgrounds), `server.mjs` (HTTP `/command` + `/status`), `wshub.mjs` (WebSocket `/ws` to the extension), `envelope.mjs` (command envelopes), `registry.mjs`, `lifecycle.mjs` (pid file), `diskwriter.mjs`. |
 | `src/` (fleet) | Multi-profile orchestration: `router.mjs` (the `:10086` router), `fleet.mjs`, `profiles.mjs` (profile discovery + hashed ports), `extension.mjs`, `storage.mjs` (LevelDB `local_url` write), `connect`/`up`/`down` glue, `runstate.mjs`, `snss.mjs` (session/tab read), `doctor.mjs`. |
 | `agent-webbridge-extension/` | **Our clean-room MV3 extension** (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`). `manifest.json`, `background.js`, `popup.{html,js}`, `icon/`, `src/`. Permissions: `debugger`, `tabs`, `tabGroups`, `storage`, `alarms`; host_permissions `["<all_urls>"]`. Connects **only** to a daemon on `127.0.0.1`. |

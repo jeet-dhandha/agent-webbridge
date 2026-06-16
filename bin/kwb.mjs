@@ -1,33 +1,33 @@
 #!/usr/bin/env node
 // kwb.mjs — one entry point for the agent-webbridge multi-profile layer.
-// (Installed as `awb`, with `kwb` kept as an alias.)
+// (Installed as `awb`, with `kwb` kept as a back-compat alias.)
 //
 //   awb doctor                   read-only environment self-check (Chrome, daemon
 //                                binary, profiles, extension, :10086) — run FIRST
 //   awb check <profile...>       machine-readable readiness (folder? dev-mode?
 //                                loaded? connected?) — what an agent polls; --json
-//   kwb profiles                 list profiles, hashed ports, ext presence, daemon up?
-//   kwb resolve <query>          resolve a name/email/dir to one profile
-//   kwb tabs <profile>           list a profile's NORMAL open tabs (from disk, no bridge)
-//   kwb status                   fleet status (all profiles' daemons)
-//   kwb state                    last recorded start (time, per-profile connected) + stop
-//   kwb connect <profile...>     point each profile's extension at its daemon by
+//   awb profiles                 list profiles, hashed ports, ext presence, daemon up?
+//   awb resolve <query>          resolve a name/email/dir to one profile
+//   awb tabs <profile>           list a profile's NORMAL open tabs (from disk, no bridge)
+//   awb status                   fleet status (all profiles' daemons)
+//   awb state                    last recorded start (time, per-profile connected) + stop
+//   awb connect <profile...>     point each profile's extension at its daemon by
 //                                editing storage.local on disk (no popup, no click);
-//                                closes Chrome to write, then you `kwb up`
-//   kwb connect <p...> --restore point them back at the stock :10086 bridge
-//   kwb up <profile...>          stop legacy :10086, start the named profiles' daemons,
+//                                closes Chrome to write, then you `awb up`
+//   awb connect <p...> --restore point them back at the stock :10086 bridge
+//   awb up <profile...>          stop legacy :10086, start the named profiles' daemons,
 //                                start the router on :10086, auto-connect (if Chrome is
 //                                closed), open each window AND WAKE its extension, then
 //                                poll until each reports connected
-//   kwb up --all-ext             bring up every profile that has the extension
-//   kwb up --no-open             start daemons + router only; don't open windows
-//   kwb up --no-connect          don't touch storage.local; just open windows
-//   kwb down [--no-restore]      stop router + all fleet daemons; restore legacy :10086
+//   awb up --all-ext             bring up every profile that has the extension
+//   awb up --no-open             start daemons + router only; don't open windows
+//   awb up --no-connect          don't touch storage.local; just open windows
+//   awb down [--no-restore]      stop router + all fleet daemons; restore legacy :10086
 //                                (stops daemon processes only — never closes browser tabs)
 //
 // Idle auto-close: the router stops the fleet itself after KWB_IDLE_TIMEOUT_MIN minutes
 // (default 120) with no /command — daemon processes only, browser tabs left open. The
-// last start/stop is recorded in run/fleet-state.json (see `kwb state`).
+// last start/stop is recorded in run/fleet-state.json (see `awb state`).
 //   awb setup <profile...>       canonical install: open chrome://extensions, print the
 //                                exact agent-webbridge-extension/ folder to "Load unpacked",
 //                                POLL until it lands, then connect + bring the fleet up.
@@ -166,7 +166,7 @@ async function cmdUp(args) {
     targets = args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
   }
   if (!targets.length) {
-    console.error("kwb up: name at least one profile, or use --all-ext");
+    console.error("awb up: name at least one profile, or use --all-ext");
     process.exit(1);
   }
   // Free :10086 (legacy daemon or stale router) so daemon `start` won't refuse.
@@ -193,14 +193,14 @@ async function cmdUp(args) {
 
   // Point each profile's extension at its daemon by editing storage.local on disk
   // (no popup, no CDP). The write needs Chrome closed; if it's already running we
-  // skip it here and tell the user to run `kwb connect` (which closes Chrome).
+  // skip it here and tell the user to run `awb connect` (which closes Chrome).
   if (!args.includes("--no-connect")) {
     const mismatched = targets.filter((p) => readLocalUrl(p.dir) !== p.wsUrl);
     if (mismatched.length && isChromeRunning()) {
       console.log(`\nℹ ${mismatched.length} profile(s) not yet pointed at their daemon. Chrome is`);
       console.log("  running, so their on-disk storage can't be edited. Set them up with:");
-      console.log(`    kwb connect ${mismatched.map((p) => `'${p.dir}'`).join(" ")}`);
-      console.log("  (closes Chrome, writes the URLs) then re-run this `kwb up`.\n");
+      console.log(`    awb connect ${mismatched.map((p) => `'${p.dir}'`).join(" ")}`);
+      console.log("  (closes Chrome, writes the URLs) then re-run this `awb up`.\n");
     } else {
       for (const p of mismatched) {
         const r = setLocalUrl(p.dir, p.wsUrl);
@@ -258,7 +258,7 @@ async function cmdUp(args) {
     if (p.extId) cleanupAnnoyingTabs(p.extId);
   }
 
-  // Record the last start so we can later confirm everything came up (kwb state).
+  // Record the last start so we can later confirm everything came up (awb state).
   const startedAt = new Date().toISOString();
   const okCount = connections.filter((c) => c.connected).length;
   writeState({
@@ -271,7 +271,7 @@ async function cmdUp(args) {
     allConnected: okCount === connections.length,
     profiles: connections,
   });
-  console.log(`• recorded start @ ${startedAt} — ${okCount}/${connections.length} connected (kwb state)`);
+  console.log(`• recorded start @ ${startedAt} — ${okCount}/${connections.length} connected (awb state)`);
 }
 
 // Ask a daemon to drop its currently bound extension socket (POST /reconnect) so a
@@ -304,7 +304,7 @@ async function waitConnected(port, timeoutMs) {
   return false;
 }
 
-// `kwb connect <profiles...> [--restore]` — point each profile's extension at its
+// `awb connect <profiles...> [--restore]` — point each profile's extension at its
 // daemon URL (or back at the stock :10086 with --restore) by editing storage.local
 // on disk. Requires Chrome closed, so it quits Chrome first (graceful, then force).
 //
@@ -317,7 +317,7 @@ async function cmdConnect(args, { exitOnDone = true } = {}) {
     : args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
   if (!targets.length) {
     if (exitOnDone) {
-      console.error("kwb connect: name at least one profile, or use --all-ext");
+      console.error("awb connect: name at least one profile, or use --all-ext");
       process.exit(1);
     }
     return { ok: false, results: [] };
@@ -349,7 +349,7 @@ async function cmdConnect(args, { exitOnDone = true } = {}) {
     }
   }
   if (restore) console.log("\nRestored to the stock :10086 bridge. Reopen Chrome to reconnect.");
-  else console.log(`\nNext:  kwb up ${targets.map((p) => `'${p.dir}'`).join(" ")}`);
+  else console.log(`\nNext:  awb up ${targets.map((p) => `'${p.dir}'`).join(" ")}`);
   if (exitOnDone) process.exit(ok ? 0 : 1);
   return { ok, results };
 }
@@ -620,7 +620,7 @@ async function cmdInstallDev(args) {
       console.log("• closing Chrome to remove extension artifacts on disk (session is saved for restore)…");
       const q = quitChrome();
       if (!q.stopped) {
-        console.error("✗ could not quit Chrome — close it manually and re-run `kwb install-dev`.");
+        console.error("✗ could not quit Chrome — close it manually and re-run `awb install-dev`.");
         process.exit(1);
       }
       console.log(`• Chrome closed${q.forced ? " (forced)" : ""}`);
@@ -640,7 +640,7 @@ async function cmdInstallDev(args) {
   let aborted = false;
   const onSigint = () => {
     aborted = true;
-    console.log("\n⚠ Ctrl-C received — aborting and running `kwb down --no-restore`…");
+    console.log("\n⚠ Ctrl-C received — aborting and running `awb down --no-restore`…");
   };
   process.on("SIGINT", onSigint);
 
@@ -656,8 +656,8 @@ async function cmdInstallDev(args) {
 
   const abortAndDown = async (reason) => {
     console.log(`\n✗ aborting: ${reason}`);
-    console.log("• running `kwb down --no-restore` to release :10086 + any daemons");
-    try { await cmdDown(["--no-restore"]); } catch (e) { console.error(`  kwb down failed: ${e.message}`); }
+    console.log("• running `awb down --no-restore` to release :10086 + any daemons");
+    try { await cmdDown(["--no-restore"]); } catch (e) { console.error(`  awb down failed: ${e.message}`); }
     process.exit(2);
   };
 
@@ -780,7 +780,7 @@ async function cmdInstallDev(args) {
   if (stdinAbort) stdinAbort();
 
   if (noOpen) {
-    console.log("\n• --no-open set; not starting the fleet. Run `kwb up <profile...>` when you're ready.");
+    console.log("\n• --no-open set; not starting the fleet. Run `awb up <profile...>` when you're ready.");
     return;
   }
 
@@ -789,13 +789,13 @@ async function cmdInstallDev(args) {
   //    destructive). Now: do the daemon-URL write in a single atomic step by calling
   //    cmdConnect with exitOnDone:false. cmdConnect quits Chrome → writes local_url →
   //    returns. Then bring the fleet up. This is the same flow the rest of the fleet
-  //    uses (kwb up's mismatch path), composed not duplicated, so a future change to
+  //    uses (awb up's mismatch path), composed not duplicated, so a future change to
   //    the connect flow (e.g. a different quit strategy) lands in one place.
   console.log("\n• writing daemon URL into storage.local (via cmdConnect, which quits Chrome)…");
   const connectRes = await cmdConnect(targets.map((p) => p.dir), { exitOnDone: false });
   if (!connectRes.ok) {
     console.error("✗ storage.local write failed for one or more profiles — not starting the fleet.");
-    console.error("  re-run `kwb install-dev` (or `kwb connect` then `kwb up`) once the issue is resolved.");
+    console.error("  re-run `awb install-dev` (or `awb connect` then `awb up`) once the issue is resolved.");
     process.exit(1);
   }
   console.log("\n• starting the fleet…");
@@ -921,13 +921,68 @@ async function main() {
       for (const t of res.tabs) console.log(`  [${t.tabId}] ${t.title.slice(0, 70)} — ${t.url.slice(0, 100)}`);
       break;
     }
+    case "groups": {
+      // List live tabs grouped by their session tab-group, so you can spot stray
+      // "agent:*" groups (e.g. left by a crashed run) and prune them. Talks to the
+      // daemon (group titles only exist there), unlike `tabs` which reads SNSS.
+      const profileQuery = args.find((a) => !a.startsWith("--"));
+      const body = { action: "list_tabs", args: {} };
+      if (profileQuery) body.profile = profileQuery;
+      const r = await fetch(`http://127.0.0.1:${ROUTER_PORT}/command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then((x) => x.json())
+        .catch((e) => ({ ok: false, error: e.message }));
+      if (!r.ok) {
+        console.error("groups: " + (r.error || "failed — is the fleet up? (`awb up`)"));
+        process.exit(1);
+      }
+      const groups = {};
+      for (const t of r.tabs || []) {
+        const g = t.groupTitle || "(no group)";
+        (groups[g] = groups[g] || []).push(t);
+      }
+      const names = Object.keys(groups);
+      if (!names.length) {
+        console.log("no open tabs");
+        break;
+      }
+      for (const g of names) {
+        const sess = g.startsWith("agent:") ? g.slice(6) : null;
+        console.log(`\n${g}  — ${groups[g].length} tab(s)` + (sess ? `   → close with: awb close ${sess}` : ""));
+        for (const t of groups[g]) console.log(`   [${t.tabId}] ${(t.url || "").slice(0, 90)}`);
+      }
+      break;
+    }
+    case "close": {
+      // Close a session's whole tab-group (housekeeping for stray/temporary sessions).
+      const session = args.find((a) => !a.startsWith("--"));
+      if (!session) {
+        console.error("usage: awb close <session> [profile]   (session = the part after 'agent:' shown by `awb groups`)");
+        process.exit(1);
+      }
+      const profileQuery = args.filter((a) => a !== session && !a.startsWith("--"))[0];
+      const body = { action: "close_session", args: {}, session };
+      if (profileQuery) body.profile = profileQuery;
+      const r = await fetch(`http://127.0.0.1:${ROUTER_PORT}/command`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+        .then((x) => x.json())
+        .catch((e) => ({ ok: false, error: e.message }));
+      console.log(r.ok ? `closed session "${session}" (${r.closed} tab(s))` : "close failed: " + (r.error || "?"));
+      break;
+    }
     case "status":
       console.table(await fleetStatus());
       break;
     case "state": {
       const st = readState();
       if (!st) {
-        console.log("no fleet state recorded yet — run `kwb up`");
+        console.log("no fleet state recorded yet — run `awb up`");
       } else {
         console.log(JSON.stringify(st, null, 2));
         if (st.startedAt) {
@@ -978,13 +1033,13 @@ async function main() {
       break;
     default:
       console.error(
-        "usage: awb <doctor|check [profile...] [--json]|profiles|resolve <q>|tabs <profile>|status|state|up <profile...>|connect <profile...>|down|install ...|setup <profile...>|install-dev <profile...>>",
+        "usage: awb <doctor|check [profile...] [--json]|profiles|resolve <q>|tabs <profile>|groups [profile]|close <session> [profile]|status|state|up <profile...>|connect <profile...>|down|install ...|setup <profile...>|install-dev <profile...>>",
       );
       process.exit(1);
   }
 }
 
 main().catch((e) => {
-  console.error("kwb error:", e.message);
+  console.error("awb error:", e.message);
   process.exit(1);
 });
