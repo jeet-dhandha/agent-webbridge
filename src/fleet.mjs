@@ -1,11 +1,11 @@
-// fleet.mjs — supervise one kimi-webbridge daemon per Chrome profile.
+// fleet.mjs — supervise one agent-webbridge daemon per Chrome profile.
 //
 // Each profile gets its own daemon on its hashed port, with its own HOME state
-// dir so the daemons don't share a pid file / identity. The kimi CLI's
+// dir so the daemons don't share a pid file / identity. The agent-webbridge CLI's
 // stop/status are hardwired to :10086, so off-port daemons are managed here by
 // POSTing /shutdown to their own port (with a PID-kill fallback).
 //
-// CRITICAL ordering constraint (proven): `kimi-webbridge start` refuses to launch
+// CRITICAL ordering constraint (proven): `agent-webbridge start` refuses to launch
 // if ANYTHING answers http://127.0.0.1:10086/status — its singleton probe is
 // hardcoded to :10086 regardless of --addr. So daemons MUST be started while
 // :10086 is free; the router takes :10086 only AFTER the daemons are up.
@@ -19,10 +19,10 @@ import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
 
 // Default to OUR clean-room Node daemon (bin/agent-webbridge.mjs in this package),
 // resolved relative to this file so it works in-checkout AND when installed via npm.
-// KWB_KIMI_BIN still overrides (e.g. to fall back to the legacy closed-source kimi binary).
+// AWB_DAEMON_BIN still overrides (e.g. to fall back to the legacy closed-source daemon binary).
 const _PKG_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url))); // src/ -> package root
-export const KIMI_BIN =
-  process.env.KWB_KIMI_BIN || path.join(_PKG_ROOT, "bin", "agent-webbridge.mjs");
+export const DAEMON_BIN =
+  process.env.AWB_DAEMON_BIN || path.join(_PKG_ROOT, "bin", "agent-webbridge.mjs");
 const STATE_ROOT = path.join(os.homedir(), ".agent-webbridge", "multi", "state");
 
 function stateHome(dir) {
@@ -75,7 +75,7 @@ export async function startDaemon(profileQuery) {
   const home = stateHome(profile.dir);
   fs.mkdirSync(home, { recursive: true });
   // `start` self-backgrounds; HOME isolates its pid file / identity.
-  execFileSync(KIMI_BIN, ["start", "--addr", `127.0.0.1:${profile.port}`], {
+  execFileSync(DAEMON_BIN, ["start", "--addr", `127.0.0.1:${profile.port}`], {
     env: { ...process.env, HOME: home },
     stdio: "ignore",
   });

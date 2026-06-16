@@ -35,5 +35,5 @@
 
 ## Install
 
-- CLI: `npx agent-webbridge profiles` or `npm i -g agent-webbridge` (puts `awb` on PATH, with `kwb` kept as a back-compat alias).
+- CLI: `npx agent-webbridge profiles` or `npm i -g agent-webbridge` (puts `awb` on PATH).
 - Claude Code plugin: `/plugin marketplace add jeet-dhandha/agent-webbridge` then `/plugin install agent-webbridge@agent-webbridge`.

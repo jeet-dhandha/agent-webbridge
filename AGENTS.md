@@ -48,7 +48,7 @@ fan-out helps when visiting many distinct sites but not when hammering a single 
 | Path | What lives here |
 | --- | --- |
 | `bin/agent-webbridge.mjs` | Daemon entrypoint — thin wrapper that runs `src/daemon`. |
-| `bin/kwb.mjs` | The CLI (`awb`, with `kwb` as a back-compat alias). Subcommands: `setup`, `connect`, `up`, `down`, `status`, `doctor`, `profiles` (plus `state`, `tabs`, `resolve`, `install`). |
+| `bin/awb.mjs` | The CLI (`awb`). Subcommands: `setup`, `connect`, `up`, `down`, `status`, `doctor`, `profiles` (plus `state`, `tabs`, `resolve`, `install`). |
 | `src/daemon/` | **Our clean-room daemon.** Only runtime dep is `ws`. `index.mjs` (CLI start/stop/status, self-backgrounds), `server.mjs` (HTTP `/command` + `/status`), `wshub.mjs` (WebSocket `/ws` to the extension), `envelope.mjs` (command envelopes), `registry.mjs`, `lifecycle.mjs` (pid file), `diskwriter.mjs`. |
 | `src/` (fleet) | Multi-profile orchestration: `router.mjs` (the `:10086` router), `fleet.mjs`, `profiles.mjs` (profile discovery + hashed ports), `extension.mjs`, `storage.mjs` (LevelDB `local_url` write), `connect`/`up`/`down` glue, `runstate.mjs`, `snss.mjs` (session/tab read), `doctor.mjs`. |
 | `agent-webbridge-extension/` | **Our clean-room MV3 extension** (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`). `manifest.json`, `background.js`, `popup.{html,js}`, `icon/`, `src/`. Permissions: `debugger`, `tabs`, `tabGroups`, `storage`, `alarms`; host_permissions `["<all_urls>"]`. Connects **only** to a daemon on `127.0.0.1`. |
@@ -68,11 +68,11 @@ fan-out helps when visiting many distinct sites but not when hammering a single 
 
 ```bash
 # As a user
-npm i -g agent-webbridge          # installs the daemon + CLI (bin: awb, kwb alias)
+npm i -g agent-webbridge          # installs the daemon + CLI (bin: awb)
 
 # From a checkout (no build step — pure ESM Node)
 npm install                       # only dep: ws
-node bin/kwb.mjs profiles         # `awb <cmd>` == `node bin/kwb.mjs <cmd>`
+node bin/awb.mjs profiles         # `awb <cmd>` == `node bin/awb.mjs <cmd>`
 ```
 
 The Chrome extension installs via Chrome's **"Load unpacked"** of `agent-webbridge-extension/`
@@ -99,9 +99,9 @@ assertion. **Status: 11/11 PASS.**
 **Live gates (require Chrome for Testing):**
 
 ```bash
-# Point KWB_CHROME_BIN at a Chrome / Chrome for Testing binary, then:
-KWB_CHROME_BIN="/path/to/Google Chrome for Testing" node scratch/live_m1.mjs   # → 7/7
-KWB_CHROME_BIN="/path/to/Google Chrome for Testing" node scratch/live_m2.mjs   # → 19/19
+# Point AWB_CHROME_BIN at a Chrome / Chrome for Testing binary, then:
+AWB_CHROME_BIN="/path/to/Google Chrome for Testing" node scratch/live_m1.mjs   # → 7/7
+AWB_CHROME_BIN="/path/to/Google Chrome for Testing" node scratch/live_m2.mjs   # → 19/19
 ```
 
 Both live scripts are **fully isolated** — they cold-start a throwaway Chrome with a fresh
@@ -109,7 +109,7 @@ Both live scripts are **fully isolated** — they cold-start a throwaway Chrome 
 user's real Chrome or profiles**. `live_m1.mjs` drives two tabs to evaluate concurrently and
 asserts their in-page sleep intervals overlap (true per-tab parallelism). `live_m2.mjs` serves a
 controlled test page and exercises every one of the 13 tools with real assertions. If
-`KWB_CHROME_BIN` is unset, the scripts fall back to a default Chrome path; prefer Chrome for
+`AWB_CHROME_BIN` is unset, the scripts fall back to a default Chrome path; prefer Chrome for
 Testing so the run is reproducible and never collides with your daily browser.
 
 > Per the project's verification discipline: don't stop at the contract test. Any change to the

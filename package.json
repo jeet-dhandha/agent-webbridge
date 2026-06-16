@@ -1,11 +1,10 @@
 {
   "name": "agent-webbridge",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Clean-room, open-source browser automation for AI agents — drive your real Chrome (real logins) across multiple profiles IN PARALLEL. A lightweight Node daemon + MV3 extension, no closed-source dependency.",
   "type": "module",
   "bin": {
-    "awb": "bin/kwb.mjs",
-    "kwb": "bin/kwb.mjs"
+    "awb": "bin/awb.mjs"
   },
   "exports": {
     "./profiles": "./src/profiles.mjs",
@@ -15,8 +14,7 @@
     "./router": "./src/router.mjs"
   },
   "scripts": {
-    "awb": "node ./bin/kwb.mjs",
-    "kwb": "node ./bin/kwb.mjs",
+    "awb": "node ./bin/awb.mjs",
     "test": "node test/contract.mjs"
   },
   "dependencies": {

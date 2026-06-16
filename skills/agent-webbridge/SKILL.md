@@ -40,7 +40,7 @@ profiles, or per-profile tab parallelism matter.
 ## Health check (always do this first)
 
 ```bash
-awb status        # `kwb` is kept as a back-compat alias
+awb status
 ```
 
 Then act on the result:
@@ -56,7 +56,7 @@ Then act on the result:
 Full, copy-pasteable setup is in **[AGENTS.md](../../AGENTS.md)**. Quick version:
 
 ```bash
-npm i -g agent-webbridge         # daemon + `awb` CLI (`kwb` stays a back-compat alias)
+npm i -g agent-webbridge         # daemon + `awb` CLI
 awb setup "Work" "Personal"      # install the extension (guided Load unpacked) + bring the fleet up
 awb connect "Work" "Personal"    # (re)point each extension at its daemon (zero clicks; closes Chrome)
 awb up      "Work" "Personal"    # start each profile's daemon + router on :10086, open windows
@@ -64,7 +64,7 @@ awb status                       # verify: extensionConnected:true per profile
 awb down                         # tear down the fleet
 ```
 
-(Pre-publish, run `node bin/kwb.mjs <cmd>` from the repo. Run `awb doctor` first for a read-only
+(Pre-publish, run `node bin/awb.mjs <cmd>` from the repo. Run `awb doctor` first for a read-only
 environment self-check.)
 
 ### Installing the extension (one-time, no Chrome Web Store)

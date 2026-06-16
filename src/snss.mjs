@@ -1,6 +1,6 @@
 // snss.mjs — read a Chrome profile's *normal* open tabs straight from disk.
 //
-// The kimi-webbridge bridge only exposes session-scoped tabs (its `list_tabs`
+// The agent-webbridge bridge only exposes session-scoped tabs (its `list_tabs`
 // returns just the tabs the daemon opened). To answer "what tabs does the user
 // have open in profile X" we parse Chrome's own session journal (SNSS format)
 // under <profile>/Sessions/Session_*. No bridge, no running Chrome required.

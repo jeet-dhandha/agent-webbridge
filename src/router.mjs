@@ -1,10 +1,10 @@
 // router.mjs — single front door on :10086 that fans /command out to the right
-// per-profile daemon, so existing kimi-webbridge callers keep working by just
+// per-profile daemon, so existing agent-webbridge callers keep working by just
 // adding a top-level "profile" field.
 //
 //   POST /command  {action, args, session, profile?}
 //     - profile present  -> resolve to its hashed port, strip "profile", proxy
-//     - profile absent    -> route to the default profile (KWB_DEFAULT_PROFILE,
+//     - profile absent    -> route to the default profile (AWB_DEFAULT_PROFILE,
 //                            else the last-used profile whose daemon is up)
 //   GET  /status          -> aggregate fleet status (all profiles)
 //   GET  /profiles        -> profile list with ports
@@ -16,20 +16,20 @@ import http from "node:http";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
-import { daemonStatus, fleetStatus, stopDaemon, KIMI_BIN } from "./fleet.mjs";
+import { daemonStatus, fleetStatus, stopDaemon, DAEMON_BIN } from "./fleet.mjs";
 import { ROUTER_PID, patchState } from "./runstate.mjs";
 import { focusProfileWindow } from "./extension.mjs";
 
-const PORT = Number(process.env.KWB_ROUTER_PORT || ROUTER_PORT);
+const PORT = Number(process.env.AWB_ROUTER_PORT || ROUTER_PORT);
 
 // Idle auto-shutdown: if no /command (a real "action") is routed for this many minutes,
 // close the fleet by itself. 0 disables it. Default 120 (~2h). This stops only the local
 // daemon PROCESSES — it never closes the user's browser tabs/windows (the extension simply
-// disconnects). Set KWB_IDLE_NO_RESTORE to leave :10086 empty instead of restoring the
+// disconnects). Set AWB_IDLE_NO_RESTORE to leave :10086 empty instead of restoring the
 // stock single daemon (matches `awb down`).
-const IDLE_MIN = Number(process.env.KWB_IDLE_TIMEOUT_MIN ?? 120);
+const IDLE_MIN = Number(process.env.AWB_IDLE_TIMEOUT_MIN ?? 120);
 const IDLE_MS = IDLE_MIN * 60_000;
-const IDLE_RESTORE = !process.env.KWB_IDLE_NO_RESTORE;
+const IDLE_RESTORE = !process.env.AWB_IDLE_NO_RESTORE;
 
 let lastActivity = Date.now();
 let shuttingDown = false;
@@ -52,7 +52,7 @@ async function idleShutdown() {
     }
     if (IDLE_RESTORE) {
       try {
-        execFileSync(KIMI_BIN, ["start"], { stdio: "ignore" });
+        execFileSync(DAEMON_BIN, ["start"], { stdio: "ignore" });
         console.log("[awb-router] restored stock :10086 daemon");
       } catch {}
     }
@@ -71,7 +71,7 @@ async function idleShutdown() {
 
 if (IDLE_MIN > 0) {
   // Check at most once a minute (cheap), but more often for small timeouts so a short
-  // KWB_IDLE_TIMEOUT_MIN (incl. fractional, e.g. 0.1 for tests) actually fires promptly.
+  // AWB_IDLE_TIMEOUT_MIN (incl. fractional, e.g. 0.1 for tests) actually fires promptly.
   const everyMs = Math.min(60_000, Math.max(2_000, IDLE_MS));
   const timer = setInterval(() => {
     if (Date.now() - lastActivity >= IDLE_MS) idleShutdown();
@@ -90,9 +90,9 @@ function readBody(req) {
 
 async function pickDefaultPort() {
   const profiles = listProfiles();
-  if (process.env.KWB_DEFAULT_PROFILE) {
+  if (process.env.AWB_DEFAULT_PROFILE) {
     try {
-      return resolveProfile(process.env.KWB_DEFAULT_PROFILE).port;
+      return resolveProfile(process.env.AWB_DEFAULT_PROFILE).port;
     } catch {}
   }
   // last-used first, then any up daemon with a connected extension, then any up
@@ -116,14 +116,14 @@ async function pickDefaultPort() {
 //
 // Our patched dev build (scripts/patch-extension-parallel.mjs) replaces that global queue
 // with per-tab queues, so DIFFERENT tabs execute concurrently. We now allow up to
-// KWB_PER_PROFILE_CONCURRENCY in-flight commands per profile and let the extension keep
+// AWB_PER_PROFILE_CONCURRENCY in-flight commands per profile and let the extension keep
 // same-tab order.
 //
 // Safe for BOTH builds: a profile still on the UNPATCHED extension just serializes the
 // concurrent commands inside its own global queue (no speed-up, but no corruption — the
 // shared CDP cursor is never raced). Only the patched build actually parallelizes. Set
-// KWB_PER_PROFILE_CONCURRENCY=1 to force the old strict-serial proxy behavior.
-const PER_PROFILE_CONCURRENCY = Math.max(1, Number(process.env.KWB_PER_PROFILE_CONCURRENCY || 10));
+// AWB_PER_PROFILE_CONCURRENCY=1 to force the old strict-serial proxy behavior.
+const PER_PROFILE_CONCURRENCY = Math.max(1, Number(process.env.AWB_PER_PROFILE_CONCURRENCY || 10));
 const portSem = new Map(); // port -> { active, waiters: [] }
 
 function acquirePort(port) {

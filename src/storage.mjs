@@ -1,4 +1,4 @@
-// storage.mjs — read/write the kimi-webbridge extension's chrome.storage.local
+// storage.mjs — read/write the agent-webbridge extension's chrome.storage.local
 // `local_url` on disk, so we can point a profile's extension at its daemon WITHOUT
 // the popup click and WITHOUT CDP (which branded Chrome blocks on the default
 // user-data-dir). The store is a LevelDB at:
@@ -12,11 +12,11 @@
 // store must not be open). Reading is lock-free. macOS + Google Chrome only.
 //
 // Pure Node, no deps. LevelDB refs: log_format.h, log_writer.cc, write_batch.cc,
-// version_edit.cc. Proven end-to-end (see docs / the kimi-webbridge-fleet README).
+// version_edit.cc. Proven end-to-end (see docs / the agent-webbridge README).
 
 import fs from "node:fs";
 import path from "node:path";
-import { chromeUserDataDir, KIMI_EXT_IDS, kimiExtId } from "./profiles.mjs";
+import { chromeUserDataDir, AWB_EXT_IDS, awbExtId } from "./profiles.mjs";
 
 const BLOCK = 32768;
 const HEADER = 7;
@@ -168,8 +168,8 @@ function frameRecord(payload, fileLen) {
 export function extStoreDir(profileDir) {
   const base = path.join(chromeUserDataDir(), profileDir, "Local Extension Settings");
   // The real (possibly dev-assigned) id first, then the known ids as a fallback.
-  const resolved = kimiExtId(profileDir);
-  const candidates = [resolved, ...KIMI_EXT_IDS].filter((id, i, a) => id && a.indexOf(id) === i);
+  const resolved = awbExtId(profileDir);
+  const candidates = [resolved, ...AWB_EXT_IDS].filter((id, i, a) => id && a.indexOf(id) === i);
   for (const id of candidates) {
     const d = path.join(base, id);
     if (fs.existsSync(path.join(d, "CURRENT"))) return d;
@@ -235,7 +235,7 @@ function createFreshStore(storeDir, wsUrl) {
 export function setLocalUrl(profileDir, wsUrl) {
   let ok = false;
   const base = path.join(chromeUserDataDir(), profileDir, "Local Extension Settings");
-  for (const id of KIMI_EXT_IDS) {
+  for (const id of AWB_EXT_IDS) {
     const storeDir = path.join(base, id);
     try {
       if (fs.existsSync(path.join(storeDir, "CURRENT"))) {
@@ -249,7 +249,7 @@ export function setLocalUrl(profileDir, wsUrl) {
     }
   }
   if (!ok) {
-    const storeDir = path.join(base, KIMI_EXT_IDS[0]);
+    const storeDir = path.join(base, AWB_EXT_IDS[0]);
     return createFreshStore(storeDir, wsUrl);
   }
   return { mode: "multi", profileDir };

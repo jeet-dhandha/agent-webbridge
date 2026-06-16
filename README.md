@@ -24,7 +24,7 @@ Combine that with multiple profiles and you get two axes of concurrency at once:
 npm i -g agent-webbridge
 ```
 
-This puts the `awb` command on your PATH (with `kwb` kept as a back-compat alias) and brings the Node daemon. The only runtime dependency is `ws`.
+This puts the `awb` command on your PATH and brings the Node daemon. The only runtime dependency is `ws`.
 
 **2. The Chrome extension** — a clean-room MV3 extension (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`) installed via Chrome's built-in **"Load unpacked"**. There is no Chrome Web Store listing — and you don't need one. Let the CLI walk you through it:
 
@@ -119,7 +119,7 @@ Total concurrency = **N profiles × N tabs per profile**, all addressed through 
 
 ## CLI reference
 
-The CLI is `awb` (with `kwb` kept as a back-compat alias — both invoke the same binary).
+The CLI is `awb`.
 
 | Command | What it does |
 |---|---|

@@ -53,7 +53,7 @@ list_tabs/close_*. (The probe checks `json.ok`; yc_scan checks `res.success`/`re
 ```
 export const START_TS = Date.now();
 export function uptimeSeconds()        // floor((Date.now()-START_TS)/1000)
-export function pidFilePath()          // path.join(os.homedir-or-process.env.HOME, ".kimi-webbridge", "daemon.pid")
+export function pidFilePath()          // path.join(os.homedir-or-process.env.HOME, ".agent-webbridge", "daemon.pid")
                                        // IMPORTANT: use process.env.HOME (fleet sets a per-profile HOME). Fallback os.homedir().
 export function writePidFile()         // mkdir -p the dir, write String(process.pid)
 export function removePidFile()        // unlink, ignore errors
@@ -148,7 +148,7 @@ export function startServer({ host="127.0.0.1", port }) // returns { server, hub
 #!/usr/bin/env node
 import "../src/daemon/index.mjs";
 ```
-(Make it executable in spirit; the orchestrator will chmod. This is the binary `KWB_KIMI_BIN` points at.)
+(Make it executable in spirit; the orchestrator will chmod. This is the binary `AWB_DAEMON_BIN` points at.)
 
 ---
 

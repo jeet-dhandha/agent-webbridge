@@ -3,6 +3,24 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-06-16
+
+**Rebrand to `agent-webbridge` / `awb`.** The project's local identity is now fully
+`agent-webbridge` and the CLI is `awb`. (The GitHub repo, npm package, plugin, and Chrome
+extension were already named `agent-webbridge`; this release finishes the job in the code,
+the CLI, the env vars, and the on-disk layout.)
+
+### Changed
+- CLI binary renamed `bin/kwb.mjs` → `bin/awb.mjs`; `awb` is now the sole command.
+- Environment variables renamed `KWB_*` → `AWB_*` (e.g. `KWB_CHROME_BIN` → `AWB_CHROME_BIN`,
+  `KWB_IDLE_TIMEOUT_MIN` → `AWB_IDLE_TIMEOUT_MIN`, `KWB_KIMI_BIN` → `AWB_DAEMON_BIN`).
+- Internal identifiers de-Kimi'd (`kimiExtId` → `awbExtId`, `KIMI_EXT_ID(S)` → `AWB_EXT_ID(S)`,
+  `KIMI_BIN` → `DAEMON_BIN`).
+- Skill folder renamed `skills/kimi-webbridge-fleet/` → `skills/agent-webbridge/`.
+
+### Removed
+- The `kwb` back-compat CLI alias. Use `awb` (it is the same binary, just the one name now).
+
 ## [1.0.2] — 2026-06-14
 
 **Bug fix: tool calls (`list_tabs`, etc.) no longer flap when a second webbridge extension is
@@ -162,6 +180,7 @@ routed by a top-level `"profile"` field.
 - macOS + Google Chrome only. Requires the stock Kimi WebBridge daemon + extension.
 - Not affiliated with Moonshot AI / Kimi; contains no Kimi WebBridge code.
 
+[1.1.0]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.1.0
 [1.0.2]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.2
 [1.0.1]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.1
 [1.0.0]: https://github.com/jeet-dhandha/agent-webbridge/releases/tag/v1.0.0

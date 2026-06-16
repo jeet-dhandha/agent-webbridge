@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// kwb.mjs — one entry point for the agent-webbridge multi-profile layer.
-// (Installed as `awb`, with `kwb` kept as a back-compat alias.)
+// awb.mjs — one entry point for the agent-webbridge multi-profile layer.
+// (Installed as `awb`.)
 //
 //   awb doctor                   read-only environment self-check (Chrome, daemon
 //                                binary, profiles, extension, :10086) — run FIRST
@@ -25,7 +25,7 @@
 //   awb down [--no-restore]      stop router + all fleet daemons; restore legacy :10086
 //                                (stops daemon processes only — never closes browser tabs)
 //
-// Idle auto-close: the router stops the fleet itself after KWB_IDLE_TIMEOUT_MIN minutes
+// Idle auto-close: the router stops the fleet itself after AWB_IDLE_TIMEOUT_MIN minutes
 // (default 120) with no /command — daemon processes only, browser tabs left open. The
 // last start/stop is recorded in run/fleet-state.json (see `awb state`).
 //   awb setup <profile...>       canonical install: open chrome://extensions, print the
@@ -58,9 +58,9 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { listProfiles, resolveProfile, kimiExtId, developerModeOn, ROUTER_PORT } from "../src/profiles.mjs";
+import { listProfiles, resolveProfile, awbExtId, developerModeOn, ROUTER_PORT } from "../src/profiles.mjs";
 import { listOpenTabs } from "../src/snss.mjs";
-import { startDaemon, stopDaemon, fleetStatus, daemonStatus, KIMI_BIN } from "../src/fleet.mjs";
+import { startDaemon, stopDaemon, fleetStatus, daemonStatus, DAEMON_BIN } from "../src/fleet.mjs";
 import {
   profilesMissingExtension,
   launchWithExtension,
@@ -111,13 +111,13 @@ async function legacyOrRouterUp() {
 
 function stopLegacy() {
   try {
-    execFileSync(KIMI_BIN, ["stop"], { stdio: "ignore" });
+    execFileSync(DAEMON_BIN, ["stop"], { stdio: "ignore" });
   } catch {}
 }
 
 function startLegacy() {
   try {
-    execFileSync(KIMI_BIN, ["start"], { stdio: "ignore" });
+    execFileSync(DAEMON_BIN, ["start"], { stdio: "ignore" });
   } catch {}
 }
 
@@ -132,7 +132,7 @@ function routerRunning() {
 }
 
 // Minutes of /command inactivity before the router tears the fleet down itself (0 = off).
-const IDLE_MIN = Number(process.env.KWB_IDLE_TIMEOUT_MIN ?? 120);
+const IDLE_MIN = Number(process.env.AWB_IDLE_TIMEOUT_MIN ?? 120);
 
 function startRouter() {
   // Log to a file (not /dev/null) so the detached router's idle-shutdown is observable.
@@ -185,8 +185,8 @@ async function cmdUp(args) {
   console.log(`• router on :${ROUTER_PORT} (pid ${pid})`);
   console.log(
     IDLE_MIN > 0
-      ? `• idle auto-shutdown: fleet stops itself after ${IDLE_MIN}m with no /command (set KWB_IDLE_TIMEOUT_MIN, 0=off)`
-      : `• idle auto-shutdown: disabled (KWB_IDLE_TIMEOUT_MIN=0)`,
+      ? `• idle auto-shutdown: fleet stops itself after ${IDLE_MIN}m with no /command (set AWB_IDLE_TIMEOUT_MIN, 0=off)`
+      : `• idle auto-shutdown: disabled (AWB_IDLE_TIMEOUT_MIN=0)`,
   );
 
   if (args.includes("--no-open")) return;
@@ -463,10 +463,10 @@ async function cmdSetupInteractive(args) {
 
   // 3. Install pass — for each profile still missing the extension, open chrome://extensions
   //    and poll the registry until "Load unpacked" lands it. Detection is registry-based
-  //    (kimiExtId): unpacked builds run from their source dir and never land in Extensions/,
+  //    (awbExtId): unpacked builds run from their source dir and never land in Extensions/,
   //    so the registry is the ONLY source that sees them.
   for (const p of targets) {
-    if (kimiExtId(p.dir)) {
+    if (awbExtId(p.dir)) {
       console.log(`• "${p.name}": extension already present — skipping install.`);
       continue;
     }
@@ -487,7 +487,7 @@ async function cmdSetupInteractive(args) {
     let tick = 0;
     while (Date.now() < deadline) {
       await sleep(EXTENSION_INSTALL_POLL_MS);
-      if (kimiExtId(p.dir)) { installed = true; break; }
+      if (awbExtId(p.dir)) { installed = true; break; }
       if (tick++ % 4 === 0) {
         const remain = Math.round((deadline - Date.now()) / 1000);
         const dmNow = developerModeOn(p.dir);
@@ -499,7 +499,7 @@ async function cmdSetupInteractive(args) {
       console.error(`✗ "${p.name}": extension not loaded within ${timeoutMs / 1000}s. Re-run \`awb setup "${p.name}"\` after Load unpacked.`);
       process.exit(1);
     }
-    console.log(`  ✓ "${p.name}": extension detected (id ${kimiExtId(p.dir)}).`);
+    console.log(`  ✓ "${p.name}": extension detected (id ${awbExtId(p.dir)}).`);
   }
 
   if (noUp) {
@@ -668,8 +668,8 @@ async function cmdInstallDev(args) {
     const p = targets[i];
     console.log(`\n👉 [${i + 1}/${targets.length}] profile "${p.name}" (${p.dir}) → :${p.port}`);
 
-    // Fresh read of the registry — kimiExtId re-parses the same Chrome file each call.
-    const installed = !!kimiExtId(p.dir);
+    // Fresh read of the registry — awbExtId re-parses the same Chrome file each call.
+    const installed = !!awbExtId(p.dir);
     // windowId anchors the chrome://extensions + Reload tabs into one window per profile.
     let windowId = null;
     console.log(

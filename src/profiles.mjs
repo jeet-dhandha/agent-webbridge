@@ -1,7 +1,7 @@
 // profiles.mjs — Chrome profile discovery + deterministic hashed ports for the
-// kimi-webbridge multi-profile layer. Pure Node built-ins (runs under node OR bun).
+// agent-webbridge multi-profile layer. Pure Node built-ins (runs under node OR bun).
 //
-// One Chrome profile == one kimi-webbridge daemon == one fixed port.
+// One Chrome profile == one agent-webbridge daemon == one fixed port.
 // The port is derived by hashing the profile's *directory* name (the stable id
 // Chrome never changes), so a given profile always lands on the same port.
 //
@@ -17,18 +17,18 @@ import path from "node:path";
 // is content-unverified, and it was a constant source of confusion.)
 // agent-webbridge: our own clean-room extension. The id is derived from the manifest `key`
 // (our RSA keypair) via computeExtIdFromManifestKey, so dev (unpacked) == prod (CWS) id.
-export const KIMI_EXT_ID = "ifodkkbkmngjlkhiphcjmbceeolhpfeo";
-export const KIMI_EXT_IDS = [KIMI_EXT_ID];
+export const AWB_EXT_ID = "ifodkkbkmngjlkhiphcjmbceeolhpfeo";
+export const AWB_EXT_IDS = [AWB_EXT_ID];
 // Display name of the extension (informational only).
-export const KIMI_EXT_NAME = "Agent WebBridge";
+export const AWB_EXT_NAME = "Agent WebBridge";
 
 export const ROUTER_PORT = 10086; // reserved
 const PORT_BASE = 10100;
 const PORT_SPAN = 4900; // assignable range 10100..14999
 
-// macOS Chrome user-data dir. (Override with KWB_CHROME_DIR for Chrome Beta/other.)
+// macOS Chrome user-data dir. (Override with AWB_CHROME_DIR for Chrome Beta/other.)
 export function chromeUserDataDir() {
-  if (process.env.KWB_CHROME_DIR) return process.env.KWB_CHROME_DIR;
+  if (process.env.AWB_CHROME_DIR) return process.env.AWB_CHROME_DIR;
   return path.join(os.homedir(), "Library", "Application Support", "Google", "Chrome");
 }
 
@@ -90,7 +90,7 @@ function readExtSettings(dir) {
 
 // Resolve a manifest "name" that may be an i18n placeholder (__MSG_key__) against the
 // extension's _locales messages. Returns the raw name if it isn't a placeholder or can't
-// be resolved. (The kimi build uses a literal name, but be robust to either.)
+// be resolved. (The agent-webbridge build uses a literal name, but be robust to either.)
 function resolveExtName(name, extPath) {
   if (!name || !name.startsWith("__MSG_") || !extPath) return name ?? null;
   const key = name.slice(6, -2);
@@ -142,25 +142,25 @@ export function installedExtensions(dir) {
 // Is this entry our extension? Only the official Web Store id counts — we no longer match
 // unpacked/dev builds (by name or by the old ALT id).
 function isKimiExt(e) {
-  return e.id === KIMI_EXT_ID;
+  return e.id === AWB_EXT_ID;
 }
 
-// The kimi-webbridge extension installed in a profile (CWS or unpacked), or null.
+// The agent-webbridge extension installed in a profile (CWS or unpacked), or null.
 // Prefers an enabled install if both an enabled and a disabled one somehow exist.
-export function kimiExtension(dir) {
+export function awbExtension(dir) {
   const matches = installedExtensions(dir).filter(isKimiExt);
   if (!matches.length) return null;
   return matches.find((e) => e.enabled) ?? matches[0];
 }
 
-// The installed kimi extension's id for a profile — whatever id Chrome actually assigned
+// The installed agent-webbridge extension's id for a profile — whatever id Chrome actually assigned
 // (read from the registry), or null if not installed. Falls back to the on-disk
 // Extensions/ folder if the registry is unreadable, so we never under-report a store build.
-export function kimiExtId(dir) {
-  const k = kimiExtension(dir);
+export function awbExtId(dir) {
+  const k = awbExtension(dir);
   if (k) return k.id;
   const extDir = path.join(chromeUserDataDir(), dir, "Extensions");
-  for (const id of KIMI_EXT_IDS) {
+  for (const id of AWB_EXT_IDS) {
     try {
       if (fs.existsSync(path.join(extDir, id))) return id;
     } catch {}
@@ -168,14 +168,14 @@ export function kimiExtId(dir) {
   return null;
 }
 
-// Whether the official kimi-webbridge extension is installed in a profile. The store
+// Whether the official agent-webbridge extension is installed in a profile. The store
 // build always lives on disk under Extensions/<id>/, so check that folder first (the true
 // source of record), then fall back to the registry.
 export function hasKimiExtension(dir) {
   try {
-    if (fs.existsSync(path.join(chromeUserDataDir(), dir, "Extensions", KIMI_EXT_ID))) return true;
+    if (fs.existsSync(path.join(chromeUserDataDir(), dir, "Extensions", AWB_EXT_ID))) return true;
   } catch {}
-  return kimiExtId(dir) !== null;
+  return awbExtId(dir) !== null;
 }
 
 // Whether Chrome's "Developer mode" toggle (chrome://extensions top-right) is ON for a
@@ -212,7 +212,7 @@ export function listProfiles() {
     portByDir.set(p.dir, port);
   }
   return rows.map((p) => {
-    const k = kimiExtension(p.dir); // single registry read; null if not installed
+    const k = awbExtension(p.dir); // single registry read; null if not installed
     return {
       ...p,
       port: portByDir.get(p.dir),

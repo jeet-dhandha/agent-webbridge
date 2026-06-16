@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import { chromeUserDataDir, listProfiles, ROUTER_PORT } from "./profiles.mjs";
 import { chromeBinary } from "./extension.mjs";
-import { KIMI_BIN, daemonStatus } from "./fleet.mjs";
+import { DAEMON_BIN, daemonStatus } from "./fleet.mjs";
 import { RUN, ROUTER_PID, ensureRun } from "./runstate.mjs";
 
 const PASS = "pass";
@@ -26,7 +26,7 @@ function check(name, status, detail, hint) {
   return { name, status, detail, hint };
 }
 
-// Is OUR router (vs the stock kimi daemon) the thing holding :10086? The router
+// Is OUR router (vs the stock/legacy daemon) the thing holding :10086? The router
 // records its pid in ROUTER_PID; a live pid there means it's ours.
 function ourRouterPid() {
   try {
@@ -83,7 +83,7 @@ export async function runDoctor() {
           "Google Chrome",
           FAIL,
           chrome || "not found",
-          "install Google Chrome, or set KWB_CHROME_BIN to its binary path.",
+          "install Google Chrome, or set AWB_CHROME_BIN to its binary path.",
         ),
   );
 
@@ -96,21 +96,21 @@ export async function runDoctor() {
           "Chrome user-data dir",
           FAIL,
           udd,
-          "launch Chrome once so the profile dir is created, or set KWB_CHROME_DIR (e.g. for Chrome Beta).",
+          "launch Chrome once so the profile dir is created, or set AWB_CHROME_DIR (e.g. for Chrome Beta).",
         ),
   );
 
   // 5. agent-webbridge daemon binary — the engine each profile's daemon runs.
   // This ships inside the package (bin/agent-webbridge.mjs), so it should always
-  // be present; a miss usually means a broken install or a bad KWB_KIMI_BIN.
+  // be present; a miss usually means a broken install or a bad AWB_DAEMON_BIN.
   checks.push(
-    fs.existsSync(KIMI_BIN)
-      ? check("agent-webbridge daemon", PASS, KIMI_BIN)
+    fs.existsSync(DAEMON_BIN)
+      ? check("agent-webbridge daemon", PASS, DAEMON_BIN)
       : check(
           "agent-webbridge daemon",
           FAIL,
-          `${KIMI_BIN} (missing)`,
-          "the bundled daemon (bin/agent-webbridge.mjs) is missing — reinstall with `npm i -g agent-webbridge`, or unset/correct KWB_KIMI_BIN.",
+          `${DAEMON_BIN} (missing)`,
+          "the bundled daemon (bin/agent-webbridge.mjs) is missing — reinstall with `npm i -g agent-webbridge`, or unset/correct AWB_DAEMON_BIN.",
         ),
   );
 

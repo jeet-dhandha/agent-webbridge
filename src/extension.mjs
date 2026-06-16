@@ -16,21 +16,21 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { KIMI_EXT_ID, listProfiles, kimiExtId, kimiExtension, chromeUserDataDir } from "./profiles.mjs";
+import { AWB_EXT_ID, listProfiles, awbExtId, awbExtension, chromeUserDataDir } from "./profiles.mjs";
 
 const CWS_UPDATE_URL = "https://clients2.google.com/service/update2/crx";
 const CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 export function chromeBinary() {
-  if (process.env.KWB_CHROME_BIN) return process.env.KWB_CHROME_BIN;
+  if (process.env.AWB_CHROME_BIN) return process.env.AWB_CHROME_BIN;
   return CHROME_BIN;
 }
 
 export function unpackedExtPath() {
   const defaultPath = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "agent-webbridge-extension");
-  const p = process.env.KWB_EXT_PATH || defaultPath;
+  const p = process.env.AWB_EXT_PATH || defaultPath;
   if (!fs.existsSync(path.join(p, "manifest.json"))) {
-    throw new Error(`unpacked extension not found at ${p} (set KWB_EXT_PATH to override)`);
+    throw new Error(`unpacked extension not found at ${p} (set AWB_EXT_PATH to override)`);
   }
   return p;
 }
@@ -108,7 +108,7 @@ export function profilesMissingExtension() {
 // ---- Path 1: force-install policy (all profiles) ----
 
 export function forceInstallValue() {
-  return `${KIMI_EXT_ID};${CWS_UPDATE_URL}`;
+  return `${AWB_EXT_ID};${CWS_UPDATE_URL}`;
 }
 
 export function readForcelist() {
@@ -126,7 +126,7 @@ export function readForcelist() {
 // single-element array; extend here if you need to preserve existing entries).
 export function enableForceInstall() {
   const existing = readForcelist();
-  if (existing && existing.includes(KIMI_EXT_ID)) {
+  if (existing && existing.includes(AWB_EXT_ID)) {
     return { changed: false, value: existing, note: "already present" };
   }
   execFileSync("defaults", [
@@ -154,19 +154,19 @@ export function disableForceInstall() {
 
 // ---- Extension health + on-disk uninstall (for install-dev's repair path) ----
 
-// Inspect the kimi extension in a profile and decide whether it's healthy, corrupt, or
+// Inspect the agent-webbridge extension in a profile and decide whether it's healthy, corrupt, or
 // absent. "Corrupt" = Chrome still has a registry entry, but it can't actually work:
 //   - it's disabled (state 0 / disable_reasons set), often Chrome's own "corrupted" flag;
 //   - it's an UNPACKED build whose source folder no longer exists (stale Load-unpacked);
 //   - it's a STORE build whose Extensions/<id> payload folder is missing (half-removed).
 // Returns { installed, healthy, corrupt, reason, extId, location, unpacked }.
 export function extensionHealth(profileDir) {
-  const ext = kimiExtension(profileDir); // null, or {id,name,version,location,unpacked,enabled,path}
+  const ext = awbExtension(profileDir); // null, or {id,name,version,location,unpacked,enabled,path}
   if (!ext) {
     // No registry entry. Flag a leftover payload folder as a (mild) corrupt-orphan so the
     // repair path scrubs it before a fresh install.
     let orphan = null;
-    for (const id of [KIMI_EXT_ID]) {
+    for (const id of [AWB_EXT_ID]) {
       const p = path.join(chromeUserDataDir(), profileDir, "Extensions", id);
       try { if (fs.existsSync(p)) { orphan = id; break; } } catch {}
     }
@@ -197,7 +197,7 @@ export function extensionHealth(profileDir) {
   };
 }
 
-// Auto-remove the kimi extension's ON-DISK artifacts for a profile so a fresh install can
+// Auto-remove the agent-webbridge extension's ON-DISK artifacts for a profile so a fresh install can
 // repair it. Chrome MUST be closed (these stores are held open while it runs).
 //
 // We delete the per-extension folders only — payload, storage.local, rules, scripts,
@@ -210,8 +210,8 @@ export function removeExtensionOnDisk(profileDir, extId) {
   if (isChromeRunning()) {
     return { ok: false, error: "Chrome is running — close it first (extension stores are locked while open)", removed: [] };
   }
-  const id = extId || kimiExtId(profileDir);
-  if (!id) return { ok: false, error: "no kimi extension id to remove", removed: [] };
+  const id = extId || awbExtId(profileDir);
+  if (!id) return { ok: false, error: "no agent-webbridge extension id to remove", removed: [] };
 
   const base = path.join(chromeUserDataDir(), profileDir);
   const targets = [
@@ -310,7 +310,7 @@ export function quitChrome({ timeoutMs = 8000 } = {}) {
 }
 
 // Launch Google Chrome HEADFUL for one profile, opening the given URLs as tabs. We invoke
-// the binary in /Applications directly (chromeBinary(), overridable via KWB_CHROME_BIN)
+// the binary in /Applications directly (chromeBinary(), overridable via AWB_CHROME_BIN)
 // rather than macOS `open -na`, because `open` does NOT reliably forward a
 // chrome-extension:// URL as a tab — and the binary path is what we already resolve. When
 // Chrome is already running on the default user-data-dir, its singleton forwards this to
@@ -492,10 +492,10 @@ export function openUrlInProfile({ profileDir, windowId, url, anchorUrl }) {
 
 
 
-// Wake a profile's DORMANT kimi service worker so it reads the local_url we wrote and
+// Wake a profile's DORMANT agent-webbridge service worker so it reads the local_url we wrote and
 // connects — the missing half of "zero-click connect".
 //
-// Why this is needed: the kimi MV3 service worker reconnects (reads storage.local
+// Why this is needed: the agent-webbridge MV3 service worker reconnects (reads storage.local
 // local_url) only when its top-level main() runs, i.e. when the worker STARTS. But the
 // extension registers no chrome.runtime.onStartup/onInstalled listener and ships no
 // content script (confirmed: its serviceworkerevents are only alarms/debugger/tabs/
@@ -510,8 +510,8 @@ export function openUrlInProfile({ profileDir, windowId, url, anchorUrl }) {
 // reconnect path after a restart. about:blank is opened first (and stays the active,
 // driveable tab) so the popup never sits in front of the agent's navigation.
 export function wakeExtension(profileDir, extId) {
-  const id = extId || kimiExtId(profileDir);
-  if (!id) throw new Error(`no kimi extension in profile "${profileDir}"`);
+  const id = extId || awbExtId(profileDir);
+  if (!id) throw new Error(`no agent-webbridge extension in profile "${profileDir}"`);
   const popupUrl = `chrome-extension://${id}/popup.html`;
   launchChrome(profileDir, [popupUrl]);
   return { woke: true, profileDir, extId: id, popupUrl };
