@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Agent WebBridge",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "minimum_chrome_version": "116",
   "description": "Local automation bridge: lets an agent drive your real Chrome over a localhost connection.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1EczzGdmplNSi1SY9K83kOKdcL5TjAPQNzXA1EVFTgnMrQEGWAJVVSQOcBMA8fusu1J7kjMaaUKqFypT2kodQrNTBJiai8pJeUq4E1kEfz86FMf0BtfVCLUj6gB22oNm1QbWN5A2PQV/wLDHsvvqR2kprA0eBemFcDxRLGW8omnr884XZyAyZoA7ABTLkKnWR8L/F3Ijwb0b1qjyL8XF94EonP/hywisuEytzlFoGCoih+quwg/TJTjmxi5ia+Lo2FpjtqFpGkdvJoToj5PCO3UkSqU1PWMJ0mFsEnYNw+X4I85S0zSPVYWGYr6JBqKJ3pPrixWy75Z7NkBQl+6vIwIDAQAB",

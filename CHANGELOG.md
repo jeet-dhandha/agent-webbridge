@@ -3,6 +3,18 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-06-23
+
+**Docs polish + version sync.** README rewritten to a clean, minimal, concept-first
+shape (overview bullets, one-block install, tightened "how it works"); removed the
+"no Chrome Web Store" framing now that a store listing is in progress.
+
+Changed
+- README streamlined (~10.2 KB → ~6 KB) without dropping any of the install → setup →
+  drive → tools → CLI workflow.
+- Extension `manifest.json` version synced `1.0.2` → `1.1.1` to match the package
+  (prep for the first Chrome Web Store upload).
+
 ## [1.1.0] — 2026-06-16
 
 **Rebrand to `agent-webbridge` / `awb`.** The project's local identity is now fully
