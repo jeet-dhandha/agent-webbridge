@@ -3,6 +3,26 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.2] — 2026-06-25
+
+**Official Chrome Web Store build.** `agent-webbridge` is now on the Chrome Web Store, and
+`awb setup` installs it from there (click **Add to Chrome**) instead of guided Load-unpacked.
+
+Added
+- Chrome Web Store listing:
+  https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl
+- `AWB_EXT_ID_STORE` (`kgnhh…`) + `CWS_LISTING_URL`. The daemon now recognizes **both** the
+  store id and the Load-unpacked dev id (`ifodk…`): `isKimiExt` / `hasKimiExtension` and the
+  on-disk orphan scan all match against `AWB_EXT_IDS` (store id first).
+
+Changed
+- `awb setup` opens the Web Store listing and polls for **Add to Chrome**. Developers use
+  `awb install-dev` for the in-repo Load-unpacked build.
+- Force-install policy (`forceInstallValue`) now targets the store id — the only id Chrome can
+  fetch a CRX for.
+- README / INSTALL / SKILL docs updated to "Add to Chrome" as the primary install; the new
+  bridge icon ships in the package.
+
 ## [1.1.1] — 2026-06-23
 
 **Docs polish + version sync.** README rewritten to a clean, minimal, concept-first

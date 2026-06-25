@@ -11,14 +11,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-// Only the official Chrome Web Store build is supported. Its id is published and stable,
-// and it lives on disk under <profile>/Extensions/<id>/ — that folder is the true source
-// of record. (The old unpacked/dev id "hinhmbbm…" was removed: it was unstable, its code
-// is content-unverified, and it was a constant source of confusion.)
-// agent-webbridge: our own clean-room extension. The id is derived from the manifest `key`
-// (our RSA keypair) via computeExtIdFromManifestKey, so dev (unpacked) == prod (CWS) id.
-export const AWB_EXT_ID = "ifodkkbkmngjlkhiphcjmbceeolhpfeo";
-export const AWB_EXT_IDS = [AWB_EXT_ID];
+// Our extension ships through two channels, each with its own id:
+//   - The official Chrome Web Store build (PRIMARY) — the store mints its own keypair on
+//     publish, so this id is store-assigned. This is what `awb setup` installs, and it lives
+//     on disk under <profile>/Extensions/<id>/.
+//   - The Load-unpacked / dev build, whose id is derived from the manifest `key` (our RSA
+//     keypair) via computeExtIdFromManifestKey. Used by `awb install-dev` for development.
+// Both are "us": every detection path matches against AWB_EXT_IDS (store id first).
+export const AWB_EXT_ID_STORE = "kgnhhbkooeplfdkfnicgekdmegckcnpl"; // Chrome Web Store (published)
+export const AWB_EXT_ID = "ifodkkbkmngjlkhiphcjmbceeolhpfeo"; // Load-unpacked / dev (manifest key)
+export const AWB_EXT_IDS = [AWB_EXT_ID_STORE, AWB_EXT_ID];
+// Public Chrome Web Store listing for the official build (used by `awb setup`).
+export const CWS_LISTING_URL = `https://chromewebstore.google.com/detail/agent-webbridge/${AWB_EXT_ID_STORE}`;
 // Display name of the extension (informational only).
 export const AWB_EXT_NAME = "Agent WebBridge";
 
@@ -139,10 +143,10 @@ export function installedExtensions(dir) {
   });
 }
 
-// Is this entry our extension? Only the official Web Store id counts — we no longer match
-// unpacked/dev builds (by name or by the old ALT id).
+// Is this entry our extension? Matches either channel's id — the official Web Store build
+// or the Load-unpacked / dev build (AWB_EXT_IDS, store id first).
 function isKimiExt(e) {
-  return e.id === AWB_EXT_ID;
+  return AWB_EXT_IDS.includes(e.id);
 }
 
 // The agent-webbridge extension installed in a profile (CWS or unpacked), or null.
@@ -168,13 +172,15 @@ export function awbExtId(dir) {
   return null;
 }
 
-// Whether the official agent-webbridge extension is installed in a profile. The store
-// build always lives on disk under Extensions/<id>/, so check that folder first (the true
-// source of record), then fall back to the registry.
+// Whether the agent-webbridge extension is installed in a profile. The store build lives on
+// disk under Extensions/<id>/, so check each known id's folder first (the true source of
+// record), then fall back to the registry (which also catches Load-unpacked / dev builds).
 export function hasKimiExtension(dir) {
-  try {
-    if (fs.existsSync(path.join(chromeUserDataDir(), dir, "Extensions", AWB_EXT_ID))) return true;
-  } catch {}
+  for (const id of AWB_EXT_IDS) {
+    try {
+      if (fs.existsSync(path.join(chromeUserDataDir(), dir, "Extensions", id))) return true;
+    } catch {}
+  }
   return awbExtId(dir) !== null;
 }
 

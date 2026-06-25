@@ -1,6 +1,7 @@
 # agent-webbridge
 
 [![npm](https://img.shields.io/npm/v/agent-webbridge)](https://www.npmjs.com/package/agent-webbridge)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Agent%20WebBridge-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
 [![license](https://img.shields.io/npm/l/agent-webbridge)](LICENSE)
 [![node](https://img.shields.io/node/v/agent-webbridge)](https://nodejs.org)
 
@@ -19,10 +20,10 @@
 
 ```bash
 npm i -g agent-webbridge        # 1. the daemon + the `awb` CLI
-awb setup "Work"                # 2. walks you through Chrome's "Load unpacked", then connects
+awb setup "Work"                # 2. opens the Chrome Web Store; click "Add to Chrome"
 ```
 
-`awb setup` prints the extension folder, opens `chrome://extensions`, and **polls** while you do the one manual step — toggle **Developer mode** and click **Load unpacked** → pick that folder. As soon as it detects the load, it wires the profile to its daemon and brings the fleet up.
+`awb setup` opens the [**Agent WebBridge** listing](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl) in your chosen profile and **polls** while you click **Add to Chrome**. As soon as it detects the install, it wires the profile to its daemon and brings the fleet up.
 
 **Requirements:** macOS · Google Chrome · Node.js ≥ 18.
 
@@ -94,7 +95,7 @@ The router proxies each command to the per-profile daemon on its deterministic h
 
 ## Use it from an AI agent
 
-Ship it as a [Claude Code skill / plugin](.claude-plugin/) — the bundled `agent-webbridge` skill teaches an agent the full flow (install via `awb check --json`, then drive over `POST /command`). For development, load the extension from source: `chrome://extensions` → Developer mode → Load unpacked → [`agent-webbridge-extension/`](agent-webbridge-extension/). Because the extension ships its public key, Chrome derives the same stable id every time — the dev build and the released build are the same artifact.
+Ship it as a [Claude Code skill / plugin](.claude-plugin/) — the bundled `agent-webbridge` skill teaches an agent the full flow (install via `awb check --json`, then drive over `POST /command`). To hack on the extension itself, `awb install-dev` Load-unpacks the in-repo build (`chrome://extensions` → Developer mode → Load unpacked → [`agent-webbridge-extension/`](agent-webbridge-extension/)); it ships its own key, so the dev id is stable across reloads.
 
 ## Platform
 

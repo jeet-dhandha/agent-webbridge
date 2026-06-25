@@ -16,7 +16,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { AWB_EXT_ID, listProfiles, awbExtId, awbExtension, chromeUserDataDir } from "./profiles.mjs";
+import { AWB_EXT_ID, AWB_EXT_ID_STORE, AWB_EXT_IDS, listProfiles, awbExtId, awbExtension, chromeUserDataDir } from "./profiles.mjs";
 
 const CWS_UPDATE_URL = "https://clients2.google.com/service/update2/crx";
 const CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -108,7 +108,8 @@ export function profilesMissingExtension() {
 // ---- Path 1: force-install policy (all profiles) ----
 
 export function forceInstallValue() {
-  return `${AWB_EXT_ID};${CWS_UPDATE_URL}`;
+  // Must be the Chrome Web Store id — it's the only one Chrome can fetch a CRX for.
+  return `${AWB_EXT_ID_STORE};${CWS_UPDATE_URL}`;
 }
 
 export function readForcelist() {
@@ -126,7 +127,7 @@ export function readForcelist() {
 // single-element array; extend here if you need to preserve existing entries).
 export function enableForceInstall() {
   const existing = readForcelist();
-  if (existing && existing.includes(AWB_EXT_ID)) {
+  if (existing && existing.includes(AWB_EXT_ID_STORE)) {
     return { changed: false, value: existing, note: "already present" };
   }
   execFileSync("defaults", [
@@ -166,7 +167,7 @@ export function extensionHealth(profileDir) {
     // No registry entry. Flag a leftover payload folder as a (mild) corrupt-orphan so the
     // repair path scrubs it before a fresh install.
     let orphan = null;
-    for (const id of [AWB_EXT_ID]) {
+    for (const id of AWB_EXT_IDS) {
       const p = path.join(chromeUserDataDir(), profileDir, "Extensions", id);
       try { if (fs.existsSync(p)) { orphan = id; break; } } catch {}
     }

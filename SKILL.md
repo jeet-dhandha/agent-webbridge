@@ -62,7 +62,7 @@ Full, copy-pasteable setup is in **[AGENTS.md](AGENTS.md)**. Quick version:
 
 ```bash
 npm i -g agent-webbridge         # daemon + `awb` CLI
-awb setup "Work" "Personal"      # install the extension (guided Load unpacked) + bring the fleet up
+awb setup "Work" "Personal"      # install the extension (opens Web Store, "Add to Chrome") + bring the fleet up
 awb connect "Work" "Personal"    # (re)point each extension at its daemon (zero clicks; closes Chrome)
 awb up      "Work" "Personal"    # start each profile's daemon + router on :10086, open windows
 awb status                       # verify: extensionConnected:true per profile
@@ -72,23 +72,23 @@ awb down                         # tear down the fleet
 (Pre-publish, run `node bin/awb.mjs <cmd>` from the repo. Run `awb doctor` first for a read-only
 environment self-check.)
 
-### Installing the extension (one-time, no Chrome Web Store)
+### Installing the extension (one-time, from the Chrome Web Store)
 
-The extension installs via Chrome's built-in **"Load unpacked"** — there is **no Chrome Web
-Store listing**, and none is needed. `awb setup <profile…>` automates everything except the one
-click Chrome reserves for a human. When **you (the agent)** run it, *guide the user through that
-click and poll for success* rather than waiting blindly:
+The extension installs from the **Chrome Web Store**. `awb setup <profile…>` automates everything
+except the one click Chrome reserves for a human. When **you (the agent)** run it, *guide the user
+through that click and poll for success* rather than waiting blindly:
 
-1. Run `awb setup "<profile>"`. It prints the **exact extension folder** and opens
-   `chrome://extensions`.
-2. Tell the user to: toggle **Developer mode** ON (top-right) → click **Load unpacked** → select
-   the printed folder.
-3. Poll `awb check "<profile>" --json`. For each profile it reports `developerMode`, `loaded`,
-   `enabled`, `daemonUp`, `connected`, a `ready` boolean, and a single `nextStep` hint. Relay
-   `nextStep` to the user and loop until `ready: true`. (`awb setup` also polls and continues
-   on its own once the load lands, then connects + brings the fleet up — so a plain `awb setup`
-   often finishes without you needing `awb check` at all; use `check` when driving the steps
-   yourself or re-checking state between turns.)
+1. Run `awb setup "<profile>"`. It opens the **Agent WebBridge** Web Store listing in that profile.
+2. Tell the user to click **Add to Chrome** → confirm **Add extension**.
+3. Poll `awb check "<profile>" --json`. For each profile it reports `loaded`, `enabled`,
+   `daemonUp`, `connected`, a `ready` boolean, and a single `nextStep` hint. Relay `nextStep` to
+   the user and loop until `ready: true`. (`awb setup` also polls and continues on its own once the
+   install lands, then connects + brings the fleet up — so a plain `awb setup` often finishes
+   without you needing `awb check` at all; use `check` when driving the steps yourself or
+   re-checking state between turns.)
+
+> Developers iterating on the extension source use `awb install-dev` instead, which Load-unpacks
+> the in-repo build. The daemon recognizes both the store id and the dev id.
 
 **Zero-click connect:** `awb connect` points each profile's extension at its daemon by writing
 `local_url` directly into the extension's on-disk `storage.local` — no popup, no clicks. It

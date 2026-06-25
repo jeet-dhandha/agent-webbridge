@@ -58,7 +58,7 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { listProfiles, resolveProfile, awbExtId, developerModeOn, ROUTER_PORT } from "../src/profiles.mjs";
+import { listProfiles, resolveProfile, awbExtId, developerModeOn, ROUTER_PORT, CWS_LISTING_URL, AWB_EXT_ID_STORE } from "../src/profiles.mjs";
 import { listOpenTabs } from "../src/snss.mjs";
 import { startDaemon, stopDaemon, fleetStatus, daemonStatus, DAEMON_BIN } from "../src/fleet.mjs";
 import {
@@ -376,23 +376,23 @@ async function cmdDown(args) {
   try { patchState({ stoppedAt: new Date().toISOString(), stoppedReason: "manual" }); } catch {}
 }
 
-// `awb setup <profile...>` — the canonical, Load-unpacked install for the agent-webbridge
-// extension. There is NO Chrome Web Store listing; the only honest way onto a real Chrome
-// profile is a manual "Load unpacked" in chrome://extensions with Developer mode on. This
-// command makes that one-click-for-a-human / one-poll-for-an-agent:
-//   1. RESOLVE the in-repo extension folder + its stable id (fail fast on a bad checkout).
-//   2. REPAIR — remove a corrupt install (or, with --reinstall, a healthy one) from disk,
-//      Chrome closed, so the fresh load lands clean.
-//   3. INSTALL — for each profile still missing it, open chrome://extensions and print the
-//      exact folder to "Load unpacked", then POLL the registry every 5s (up to --timeout,
-//      default 5min) until the extension appears. No blocking Enter — the poll is exactly
-//      what an orchestrating agent watches (see `awb check --json`).
-//   4. WIRE each profile to its daemon and bring the fleet up (skip with --no-up).
+// `awb setup <profile...>` — the canonical install for the agent-webbridge extension from
+// the official Chrome Web Store. It opens the listing in each profile, the human clicks
+// "Add to Chrome", and the command polls until the extension lands — one-click-for-a-human /
+// one-poll-for-an-agent. (Developers iterating on the extension source use `awb install-dev`,
+// which Load-unpacks the in-repo build instead.)
+//   1. REPAIR — remove a corrupt install (or, with --reinstall, a healthy one) from disk,
+//      Chrome closed, so the fresh install lands clean.
+//   2. INSTALL — for each profile still missing it, open the Web Store listing and prompt
+//      "Add to Chrome", then POLL the registry every 5s (up to --timeout, default 5min)
+//      until the extension appears. No blocking Enter — the poll is exactly what an
+//      orchestrating agent watches (see `awb check --json`).
+//   3. WIRE each profile to its daemon and bring the fleet up (skip with --no-up).
 //
-//   --reinstall   remove the current extension from disk first, then reload clean
-//   --no-open     don't open chrome://extensions (you / your agent drive the browser); just poll
-//   --no-up       stop once the extension is loaded; don't connect + start the fleet
-//   --timeout N   seconds to wait for each Load-unpacked (default 300)
+//   --reinstall   remove the current extension from disk first, then reinstall clean
+//   --no-open     don't open the Web Store listing (you / your agent drive the browser); just poll
+//   --no-up       stop once the extension is installed; don't connect + start the fleet
+//   --timeout N   seconds to wait for each install (default 300)
 async function cmdSetupInteractive(args) {
   const reinstall = args.includes("--reinstall");
   const noOpen = args.includes("--no-open");
@@ -405,27 +405,19 @@ async function cmdSetupInteractive(args) {
     .map((q) => resolveProfile(q));
   if (!targets.length) {
     console.error("usage: awb setup <profile...> [--reinstall] [--no-open] [--no-up] [--timeout <seconds>]");
-    console.error("  Installs the agent-webbridge extension via Chrome 'Load unpacked' (there is no Chrome");
-    console.error("  Web Store listing), then wires each profile to its daemon and brings the fleet up.");
+    console.error("  Installs the agent-webbridge extension from the Chrome Web Store, then wires each");
+    console.error("  profile to its daemon and brings the fleet up. (Devs: `awb install-dev` for the source build.)");
     process.exit(1);
   }
 
-  // 1. Resolve the in-repo extension folder + its stable id up front so a bad checkout fails
-  //    fast, before we touch Chrome. The id is derived from the manifest `key`, so the
-  //    Load-unpacked build's id == the published stable id.
-  let extPath, extId;
-  try {
-    extPath = unpackedExtPath();
-    extId = devBuildExtId();
-  } catch (e) {
-    console.error(`✗ ${e.message}`);
-    process.exit(1);
-  }
-  console.log(`• extension folder to Load unpacked: ${extPath}`);
-  console.log(`• extension id (stable, from manifest.key): ${extId}\n`);
+  // 1. Install target — the official Chrome Web Store build. Its id is store-assigned and
+  //    fixed; we open the listing per profile and detect the install via the registry
+  //    (awbExtId / AWB_EXT_IDS), which also sees the store build under Extensions/<id>/.
+  console.log(`• installing from the Chrome Web Store: ${CWS_LISTING_URL}`);
+  console.log(`• extension id (store): ${AWB_EXT_ID_STORE}\n`);
 
-  // 2. Repair pass — remove a corrupt install (or, with --reinstall, any install) from disk
-  //    with Chrome closed, so the fresh Load unpacked lands clean.
+  // 1. Repair pass — remove a corrupt install (or, with --reinstall, any install) from disk
+  //    with Chrome closed, so the fresh install lands clean.
   const removals = [];
   for (const p of targets) {
     const h = extensionHealth(p.dir);
@@ -461,25 +453,21 @@ async function cmdSetupInteractive(args) {
     }
   }
 
-  // 3. Install pass — for each profile still missing the extension, open chrome://extensions
-  //    and poll the registry until "Load unpacked" lands it. Detection is registry-based
-  //    (awbExtId): unpacked builds run from their source dir and never land in Extensions/,
-  //    so the registry is the ONLY source that sees them.
+  // 2. Install pass — for each profile still missing the extension, open the Web Store listing
+  //    and poll the registry until "Add to Chrome" lands it. Detection is registry-based
+  //    (awbExtId / AWB_EXT_IDS), which also sees the store build under Extensions/<id>/.
   for (const p of targets) {
     if (awbExtId(p.dir)) {
       console.log(`• "${p.name}": extension already present — skipping install.`);
       continue;
     }
-    const dm = developerModeOn(p.dir);
-    const dmNote = dm === true ? " — already on ✓" : dm === false ? " — currently OFF" : "";
     console.log(`\n👉 "${p.name}" (${p.dir}) — install the extension:`);
-    console.log(`     1. Toggle "Developer mode" ON (top-right of chrome://extensions)${dmNote}.`);
-    console.log(`     2. Click "Load unpacked".`);
-    console.log(`     3. Select this folder:  ${extPath}`);
-    console.log(`   (No Enter needed — this command auto-detects the load and continues.)`);
+    console.log(`     1. On the Chrome Web Store page, click "Add to Chrome".`);
+    console.log(`     2. Confirm "Add extension".`);
+    console.log(`   (No Enter needed — this command auto-detects the install and continues.)`);
     if (!noOpen) {
-      const r = openUrlInProfile({ profileDir: p.dir, windowId: null, url: "chrome://extensions" });
-      console.log(`   ↪ opened chrome://extensions in "${p.name}" (mode=${r.mode}${r.error ? `, error=${r.error}` : ""})`);
+      const r = openUrlInProfile({ profileDir: p.dir, windowId: null, url: CWS_LISTING_URL, anchorUrl: CWS_LISTING_URL });
+      console.log(`   ↪ opened the Web Store listing in "${p.name}" (mode=${r.mode}${r.error ? `, error=${r.error}` : ""})`);
     }
 
     const deadline = Date.now() + timeoutMs;
@@ -490,13 +478,11 @@ async function cmdSetupInteractive(args) {
       if (awbExtId(p.dir)) { installed = true; break; }
       if (tick++ % 4 === 0) {
         const remain = Math.round((deadline - Date.now()) / 1000);
-        const dmNow = developerModeOn(p.dir);
-        const hint = dmNow === false ? " (Developer mode still OFF — toggle it to reveal 'Load unpacked')" : "";
-        console.log(`   …waiting for Load unpacked (${remain}s left, every ${EXTENSION_INSTALL_POLL_MS / 1000}s)${hint}`);
+        console.log(`   …waiting for "Add to Chrome" (${remain}s left, every ${EXTENSION_INSTALL_POLL_MS / 1000}s)`);
       }
     }
     if (!installed) {
-      console.error(`✗ "${p.name}": extension not loaded within ${timeoutMs / 1000}s. Re-run \`awb setup "${p.name}"\` after Load unpacked.`);
+      console.error(`✗ "${p.name}": extension not installed within ${timeoutMs / 1000}s. Re-run \`awb setup "${p.name}"\` after "Add to Chrome".`);
       process.exit(1);
     }
     console.log(`  ✓ "${p.name}": extension detected (id ${awbExtId(p.dir)}).`);
@@ -507,7 +493,7 @@ async function cmdSetupInteractive(args) {
     return;
   }
 
-  // 4. Wire each profile to its daemon (cmdConnect quits Chrome once, writes local_url) and
+  // 3. Wire each profile to its daemon (cmdConnect quits Chrome once, writes local_url) and
   //    bring the fleet up.
   console.log("\n• connecting + starting the fleet…");
   const connectRes = await cmdConnect(targets.map((p) => p.dir), { exitOnDone: false });
