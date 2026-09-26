@@ -42,20 +42,26 @@ function waitForComplete(chrome, tabId, timeoutMs = 45000) {
 
 export default async function run(ctx, args = {}) {
   const { chrome } = ctx;
-  const { url, newTab, group_title } = args;
+  const { url, newTab, group_title, active } = args;
 
   if (!url) throw new Error("navigate requires a url");
 
   let tabId;
 
+  // Opt-in background tabs. chrome.tabs.create defaults to active:true, which yanks focus
+  // away from whatever the human is doing — painful for long automated runs. Callers that
+  // pass active:false get a tab that opens behind. Default is unchanged (focused), so
+  // nothing that does not pass the flag behaves differently.
+  const createProps = active === false ? { url, active: false } : { url };
+
   if (newTab) {
-    const tab = await chrome.tabs.create({ url });
+    const tab = await chrome.tabs.create(createProps);
     tabId = tab.id;
   } else {
     tabId = ctx.tabId;
     if (tabId == null) {
       // No current tab to reuse — fall back to creating one.
-      const tab = await chrome.tabs.create({ url });
+      const tab = await chrome.tabs.create(createProps);
       tabId = tab.id;
     } else {
       await chrome.tabs.update(tabId, { url });
@@ -68,5 +74,7 @@ export default async function run(ctx, args = {}) {
   await groups.assignToSession(tabId, ctx.session, group_title);
   ctx.setCurrentTab(tabId);
 
-  return { success: true, url, tabId };
+  // Marker so a caller can tell whether the running service worker has this build loaded
+  // (an MV3 unpacked extension keeps serving the old module until it is reloaded).
+  return { success: true, url, tabId, bgSupported: true };
 }
