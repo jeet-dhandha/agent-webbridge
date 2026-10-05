@@ -148,7 +148,7 @@ fill N forms), drive it as a **fleet fan-out**:
 | `find_tab` | `url`, `active`(bool) | `{success, url, tabId}` | Select an already-open tab as the current one — see [Tabs](#tabs-and-the-current-tab) |
 | `snapshot` | — | `{url, title, tree}` with `@e` refs | **Accessibility tree** (text) — use this to read page content and locate elements |
 | `click` | `selector` (@e ref or CSS) | `{success, tag, text}` | Synthetic `el.click()` |
-| `trusted_click` | `selector` (@e ref or CSS) or `x`,`y`; opt. `button`, `clickCount` | `{success, x, y, tag, text, hit, visibility, activated}` | Real mouse via CDP `Input.dispatchMouseEvent` (`isTrusted`); activates a hidden tab first; `hit:false` = covered |
+| `trusted_click` | `selector` (@e ref or CSS) or `x`,`y`; opt. `button`, `clickCount`, `activate`, `force` | `{success, x, y, tag, text, hit, visibility, activated}` | Real mouse via CDP `Input.dispatchMouseEvent` (`isTrusted`); activates a hidden tab first; refuses a covered target unless `force` |
 | `fill` | `selector`, `value` | `{success, tag, mode}` | Works on `<input>`/`<textarea>` AND `[contenteditable]` (ProseMirror/Lexical/Slate). `mode` is `"value"` or `"contenteditable"` |
 | `evaluate` | `code` (supports async/await) | `{type, value}` | |
 | `screenshot` | `format`(png\|jpeg), `quality`(0-100), optional `selector` (@e/CSS), optional `path` | `{format, path, sizeBytes, mimeType}` | Returns a file path, not base64 — see [Screenshots](#screenshots) |

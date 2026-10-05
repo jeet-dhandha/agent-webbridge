@@ -8,13 +8,17 @@ here. This project adheres to [Semantic Versioning](https://semver.org/).
 **Trusted clicks.** New `trusted_click` tool for pages that ignore synthetic input.
 
 Added
-- `trusted_click` (`selector` @e ref or CSS, or `x`/`y`; optional `button`, `clickCount`):
-  scrolls the element into view and sends CDP `Input.dispatchMouseEvent`
+- `trusted_click` (`selector` @e ref or CSS, or `x`/`y`; optional `button`, `clickCount`,
+  `activate`, `force`): scrolls the element into view and sends CDP `Input.dispatchMouseEvent`
   (moved → pressed → released) at its centre, so the page sees `isTrusted=true` events.
-  `click` stays a synthetic `el.click()`. Returns `{success, x, y, tag, text, hit, visibility}`;
-  `hit:false` means another element covers the target and took the click. A hidden tab
-  drops CDP input silently, so the tool activates the tab first (`activate:false` -> error)
-  and throws if it stays hidden. Top-level frame only.
+  `click` stays a synthetic `el.click()`. Returns `{success, x, y, tag, text, hit, visibility, activated}`.
+  - Refuses to click when another element covers the target (banner, dialog, overlay);
+    `force:true` clicks anyway. The hit test works for targets inside shadow DOM.
+  - A hidden tab drops CDP input silently, so the tool activates the tab (and restores a
+    minimized window) first, checks again right before and after pressing, and throws if
+    the tab is hidden. `activate:false` -> error instead of activating.
+  - `clickCount:2` sends two press/release pairs (detail 1 then 2), like a real double click.
+  - Elements inside iframes are rejected (coordinates are top-level only).
 
 ## [1.1.2] — 2026-06-25
 

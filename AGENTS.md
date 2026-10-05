@@ -61,7 +61,7 @@ fan-out helps when visiting many distinct sites but not when hammering a single 
 ## The 13 tools (full parity, all verified live)
 
 `navigate`, `find_tab`, `evaluate`, `snapshot` (accessibility tree with stable `@e` refs),
-`click`, `fill` (native inputs **and** contenteditable), `network` (request capture), `upload`,
+`click`, `trusted_click` (real CDP mouse input, `isTrusted`), `fill` (native inputs **and** contenteditable), `network` (request capture), `upload`,
 `screenshot`, `save_as_pdf`, `list_tabs`, `close_tab`, `close_session`.
 
 ## Install & local dev
