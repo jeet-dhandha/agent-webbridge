@@ -51,6 +51,7 @@ Every call is a `POST /command` on `127.0.0.1:10086`. `"session"` groups a task'
 | `evaluate` | Run JavaScript in the page, return the result |
 | `snapshot` | Accessibility tree with stable `@e` element refs |
 | `click` | Click an element by `@e` ref |
+| `trusted_click` | Real mouse click (CDP, `isTrusted`) for pages that ignore `click` |
 | `fill` | Set native inputs **and** `contenteditable` fields |
 | `upload` | Upload a file to a file input |
 | `screenshot` | Capture a page screenshot |

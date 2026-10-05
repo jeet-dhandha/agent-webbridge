@@ -3,6 +3,19 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-10-05
+
+**Trusted clicks.** New `trusted_click` tool for pages that ignore synthetic input.
+
+Added
+- `trusted_click` (`selector` @e ref or CSS, or `x`/`y`; optional `button`, `clickCount`):
+  scrolls the element into view and sends CDP `Input.dispatchMouseEvent`
+  (moved → pressed → released) at its centre, so the page sees `isTrusted=true` events.
+  `click` stays a synthetic `el.click()`. Returns `{success, x, y, tag, text, hit, visibility}`;
+  `hit:false` means another element covers the target and took the click. A hidden tab
+  drops CDP input silently, so the tool activates the tab first (`activate:false` -> error)
+  and throws if it stays hidden. Top-level frame only.
+
 ## [1.1.2] — 2026-06-25
 
 **Official Chrome Web Store build.** `agent-webbridge` is now on the Chrome Web Store, and
