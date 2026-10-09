@@ -10,7 +10,7 @@ Clean-room, open-source (MIT) browser automation for AI agents. Drives the user'
 Chrome — multiple profiles with their **live logins**, and **multiple tabs per profile**, all
 **in parallel**. A lightweight Node daemon runs per profile on a deterministic hashed port; a
 router on `http://127.0.0.1:10086` proxies `/command` to the right daemon by a top-level
-`"profile"` field. macOS-first (Google Chrome).
+`"profile"` field. macOS and Windows (Google Chrome).
 
 > This repository is packaged as a Claude Code plugin/skill. The canonical skill also lives at
 > [skills/agent-webbridge/SKILL.md](skills/agent-webbridge/SKILL.md); this root copy
@@ -102,10 +102,35 @@ POST to the router on `http://127.0.0.1:10086/command`. The body is the normal c
 Omit `"profile"` to hit the default profile. Every command also carries a top-level `"session"`
 naming the current task — see [Sessions](#sessions).
 
+#### Recommended Agent Invocation Pattern (`cmd` helper)
+
+Agents should define this one-line shell helper at the start of a command invocation to eliminate curl boilerplate and protect JSON payloads from shell escaping issues:
+
 ```bash
-curl -s -X POST http://127.0.0.1:10086/command \
-  -H 'Content-Type: application/json' \
-  -d '{"action":"navigate","args":{"url":"https://mail.google.com"},"session":"s1","profile":"Work"}'
+cmd(){ curl -s -m 60 -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' -d "$1"; echo; }
+```
+
+**Key rules for agents:**
+1. **Always wrap the payload in single quotes (`'...'`)**: This prevents bash/zsh from interpolating `$`, backticks, or double quotes inside JS code, CSS selectors, and URLs.
+2. **Keep JSON code strings valid**: In `"action":"evaluate"`, wrap code in a self-contained IIFE `(()=>{ ... })()` and keep it on a single line (no raw unescaped newlines inside the JSON string).
+3. **Pass `args.path` for screenshots**: Direct disk capture saves the file and returns clean metadata (`path`, `sizeBytes`), completely avoiding base64 floods in agent context.
+
+Examples:
+
+```bash
+cmd(){ curl -s -m 60 -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' -d "$1"; echo; }
+
+# Navigate
+cmd '{"action":"navigate","args":{"url":"https://mail.google.com","newTab":true},"session":"s1","profile":"Work"}'
+
+# Evaluate JavaScript safely
+cmd '{"action":"evaluate","args":{"code":"(()=>{ const b=Array.from(document.querySelectorAll(\"[role=button],button\")).filter(e=>e.innerText.trim()===\"Publish\"&&e.getBoundingClientRect().width>0); b.forEach(e=>e.click()); return \"clicked \"+b.length; })()"},"session":"s1","profile":"Work"}'
+
+# Screenshot directly to disk path
+cmd '{"action":"screenshot","args":{"path":"/tmp/preview.png"},"session":"s1","profile":"Work"}'
+
+# Clean up session
+cmd '{"action":"close_session","session":"s1","profile":"Work"}'
 ```
 
 Parallelism is **cross-profile** (N profiles) **× per-tab** (N tabs/profile): fire several
@@ -327,7 +352,7 @@ overwritten.
 
 ## Scope and limits
 
-- **macOS-first** (Google Chrome). Linux/Windows is a documented follow-up.
+- **macOS and Windows** (Google Chrome). On Windows the tab/window housekeeping that uses AppleScript is skipped; set `AWB_CHROME_BIN` / `AWB_CHROME_DIR` for non-standard installs. Linux is wired but untested.
 - **One daemon per profile**, each on a deterministic hashed port with its own isolated state.
 - **`:10086` is reserved** for the router — it is never assigned to a profile.
 - **Localhost-only**: the extension connects only to a `127.0.0.1` daemon you run. No remote

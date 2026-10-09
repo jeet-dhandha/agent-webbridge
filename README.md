@@ -5,7 +5,39 @@
 [![license](https://img.shields.io/npm/l/agent-webbridge)](LICENSE)
 [![node](https://img.shields.io/node/v/agent-webbridge)](https://nodejs.org)
 
-> Let an AI agent drive **your real Chrome** — with your **real logins** — across **many profiles and many tabs at once**. One local endpoint, no account, no telemetry, nothing leaves `127.0.0.1`.
+> Let Claude Code, Cursor and any MCP client drive **your real, logged-in Chrome** — **many profiles, many tabs, in parallel**. No headless re-login, no bot detection, no cloud. Nothing leaves `127.0.0.1`.
+
+## Add it to your agent (30 seconds)
+
+```bash
+npm i -g agent-webbridge && awb setup "Work"     # once: installs the daemon + the Chrome extension
+```
+
+Then add the MCP server to Claude Desktop, Claude Code, Cursor or Windsurf:
+
+```json
+{
+  "mcpServers": {
+    "chrome": { "command": "npx", "args": ["-y", "agent-webbridge", "mcp"] }
+  }
+}
+```
+
+Claude Code: `claude mcp add chrome -- npx -y agent-webbridge mcp`
+
+Your agent now has `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_fill`, `browser_evaluate`, `browser_screenshot` and more — all running in *your* Chrome, with *your* sessions. Pass `profile` to choose an account and `tabId` to run tabs in parallel. If a call fails, `browser_status` tells the agent which profile isn't connected.
+
+### Why not Playwright or a cloud browser?
+
+| | Cloud browsers (Browserbase, Steel…) | Headless Playwright / Puppeteer | **agent-webbridge** |
+|---|---|---|---|
+| Cost | usage-based | free | **free, MIT** |
+| Your logins, passkeys, 2FA | re-auth or upload cookies | re-login; 2FA breaks | **already signed in** |
+| Bot detection (Cloudflare, Datadome) | flagged cloud IPs | often blocked | **it's your real browser** |
+| Where your data goes | a third-party server | local | **local only, `127.0.0.1`** |
+| Several accounts at once | separate sessions to manage | manual orchestration | **one profile per account, parallel tabs** |
+
+It automates a browser you are already signed in to — use it only on accounts and sites you are entitled to automate, and respect each site's terms.
 
 `agent-webbridge` is a tiny Node daemon (one runtime dependency: [`ws`](https://www.npmjs.com/package/ws)) plus a clean-room MV3 Chrome extension. An agent POSTs a command to a local router → the router fans it out to the right profile's daemon → the extension attaches the Chrome DevTools Protocol **per tab**.
 
@@ -25,22 +57,22 @@ awb setup "Work"                # 2. opens the Chrome Web Store; click "Add to C
 
 `awb setup` opens the [**Agent WebBridge** listing](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl) in your chosen profile and **polls** while you click **Add to Chrome**. As soon as it detects the install, it wires the profile to its daemon and brings the fleet up.
 
-**Requirements:** macOS · Google Chrome · Node.js ≥ 18.
+**Requirements:** macOS or Windows · Google Chrome · Node.js ≥ 18.
 
 ## Quickstart
 
 ```bash
 awb up "Work" "Personal"        # bring profiles up (setup did this on first run)
 
-# Drive any profile by name — same endpoint, one extra field
-curl -s -X POST http://127.0.0.1:10086/command \
-  -H 'Content-Type: application/json' \
-  -d '{"action":"navigate","args":{"url":"https://news.ycombinator.com"},"session":"scan","profile":"Work"}'
+# Drive any profile by name — using the handy cmd helper function:
+cmd(){ curl -s -m 60 -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' -d "$1"; echo; }
+
+cmd '{"action":"navigate","args":{"url":"https://news.ycombinator.com"},"session":"scan","profile":"Work"}'
 
 awb down                        # stop the fleet when done
 ```
 
-Every call is a `POST /command` on `127.0.0.1:10086`. `"session"` groups a task's tabs into one Chrome tab group; `"profile"` picks which Chrome profile to drive.
+Every call is a `POST /command` on `127.0.0.1:10086`. Wrap payloads in single quotes (`'...'`) to prevent shell quote-escaping issues. `"session"` groups a task's tabs into one Chrome tab group; `"profile"` picks which Chrome profile to drive. Pass `{"action":"screenshot","args":{"path":"/path/to/img.png"}}` to save screenshots directly to disk.
 
 ## Tools
 
@@ -90,6 +122,7 @@ The router proxies each command to the per-profile daemon on its deterministic h
 | `awb check [profile…] [--json]` | Read-only readiness probe (folder? dev-mode? loaded? connected?) — what an agent polls during install |
 | `awb status` | Per-profile daemon + extension-connection status |
 | `awb doctor` | Diagnose the environment (Chrome, profiles, daemon, extension) |
+| `awb mcp` | Run the stdio MCP server (what the config above launches) |
 | `awb profiles` | List Chrome profiles, their hashed ports, and extension presence |
 
 `<profile>` is anything that resolves uniquely — the profile **name** (`"Work"`), an **email**, or the Chrome **directory** (`"Profile 2"`).
@@ -100,7 +133,17 @@ Ship it as a [Claude Code skill / plugin](.claude-plugin/) — the bundled `agen
 
 ## Platform
 
-**macOS-first** — the profile launcher uses AppleScript, so macOS + Google Chrome is supported today. Linux / Windows are a documented follow-up.
+| | macOS | Windows |
+|---|---|---|
+| Profile discovery | `~/Library/Application Support/Google/Chrome` | `%LOCALAPPDATA%\Google\Chrome\User Data` |
+| Chrome binary | `/Applications/Google Chrome.app` | `Program Files\Google\Chrome\Application\chrome.exe` (auto-detected) |
+| Daemon, router, MCP, all tools | ✅ | ✅ |
+| Install flow (`awb setup`) | opens the profile window via AppleScript | opens it by launching Chrome with the profile |
+| Tab/window housekeeping (focus, tidy blank windows) | ✅ | skipped — cosmetic only |
+
+Set `AWB_CHROME_BIN` / `AWB_CHROME_DIR` if Chrome or its data directory is somewhere non-standard (Chrome Beta, portable installs). Linux paths are wired up but untested.
+
+On Windows, run commands from PowerShell or `cmd` (the `curl` examples below use bash quoting; in PowerShell use `curl.exe` and a here-string, or just use the MCP server). The daemon and the Windows code paths are covered by CI on `windows-latest`; the Chrome-launching steps (`awb setup` / `awb up`) are the least-tested part — please [open an issue](https://github.com/jeet-dhandha/agent-webbridge/issues) if one misbehaves.
 
 ## License
 

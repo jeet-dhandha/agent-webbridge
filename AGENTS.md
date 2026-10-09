@@ -8,8 +8,9 @@ account, no telemetry, no closed-source dependency, no `curl | bash` installer.
 This file is the map of the repo for anyone (human or agent) about to make a change. For the
 end-user "how do I drive it" doc, see `README.md`; for the exhaustive contract, see `BUILD_SPEC.md`.
 
-> Scope: **macOS-first** (the profile launcher / connect layer uses AppleScript). Linux/Windows
-> is a documented follow-up. Node `>=18`.
+> Scope: **macOS and Windows** (Google Chrome). OS differences live in `src/platform.mjs`; the
+> AppleScript window housekeeping is macOS-only and skipped elsewhere. Linux is wired but untested.
+> Node `>=18`.
 
 ## What this is
 
@@ -63,6 +64,23 @@ fan-out helps when visiting many distinct sites but not when hammering a single 
 `navigate`, `find_tab`, `evaluate`, `snapshot` (accessibility tree with stable `@e` refs),
 `click`, `trusted_click` (real CDP mouse input, `isTrusted`), `fill` (native inputs **and** contenteditable), `network` (request capture), `upload`,
 `screenshot`, `save_as_pdf`, `list_tabs`, `close_tab`, `close_session`.
+
+### Driving the daemon from an agent (`cmd` helper pattern)
+
+When writing automation scripts or interactive commands from an AI agent, use the single-line `cmd()` helper and single-quoted JSON:
+
+```bash
+cmd(){ curl -s -m 60 -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' -d "$1"; echo; }
+
+# Single quotes prevent shell expansion/escaping bugs with JS code and double quotes:
+cmd '{"action":"navigate","args":{"url":"https://example.com","newTab":true},"session":"s1","profile":"ignis"}'
+
+# DOM inspection via self-contained IIFE:
+cmd '{"action":"evaluate","args":{"code":"(()=>{ const b=document.querySelector(\"button\"); return b ? b.innerText : null; })()"},"session":"s1","profile":"ignis"}'
+
+# Screenshots directly to disk (never floods context with base64):
+cmd '{"action":"screenshot","args":{"path":"/tmp/preview.png"},"session":"s1","profile":"ignis"}'
+```
 
 ## Install & local dev
 

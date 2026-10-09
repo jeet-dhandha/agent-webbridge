@@ -3,6 +3,27 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-10-10
+
+**MCP server and Windows.**
+
+Added
+- `awb mcp` / `npx agent-webbridge mcp`: zero-dependency stdio MCP server (Claude Desktop,
+  Claude Code, Cursor, Windsurf). Tools: `browser_navigate`, `browser_snapshot`, `browser_click`,
+  `browser_trusted_click`, `browser_fill`, `browser_evaluate`, `browser_screenshot`,
+  `browser_list_tabs`, `browser_find_tab`, `browser_close_tab`, `browser_close_session`,
+  `browser_upload`, `browser_network`, `browser_save_as_pdf`, `browser_status`. Every tool takes
+  `profile`, `session` and `tabId`. Errors say whether the router or the profile is not connected.
+- Windows support: `src/platform.mjs` centralises the Chrome user-data dir
+  (`%LOCALAPPDATA%\Google\Chrome\User Data`), Chrome binary discovery, running/quit checks
+  (`tasklist` / `taskkill`), per-profile home isolation (`USERPROFILE`) and running `.mjs` daemons
+  through `node`. The AppleScript window housekeeping is skipped off macOS.
+- `agent-webbridge` bin alias, so `npx agent-webbridge ...` resolves.
+- CI matrix (ubuntu, macOS, Windows; Node 18 and 22) and `test/platform.mjs`, `test/mcp.mjs`.
+
+Fixed
+- `new URL(import.meta.url).pathname` and `file://${argv[1]}` checks broke on Windows paths.
+
 ## [1.2.0] — 2026-10-05
 
 **Trusted clicks.** New `trusted_click` tool for pages that ignore synthetic input.

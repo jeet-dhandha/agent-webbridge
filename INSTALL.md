@@ -4,7 +4,7 @@ Two pieces: a **daemon + CLI** (from npm) and the **Chrome extension** (from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)).
 The whole thing is open-source (MIT), localhost-only, no account, no telemetry.
 
-**Requirements:** macOS + Google Chrome, Node.js ≥ 18.
+**Requirements:** macOS or Windows, Google Chrome, Node.js ≥ 18.
 
 ---
 
