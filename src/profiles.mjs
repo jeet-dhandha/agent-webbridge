@@ -10,6 +10,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { chromeUserDataDir } from "./platform.mjs";
 
 // Our extension ships through two channels, each with its own id:
 //   - The official Chrome Web Store build (PRIMARY) — the store mints its own keypair on
@@ -30,11 +31,8 @@ export const ROUTER_PORT = 10086; // reserved
 const PORT_BASE = 10100;
 const PORT_SPAN = 4900; // assignable range 10100..14999
 
-// macOS Chrome user-data dir. (Override with AWB_CHROME_DIR for Chrome Beta/other.)
-export function chromeUserDataDir() {
-  if (process.env.AWB_CHROME_DIR) return process.env.AWB_CHROME_DIR;
-  return path.join(os.homedir(), "Library", "Application Support", "Google", "Chrome");
-}
+// Chrome user-data dir for this OS. (Override with AWB_CHROME_DIR for Chrome Beta/other.)
+export { chromeUserDataDir } from "./platform.mjs";
 
 // FNV-1a 32-bit — small, dependency-free, well-distributed for short strings.
 function fnv1a32(str) {

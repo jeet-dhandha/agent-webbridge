@@ -52,6 +52,7 @@ async function cmdStart(argv, host, port) {
     // Foreground: re-spawn ourselves detached, then exit so the caller returns.
     const child = spawn(process.execPath, [thisFile, ...argv.slice(2)], {
       detached: true,
+      windowsHide: true,
       stdio: "ignore",
       env: { ...process.env, AWB_CHILD: "1" },
     });

@@ -14,7 +14,8 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { runBin, homeEnv } from "./platform.mjs";
 import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
 
 // Default to OUR clean-room Node daemon (bin/agent-webbridge.mjs in this package),
@@ -75,8 +76,8 @@ export async function startDaemon(profileQuery) {
   const home = stateHome(profile.dir);
   fs.mkdirSync(home, { recursive: true });
   // `start` self-backgrounds; HOME isolates its pid file / identity.
-  execFileSync(DAEMON_BIN, ["start", "--addr", `127.0.0.1:${profile.port}`], {
-    env: { ...process.env, HOME: home },
+  runBin(DAEMON_BIN, ["start", "--addr", `127.0.0.1:${profile.port}`], {
+    env: { ...process.env, ...homeEnv(home) },
     stdio: "ignore",
   });
   // poll until /status answers
@@ -132,7 +133,7 @@ export async function fleetStatus() {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const [cmd, arg] = process.argv.slice(2);
   if (cmd === "start" && arg) console.log(JSON.stringify(await startDaemon(arg), null, 2));
   else if (cmd === "stop" && arg) console.log(JSON.stringify(await stopDaemon(arg), null, 2));

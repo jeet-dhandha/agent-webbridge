@@ -16,18 +16,15 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import * as plat from "./platform.mjs";
 import { AWB_EXT_ID, AWB_EXT_ID_STORE, AWB_EXT_IDS, listProfiles, awbExtId, awbExtension, chromeUserDataDir } from "./profiles.mjs";
 
 const CWS_UPDATE_URL = "https://clients2.google.com/service/update2/crx";
-const CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-
-export function chromeBinary() {
-  if (process.env.AWB_CHROME_BIN) return process.env.AWB_CHROME_BIN;
-  return CHROME_BIN;
-}
+export const chromeBinary = plat.chromeBinary;
 
 export function unpackedExtPath() {
-  const defaultPath = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "agent-webbridge-extension");
+  const defaultPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "agent-webbridge-extension");
   const p = process.env.AWB_EXT_PATH || defaultPath;
   if (!fs.existsSync(path.join(p, "manifest.json"))) {
     throw new Error(`unpacked extension not found at ${p} (set AWB_EXT_PATH to override)`);
@@ -113,6 +110,7 @@ export function forceInstallValue() {
 }
 
 export function readForcelist() {
+  if (!plat.isMac) return null;
   try {
     const out = execFileSync("defaults", ["read", "com.google.Chrome", "ExtensionInstallForcelist"], {
       encoding: "utf8",
@@ -126,6 +124,7 @@ export function readForcelist() {
 // Add our extension id to the force-install list (idempotent-ish: writes a
 // single-element array; extend here if you need to preserve existing entries).
 export function enableForceInstall() {
+  if (!plat.isMac) throw new Error("the force-install policy helper is macOS-only; use `awb setup` (Chrome Web Store) instead");
   const existing = readForcelist();
   if (existing && existing.includes(AWB_EXT_ID_STORE)) {
     return { changed: false, value: existing, note: "already present" };
@@ -145,6 +144,7 @@ export function enableForceInstall() {
 }
 
 export function disableForceInstall() {
+  if (!plat.isMac) return { changed: false, note: "macOS-only helper" };
   try {
     execFileSync("defaults", ["delete", "com.google.Chrome", "ExtensionInstallForcelist"]);
     return { changed: true };
@@ -254,18 +254,17 @@ export function loadExtensionArgs(profileDir) {
 }
 
 export function loadExtensionCommand(profileDir) {
+  if (!plat.isMac) return `"${chromeBinary()}" --profile-directory="${profileDir}" --load-extension="${unpackedExtPath()}"`;
   return `open ${loadExtensionArgs(profileDir).map((a) => (a.includes(" ") ? `'${a}'` : a)).join(" ")}`;
 }
 
 // Spawn the cold-start launch for one profile. Returns a warning if Chrome is
 // already running (the flag will be ignored by the primary process).
 export function launchWithExtension(profileDir) {
-  let chromeRunning = false;
-  try {
-    execFileSync("pgrep", ["-x", "Google Chrome"]);
-    chromeRunning = true;
-  } catch {}
-  const child = spawn("open", loadExtensionArgs(profileDir), { detached: true, stdio: "ignore" });
+  const chromeRunning = plat.isChromeRunning();
+  const child = plat.isMac
+    ? spawn("open", loadExtensionArgs(profileDir), { detached: true, stdio: "ignore" })
+    : spawn(chromeBinary(), [`--profile-directory=${profileDir}`, `--load-extension=${unpackedExtPath()}`], { detached: true, stdio: "ignore", windowsHide: true });
   child.unref();
   return {
     launched: true,
@@ -281,34 +280,12 @@ export function launchWithExtension(profileDir) {
 // not running at all, it cold-starts. Waking the window is what makes a
 // profile's extension connect to its daemon.
 
-export function isChromeRunning() {
-  try {
-    execFileSync("pgrep", ["-x", "Google Chrome"]);
-    return true;
-  } catch {
-    return false;
-  }
-}
+export const isChromeRunning = plat.isChromeRunning;
 
-// Fully quit Chrome so its profile LevelDB stores are unlocked for writing. Tries a
-// graceful AppleScript quit first (lets Chrome save the session for restore), then
-// force-kills if it doesn't exit in time. Returns { stopped, forced }.
-export function quitChrome({ timeoutMs = 8000 } = {}) {
-  if (!isChromeRunning()) return { stopped: true, forced: false };
-  try {
-    execFileSync("osascript", ["-e", 'tell application "Google Chrome" to quit'], { stdio: "ignore" });
-  } catch {}
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (!isChromeRunning()) return { stopped: true, forced: false };
-    execFileSync("sleep", ["0.3"]);
-  }
-  try {
-    execFileSync("pkill", ["-x", "Google Chrome"], { stdio: "ignore" });
-  } catch {}
-  execFileSync("sleep", ["1.5"]);
-  return { stopped: !isChromeRunning(), forced: true };
-}
+// Fully quit Chrome so its profile LevelDB stores are unlocked for writing. Graceful first
+// (lets Chrome save the session for restore), then force-kill if it doesn't exit in time.
+// Returns { stopped, forced }. Per-OS mechanics live in platform.mjs.
+export const quitChrome = plat.quitChrome;
 
 // Launch Google Chrome HEADFUL for one profile, opening the given URLs as tabs. We invoke
 // the binary in /Applications directly (chromeBinary(), overridable via AWB_CHROME_BIN)
@@ -330,6 +307,7 @@ export function launchChrome(profileDir, urls = []) {
   const child = spawn(chromeBinary(), args, {
     detached: true,
     stdio: "ignore",
+    windowsHide: true,
   });
   child.unref();
   return child;
@@ -359,7 +337,7 @@ export function openChromeProfile(profileDir) {
 // matches `urlContains`, or "" if none. Used after a launch to "anchor" the wizard to
 // the window the URL just opened in.
 export function findWindowForUrl(urlContains) {
-  if (!isChromeRunning()) return null;
+  if (!plat.hasWindowScripting || !isChromeRunning()) return null;
   try {
     const esc = String(urlContains).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
     const applescript = `
@@ -390,6 +368,7 @@ export function findWindowForUrl(urlContains) {
 // activating the tab. Works for `chrome://` URLs (which `launchChrome` rejects). Returns
 // { ok, windowId, tabIndex } on success, { ok: false, error } on failure.
 export function openTabInWindow(windowId, url) {
+  if (!plat.hasWindowScripting) return { ok: false, error: "tab scripting is macOS-only" };
   if (!isChromeRunning()) return { ok: false, error: "chrome not running" };
   if (!windowId) return { ok: false, error: "no windowId" };
   try {
@@ -429,6 +408,12 @@ export function openTabInWindow(windowId, url) {
 //
 // Returns { windowId, url, mode: "launched" | "launched+appended" | "appended" }.
 export function openUrlInProfile({ profileDir, windowId, url, anchorUrl }) {
+  // Windows/Linux: no window scripting. Launching Chrome with the URL makes the running
+  // instance open it as a tab in that profile's window, which is all the wizard needs.
+  if (!plat.hasWindowScripting) {
+    launchChrome(profileDir, [url]);
+    return { windowId: null, url, mode: "launched" };
+  }
   const isChromeUrl = typeof url === "string" && url.startsWith("chrome://");
 
   if (!windowId) {
@@ -448,7 +433,7 @@ export function openUrlInProfile({ profileDir, windowId, url, anchorUrl }) {
     let found = null;
     while (Date.now() < deadline && !found) {
       if (anchor) found = findWindowForUrl(anchor);
-      if (!found) execFileSync("sleep", ["0.25"]);
+      if (!found) plat.sleepSync(250);
     }
     if (!found) {
       // Last-resort anchor: any window that has a URL NOT in the default-page set
@@ -519,6 +504,7 @@ export function wakeExtension(profileDir, extId) {
 }
 
 export function cleanupAnnoyingTabs(extId) {
+  if (!plat.hasWindowScripting) return;
   try {
     const extIdArg = extId || "";
     const applescript = `
@@ -562,7 +548,7 @@ export function cleanupAnnoyingTabs(extId) {
 }
 
 export function focusProfileWindow(extId) {
-  if (!extId) return;
+  if (!extId || !plat.hasWindowScripting) return;
   try {
     const applescript = `
       tell application "Google Chrome"
@@ -587,7 +573,7 @@ export function focusProfileWindow(extId) {
 }
 
 export function closeBlankWindows() {
-  if (!isChromeRunning()) return;
+  if (!plat.hasWindowScripting || !isChromeRunning()) return;
   try {
     const applescript = `
       tell application "Google Chrome"
@@ -622,7 +608,7 @@ export function closeBlankWindows() {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const cmd = process.argv[2];
   if (cmd === "missing") {
     const miss = profilesMissingExtension();

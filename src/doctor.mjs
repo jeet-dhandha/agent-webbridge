@@ -13,6 +13,8 @@
 // run any time, even mid-fleet.
 
 import fs from "node:fs";
+import { pathToFileURL } from "node:url";
+import { platformName } from "./platform.mjs";
 import { chromeUserDataDir, listProfiles, ROUTER_PORT } from "./profiles.mjs";
 import { chromeBinary } from "./extension.mjs";
 import { DAEMON_BIN, daemonStatus } from "./fleet.mjs";
@@ -56,16 +58,13 @@ export async function runDoctor() {
       : check("Node.js", FAIL, `v${nv}`, "needs Node >=18 (global fetch + ESM). Upgrade Node."),
   );
 
-  // 2. Platform — every launcher path is macOS + Chrome specific.
+  // 2. Platform — macOS and Windows (Google Chrome) are supported; Linux is wired but untested.
   checks.push(
-    process.platform === "darwin"
-      ? check("Platform", PASS, "macOS")
-      : check(
-          "Platform",
-          FAIL,
-          process.platform,
-          "macOS + Google Chrome only today (open/defaults + Chrome paths are mac-specific). See README → Platform & scope.",
-        ),
+    process.platform === "darwin" || process.platform === "win32"
+      ? check("Platform", PASS, platformName())
+      : process.platform === "linux"
+        ? check("Platform", WARN, "Linux", "Linux paths are wired but untested. Set AWB_CHROME_BIN / AWB_CHROME_DIR if Chrome is elsewhere.")
+        : check("Platform", FAIL, process.platform, "agent-webbridge supports macOS and Windows with Google Chrome."),
   );
 
   // 3. Google Chrome binary.
@@ -219,6 +218,6 @@ export function printDoctor({ checks, summary }) {
 }
 
 // CLI: `node src/doctor.mjs`
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.exit(printDoctor(await runDoctor()));
 }

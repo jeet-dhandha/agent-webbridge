@@ -58,6 +58,8 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { SUPPORTED, runBin } from "../src/platform.mjs";
 import { listProfiles, resolveProfile, awbExtId, developerModeOn, ROUTER_PORT, CWS_LISTING_URL, AWB_EXT_ID_STORE } from "../src/profiles.mjs";
 import { listOpenTabs } from "../src/snss.mjs";
 import { startDaemon, stopDaemon, fleetStatus, daemonStatus, DAEMON_BIN } from "../src/fleet.mjs";
@@ -85,19 +87,13 @@ import { runDoctor, printDoctor } from "../src/doctor.mjs";
 const EXTENSION_INSTALL_POLL_MS = 5000;       // check every 5 seconds
 const EXTENSION_INSTALL_TIMEOUT_MS = 300000;  // for up to 5 minutes
 
-// This tool is macOS + Google Chrome only. The `open`, `pgrep`, `defaults`
-// commands and the ~/Library/Application Support/Google/Chrome paths are
-// macOS-specific; Linux/Windows support would need the path + launcher helpers
-// changed. Warn loudly rather than misbehave silently.
-if (process.platform !== "darwin") {
-  console.error(
-    `⚠️  agent-webbridge currently supports macOS + Google Chrome only ` +
-      `(this machine is "${process.platform}"). Commands like \`open\`/\`defaults\` ` +
-      `and the Chrome paths will not work. See README → Platform & scope.`,
-  );
+// Supported: macOS and Windows (Google Chrome). Linux paths are wired but untested.
+// OS differences (profile dir, Chrome binary, running/quit checks) live in src/platform.mjs.
+if (!SUPPORTED) {
+  console.error(`⚠️  agent-webbridge supports macOS and Windows with Google Chrome (this machine is "${process.platform}").`);
 }
 
-const HERE = path.dirname(new URL(import.meta.url).pathname);
+const HERE = path.dirname(fileURLToPath(import.meta.url));
 ensureRun(); // RUN / ROUTER_PID / ROUTER_LOG come from runstate.mjs
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -111,13 +107,13 @@ async function legacyOrRouterUp() {
 
 function stopLegacy() {
   try {
-    execFileSync(DAEMON_BIN, ["stop"], { stdio: "ignore" });
+    runBin(DAEMON_BIN, ["stop"], { stdio: "ignore" });
   } catch {}
 }
 
 function startLegacy() {
   try {
-    execFileSync(DAEMON_BIN, ["start"], { stdio: "ignore" });
+    runBin(DAEMON_BIN, ["start"], { stdio: "ignore" });
   } catch {}
 }
 
@@ -137,8 +133,9 @@ const IDLE_MIN = Number(process.env.AWB_IDLE_TIMEOUT_MIN ?? 120);
 function startRouter() {
   // Log to a file (not /dev/null) so the detached router's idle-shutdown is observable.
   const out = fs.openSync(ROUTER_LOG, "a");
-  const child = spawn("node", [path.join(HERE, "..", "src", "router.mjs")], {
+  const child = spawn(process.execPath, [path.join(HERE, "..", "src", "router.mjs")], {
     detached: true,
+    windowsHide: true,
     stdio: ["ignore", out, out],
   });
   child.unref();
@@ -1017,9 +1014,14 @@ async function main() {
         process.exit(1);
       }
       break;
+    case "mcp": {
+      const { startMcp } = await import("../src/mcp.mjs");
+      startMcp();
+      return; // keep the process alive on stdin
+    }
     default:
       console.error(
-        "usage: awb <doctor|check [profile...] [--json]|profiles|resolve <q>|tabs <profile>|groups [profile]|close <session> [profile]|status|state|up <profile...>|connect <profile...>|down|install ...|setup <profile...>|install-dev <profile...>>",
+        "usage: awb <mcp|doctor|check [profile...] [--json]|profiles|resolve <q>|tabs <profile>|groups [profile]|close <session> [profile]|status|state|up <profile...>|connect <profile...>|down|install ...|setup <profile...>|install-dev <profile...>>",
       );
       process.exit(1);
   }

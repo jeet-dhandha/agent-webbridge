@@ -19,6 +19,7 @@ import { ROUTER_PORT, listProfiles, resolveProfile } from "./profiles.mjs";
 import { daemonStatus, fleetStatus, stopDaemon, DAEMON_BIN } from "./fleet.mjs";
 import { ROUTER_PID, patchState } from "./runstate.mjs";
 import { focusProfileWindow } from "./extension.mjs";
+import { runBin } from "./platform.mjs";
 
 const PORT = Number(process.env.AWB_ROUTER_PORT || ROUTER_PORT);
 
@@ -52,7 +53,7 @@ async function idleShutdown() {
     }
     if (IDLE_RESTORE) {
       try {
-        execFileSync(DAEMON_BIN, ["start"], { stdio: "ignore" });
+        runBin(DAEMON_BIN, ["start"], { stdio: "ignore" });
         console.log("[awb-router] restored stock :10086 daemon");
       } catch {}
     }
