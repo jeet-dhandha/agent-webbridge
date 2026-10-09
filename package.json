@@ -1,6 +1,6 @@
 {
   "name": "agent-webbridge",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Let Claude Code, Cursor and any MCP client drive your real, logged-in Chrome: multiple profiles and parallel tabs, 100% local, no bot detection. Zero-dependency MCP server + MV3 extension.",
   "type": "module",
   "bin": {
@@ -16,7 +16,7 @@
   },
   "scripts": {
     "awb": "node ./bin/awb.mjs",
-    "test": "node test/contract.mjs && node test/platform.mjs && node test/mcp.mjs"
+    "test": "node test/contract.mjs && node test/platform.mjs && node test/guard.mjs && node test/mcp.mjs"
   },
   "dependencies": {
     "ws": "^8.21.0"

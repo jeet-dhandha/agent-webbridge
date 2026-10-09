@@ -3,6 +3,24 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] — 2026-10-10
+
+**Security fix: web pages could drive the local bridge.** Please upgrade, then restart the fleet
+(`awb down && awb up`) so the running router and daemons pick it up.
+
+The router (`:10086`) and the per-profile daemons listen on `127.0.0.1` but did not check who was
+calling. A website open in your browser could send a plain `text/plain` POST (no CORS preflight)
+to `http://127.0.0.1:10086/command`, open a WebSocket to a daemon, or use DNS rebinding, and so
+run commands (navigate, click, evaluate JavaScript) in your logged-in tabs while the fleet was up.
+This affected every earlier release.
+
+Fixed
+- New `src/guard.mjs`, applied to the router, the daemon HTTP server and the WebSocket upgrade:
+  requests with a web `Origin` (anything other than `chrome-extension://`) and requests whose `Host`
+  is not loopback are refused with 403. curl, Node, Python and the MCP server send no `Origin` and
+  are unaffected. `AWB_ALLOW_ORIGINS` opts specific web origins in.
+- `test/guard.mjs` reproduces the hostile requests against a real daemon.
+
 ## [1.3.0] — 2026-10-10
 
 **MCP server and Windows.**

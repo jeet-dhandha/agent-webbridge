@@ -15,6 +15,7 @@ import { shapeResponse } from "./envelope.mjs";
 import { writeCapture } from "./diskwriter.mjs";
 import { registry, statusFields } from "./registry.mjs";
 import { getVersion, uptimeSeconds } from "./lifecycle.mjs";
+import { checkRequest } from "../guard.mjs";
 
 // Collect a request body to a string (we only ever expect small JSON here).
 function readBody(req) {
@@ -38,6 +39,11 @@ function sendJson(res, code, obj) {
 export function startServer({ host = "127.0.0.1", port } = {}) {
   const server = http.createServer(async (req, res) => {
     try {
+      const refused = checkRequest(req);
+      if (refused) {
+        sendJson(res, 403, { ok: false, error: `forbidden: ${refused}` });
+        return;
+      }
       if (req.method === "GET" && req.url === "/status") {
         sendJson(res, 200, {
           running: true,

@@ -12,6 +12,7 @@
 // layer can shape them uniformly.
 
 import { WebSocketServer } from "ws";
+import { checkRequest } from "../guard.mjs";
 import { registry } from "./registry.mjs";
 import fs from "node:fs";
 const DBG = process.env.AWB_WSHUB_DEBUG;
@@ -37,6 +38,13 @@ export function createWsHub(httpServer) {
 
   // Route only "/ws" upgrades to our WebSocketServer; ignore everything else.
   function onUpgrade(req, sock, head) {
+    // A web page can open a WebSocket to loopback. Only the extension (or a non-browser
+    // client without an Origin) may complete the handshake.
+    if (checkRequest(req)) {
+      sock.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
+      sock.destroy();
+      return;
+    }
     let pathname = "/";
     try {
       pathname = new URL(req.url, "http://127.0.0.1").pathname;

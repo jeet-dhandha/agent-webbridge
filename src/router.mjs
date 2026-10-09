@@ -20,6 +20,7 @@ import { daemonStatus, fleetStatus, stopDaemon, DAEMON_BIN } from "./fleet.mjs";
 import { ROUTER_PID, patchState } from "./runstate.mjs";
 import { focusProfileWindow } from "./extension.mjs";
 import { runBin } from "./platform.mjs";
+import { checkRequest } from "./guard.mjs";
 
 const PORT = Number(process.env.AWB_ROUTER_PORT || ROUTER_PORT);
 
@@ -191,6 +192,8 @@ const server = http.createServer(async (req, res) => {
     res.end(raw ?? JSON.stringify(obj));
   };
   try {
+    const refused = checkRequest(req);
+    if (refused) return send(403, { ok: false, error: `forbidden: ${refused}` });
     if (req.method === "GET" && req.url.startsWith("/status")) {
       return send(200, { router: true, port: PORT, fleet: await fleetStatus() });
     }

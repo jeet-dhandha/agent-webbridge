@@ -156,6 +156,12 @@ Set `AWB_CHROME_BIN` / `AWB_CHROME_DIR` if Chrome or its data directory is somew
 
 On Windows, run commands from PowerShell or `cmd` (the `curl` examples below use bash quoting; in PowerShell use `curl.exe` and a here-string, or just use the MCP server). The daemon and the Windows code paths are covered by CI on `windows-latest`; the Chrome-launching steps (`awb setup` / `awb up`) are the least-tested part — please [open an issue](https://github.com/jeet-dhandha/agent-webbridge/issues) if one misbehaves.
 
+## Security
+
+- Everything listens on `127.0.0.1` only. As of 1.3.1 the router and daemons also refuse requests that carry a web `Origin` or a non-loopback `Host`, so a website you visit cannot drive the bridge (see the [changelog](CHANGELOG.md)). Upgrade from earlier versions and restart the fleet with `awb down && awb up`.
+- It acts as *you*, in your signed-in browser. Any local program that can reach `127.0.0.1:10086` can do the same, so only run it on a machine and account you trust, and keep irreversible actions (posting, paying, deleting) behind a human confirmation in your agent.
+- Report vulnerabilities privately through GitHub's "Report a vulnerability" on the Security tab.
+
 ## License
 
 MIT © jeet-dhandha
