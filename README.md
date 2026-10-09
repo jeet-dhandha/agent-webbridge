@@ -25,6 +25,8 @@ Then add the MCP server to Claude Desktop, Claude Code, Cursor or Windsurf:
 
 Claude Code: `claude mcp add chrome -- npx -y agent-webbridge mcp`
 
+Or install it as an agent skill (Claude Code, Cursor, Codex and others): `npx skills add jeet-dhandha/agent-webbridge`
+
 Your agent now has `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_fill`, `browser_evaluate`, `browser_screenshot` and more — all running in *your* Chrome, with *your* sessions. Pass `profile` to choose an account and `tabId` to run tabs in parallel. If a call fails, `browser_status` tells the agent which profile isn't connected.
 
 ### Why not Playwright or a cloud browser?

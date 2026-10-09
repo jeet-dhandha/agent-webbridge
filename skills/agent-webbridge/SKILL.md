@@ -1,6 +1,12 @@
 ---
 name: agent-webbridge
-description: Drive the user's REAL Chrome — multiple profiles with their LIVE logins, and MULTIPLE TABS PER PROFILE, all IN PARALLEL — through agent-webbridge. Clean-room, open-source (MIT), no account, no telemetry. Automates the user's actual Chrome with their real logged-in sessions (not headless/scrape like Playwright or Firecrawl). Use for any task needing a real browser across one or more logged-in Chrome profiles: multi-account workflows, acting as the user across several accounts at once, or driving N tabs in one profile concurrently.
+description: >-
+  Drive the user's REAL Chrome — multiple profiles with their LIVE logins, and MULTIPLE TABS PER
+  PROFILE, all IN PARALLEL — through agent-webbridge. Clean-room, open-source (MIT), no account,
+  no telemetry. Automates the user's actual Chrome with their real logged-in sessions (not
+  headless/scrape like Playwright or Firecrawl). Use for any task needing a real browser across
+  one or more logged-in Chrome profiles: multi-account workflows, acting as the user across
+  several accounts at once, or driving N tabs in one profile concurrently.
 license: MIT
 ---
 
