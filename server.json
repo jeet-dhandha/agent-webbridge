@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.jeet-dhandha/agent-webbridge",
+  "description": "Drive your real, logged-in Chrome (multiple profiles, parallel tabs) from any MCP client. 100% local.",
+  "repository": { "url": "https://github.com/jeet-dhandha/agent-webbridge", "source": "github" },
+  "version": "1.3.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "agent-webbridge",
+      "version": "1.3.0",
+      "runtimeHint": "npx",
+      "transport": { "type": "stdio" },
+      "packageArguments": [{ "type": "positional", "value": "mcp" }]
+    }
+  ]
+}
