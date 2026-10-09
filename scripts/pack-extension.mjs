@@ -17,12 +17,20 @@
 //   (`brew install zip` / `apt-get install zip`) — we deliberately avoid adding an npm
 //   archiver dependency to keep the package's only runtime dep `ws`.
 //
+// CHROME WEB STORE BUILD
+//   node scripts/pack-extension.mjs --store
+// The store mints its own key for a listing and rejects an upload whose manifest `key` differs
+// ("key field value in the manifest doesn't match the current item"). --store zips a copy with
+// the `key` field removed, to dist/agent-webbridge-extension-<version>-store.zip. The repo's
+// manifest keeps `key` so the dev (Load unpacked) id stays stable.
+//
 // USAGE
 //   node scripts/pack-extension.mjs
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import os from "node:os";
 import { spawnSync } from "node:child_process";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -89,7 +97,19 @@ try {
 // --- build -------------------------------------------------------------------
 fs.mkdirSync(DIST_DIR, { recursive: true });
 
-const outPath = path.join(DIST_DIR, `agent-webbridge-extension-${version}.zip`);
+const STORE = process.argv.includes("--store");
+const outPath = path.join(DIST_DIR, `agent-webbridge-extension-${version}${STORE ? "-store" : ""}.zip`);
+
+// For the store build, zip a temp copy whose manifest has no `key` (never touch the repo's).
+let SRC_DIR = EXT_DIR;
+if (STORE) {
+  SRC_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "awb-store-"));
+  fs.cpSync(EXT_DIR, SRC_DIR, { recursive: true });
+  const mp = path.join(SRC_DIR, "manifest.json");
+  const m = JSON.parse(fs.readFileSync(mp, "utf8"));
+  delete m.key;
+  fs.writeFileSync(mp, JSON.stringify(m, null, 2) + "\n");
+}
 fs.rmSync(outPath, { force: true }); // zip appends to an existing archive; start clean
 
 // `zip -r -X out.zip . -x <patterns>` run with cwd = EXT_DIR so the archive has the
@@ -98,7 +118,8 @@ fs.rmSync(outPath, { force: true }); // zip appends to an existing archive; star
 const args = ["-r", "-X", outPath, "."];
 for (const p of EXCLUDE) args.push("-x", p);
 
-const res = spawnSync("zip", args, { cwd: EXT_DIR, stdio: ["ignore", "ignore", "inherit"] });
+const res = spawnSync("zip", args, { cwd: SRC_DIR, stdio: ["ignore", "ignore", "inherit"] });
+if (STORE) fs.rmSync(SRC_DIR, { recursive: true, force: true });
 if (res.status !== 0) {
   die(`zip exited with code ${res.status}`);
 }

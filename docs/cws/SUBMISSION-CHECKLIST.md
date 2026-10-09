@@ -65,7 +65,7 @@ category → expect manual, in-depth review (days–weeks). Top rejection risks:
 ## Required before you can submit
 
 - [ ] Decide Path A vs B (the private-key question).
-- [ ] Build the **store zip** with the `key` field removed (and `key.pem` at root if Path A).
+- [ ] Build the **store zip** with `node scripts/pack-extension.mjs --store` (removes the `key` field; the store rejects a mismatched key) (and `key.pem` at root if Path A).
 - [ ] Host the **privacy policy** at a public HTTPS URL (the `gist-post` skill can do this).
 - [ ] **Screenshots** 1280×800 (≥1) — see STORE-LISTING.md.
 - [ ] Privacy tab: single purpose, per-permission justifications, remote-code = No, data
