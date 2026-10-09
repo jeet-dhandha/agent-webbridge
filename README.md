@@ -41,6 +41,17 @@ It automates a browser you are already signed in to — use it only on accounts 
 
 `agent-webbridge` is a tiny Node daemon (one runtime dependency: [`ws`](https://www.npmjs.com/package/ws)) plus a clean-room MV3 Chrome extension. An agent POSTs a command to a local router → the router fans it out to the right profile's daemon → the extension attaches the Chrome DevTools Protocol **per tab**.
 
+## See it work
+
+Real runs, not mock-ups: a script sends MCP calls to `npx agent-webbridge mcp`, which drives a real, signed-in Chrome profile. The screenshots are the browser's own and the timings are measured. Public pages only; nothing is submitted to any account.
+
+| | |
+|---|---|
+| **Read any page**: snapshot + evaluate on Hacker News<br>![Read any page](docs/demos/read-a-page.gif) | **Five tabs at once**: 3.5 s in parallel vs 9.3 s one at a time<br>![Five tabs in parallel](docs/demos/parallel-tabs.gif) |
+| **Use your real login**: a signed-in editor, filled in, stopped before publishing<br>![Use your real login](docs/demos/signed-in.gif) | **Fill and submit forms** (fields, radios, checkboxes)<br>![Fill and submit forms](docs/demos/fill-a-form.gif) |
+
+Timings come from one MacBook on home broadband; yours will differ.
+
 ## Overview
 
 - **Drive your real browser** — your actual Chrome, your actual login sessions. No headless re-login, no scraping around auth.
