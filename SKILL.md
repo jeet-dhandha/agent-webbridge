@@ -3,11 +3,17 @@ name: agent-webbridge
 description: >-
   Drive the user's REAL Chrome — multiple profiles with their LIVE logins, and MULTIPLE TABS PER
   PROFILE, all IN PARALLEL — through agent-webbridge. Clean-room, open-source (MIT), no account,
-  no telemetry. Automates the user's actual Chrome with their real logged-in sessions (not
-  headless/scrape like Playwright or Firecrawl). Use for any task needing a real browser across
-  one or more logged-in Chrome profiles: multi-account workflows, acting as the user across
-  several accounts at once, or driving N tabs in one profile concurrently.
+  no telemetry. Built for Claude Code, Google Gemini, Qwen, Cursor, Windsurf, and DeepSeek. Automates
+  the user's actual Chrome with their real logged-in sessions (not headless/scrape like Playwright or
+  Firecrawl). Use for any task needing a real browser across one or more logged-in Chrome profiles:
+  multi-account workflows, acting as the user across several accounts at once, or driving N tabs in one
+  profile concurrently.
 license: MIT
+metadata:
+  version: 1.3.2
+  category: browser-automation
+  protocol: Model Context Protocol (MCP) & HTTP REST
+  compatible_assistants: ["Claude Code", "Gemini CLI", "Qwen Code", "Cursor", "Windsurf", "DeepSeek"]
 ---
 
 # agent-webbridge
@@ -346,6 +352,46 @@ There's no separate "press Enter" tool. To submit a form, `click` the submit but
 
 `path` semantics match `screenshot`: written verbatim, parent dirs auto-created, existing files
 overwritten.
+
+## Production Recipes & Client Libraries
+
+Agent WebBridge is battle-tested in real-world agent workflows across Claude Code, Gemini CLI, Qwen Code, Cursor, Windsurf, and DeepSeek.
+
+### Client Libraries (Zero Dependencies)
+Downloadable standalone client implementations are available in `docs/skill/`:
+- **Python 3 (`docs/skill/awb_client.py`)**: Zero pip dependencies (uses standard `urllib.request`). Auto-pins `_tabId` to prevent focus drift.
+- **Node.js ESM (`docs/skill/awb-client.mjs`)**: Zero external dependencies (uses standard `fetch`). Auto-tracks active tab IDs.
+
+### 1. In-Page Authenticated API Execution (CORS & Auth Bypass)
+Instead of scraping HTML or fighting anti-bot challenges externally, navigate to the target domain and fire `fetch()` inside the active tab via `evaluate`. The browser automatically includes all ambient cookies, session tokens, and CORS headers:
+```bash
+cmd '{"action":"evaluate","args":{"code":"(async()=>{ const res = await fetch(\"/api/v1/protected/data\"); return await res.json(); })()"},"session":"harvest","profile":"Work"}'
+```
+
+### 2. Single-Page App Hydration Harvesting
+Extract pre-rendered structured state directly from memory before client-side hydration or after route transitions:
+- Next.js: `window.__NEXT_DATA__.props.pageProps`
+- Nuxt / Redux: `window.__INITIAL_STATE__`
+- Schema.org: `Array.from(document.querySelectorAll(\'script[type=\"application/ld+json\"]\')).map(e=>JSON.parse(e.textContent))`
+
+### 3. React Synthetic Value Setter Override
+For React and Vue inputs where standard `input.value = ...` gets wiped on subsequent render cycles:
+```javascript
+const setReactInput = (el, val) => {
+  const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+  const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+  el.focus();
+  setter.call(el, val);
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+};
+```
+
+### 4. DraftJS Async Caret Sync
+DraftJS editors (such as Twitter/X and modern rich editors) update selection asynchronously via `selectionchange`. To avoid appending or duplicating text: select all content (which implicitly focuses), wait 100ms for internal model synchronization, then invoke `insertText` without re-focusing.
+
+### 5. Defensive Scans & Safety Latches (state/HALT)
+When automating actions in sensitive accounts, monitor pages after write actions for security triggers (`"verify it's you"`, `"unusual activity"`, `"account suspended"`). If detected, write a local `state/HALT` lockfile and immediately abort all execution until human inspection.
 
 ## Known limitations
 

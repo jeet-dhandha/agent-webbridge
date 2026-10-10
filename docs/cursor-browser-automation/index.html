@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Cursor & Windsurf Browser Automation with Chrome MCP | WebBridge</title>
+<meta name="description" content="Configure Cursor, Windsurf, Claude Code, and AI IDEs to control your real Chrome browser. Step-by-step MCP setup, prompt recipes, and rules on 127.0.0.1.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/cursor-browser-automation/">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="cursor browser automation, windsurf browser automation, cursor mcp chrome, cursor chrome extension, ai ide browser automation, qwen browser mcp">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="Cursor & Windsurf Browser Automation with Chrome MCP | WebBridge">
+<meta property="og:description" content="Configure Cursor, Windsurf, Claude Code, and AI IDEs to control your real Chrome browser. Step-by-step MCP setup, prompt recipes, and rules on 127.0.0.1.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/cursor-browser-automation/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cursor & Windsurf Browser Automation with Chrome MCP | WebBridge">
+<meta name="twitter:description" content="Configure Cursor, Windsurf, Claude Code, and AI IDEs to control your real Chrome browser. Step-by-step MCP setup, prompt recipes, and rules on 127.0.0.1.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Cursor and Windsurf Browser Automation: Connecting AI IDEs to Real Chrome",
+  "description": "Comprehensive integration tutorial for connecting Cursor, Windsurf, and AI coding assistants to real Google Chrome sessions via WebBridge MCP server.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/cursor-browser-automation/",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": {
+    "@type": "Person",
+    "name": "jeet-dhandha"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "WebBridge",
+    "url": "https://jeet-dhandha.github.io/agent-webbridge/"
+  },
+  "keywords": ["cursor browser automation", "windsurf mcp server", "cursor chrome mcp", "ai ide chrome integration"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Cursor & Windsurf Automation",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/cursor-browser-automation/"
+    }
+  ]
+}
+</script>
+
+<!-- Structured data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I configure Cursor to control Chrome via WebBridge?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In Cursor, open Settings -> Features -> MCP Servers (or edit .cursor/mcp.json in your workspace root) and add an stdio server named 'chrome' with command 'npx' and args ['-y', 'agent-webbridge', 'mcp']."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can Cursor inspect authenticated local dev servers and SaaS apps?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Because WebBridge runs inside your real Chrome browser, Cursor can inspect localhost dev servers (localhost:3000, localhost:5173), read console errors via evaluate, and interact with authenticated SaaS dashboards without re-authenticating."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this work with Gemini CLI, Qwen, and DeepSeek tools?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Any AI agent supporting the Model Context Protocol (MCP) or capable of making local HTTP REST calls to 127.0.0.1:10086/command can control WebBridge across Claude, Gemini, Qwen, DeepSeek, and OpenAI models."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I tell Cursor to read pages using accessibility snapshots?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Add a rule to your .cursorrules file: 'When browsing web pages, use browser_snapshot to extract the accessibility tree with @e refs rather than capturing raw HTML or screenshots.' This minimizes context usage while providing stable element selectors."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header-left { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; }
+  .header-nav { display: flex; align-items: center; gap: 1.25rem; font-size: 0.75rem; flex-wrap: wrap; }
+  .header-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  .header-nav a:hover { color: var(--text-primary); text-decoration: underline; }
+  .status-indicator { display: flex; align-items: center; gap: 0.5rem; color: var(--accent-green); }
+  .status-pulse { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.45rem; font-weight: 700; margin-top: 1rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+  h3 { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+  p { color: var(--text-secondary); }
+
+  .tldr-box {
+    background: #fff;
+    border-left: 4px solid var(--accent-green);
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .tldr-box strong { color: var(--accent-green); font-family: var(--font-mono); font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  code { font-family: var(--font-mono); background: var(--bg-code); padding: 0.15rem 0.35rem; border-radius: 2px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--border-accent);
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-brutal);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-accent); }
+  .btn-secondary { background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border-accent); }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    background: #fff;
+    margin-bottom: 0.75rem;
+  }
+  .faq-btn {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-content {
+    display: none;
+    padding: 0 1.25rem 1rem;
+    color: var(--text-secondary);
+    border-top: 1px dashed var(--border-color);
+  }
+  .faq-item.open .faq-content { display: block; }
+  .faq-item.open .faq-btn::after { content: "−"; font-family: var(--font-mono); }
+  .faq-item:not(.open) .faq-btn::after { content: "+"; font-family: var(--font-mono); }
+
+  footer {
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- TOP DECK -->
+  <header>
+    <div class="header-left">
+      <a href="../" style="text-decoration:none; color:inherit;"><span>AWB-CONTROL</span></a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">v1.3.2</span>
+      <span class="status-indicator">
+        <span class="status-pulse"></span>
+        <span>SYSTEM ONLINE</span>
+      </span>
+    </div>
+    <nav class="header-nav">
+      <a href="../">OVERVIEW</a>
+      <a href="../chrome-mcp-server/">CHROME MCP</a>
+      <a href="../claude-code-browser-automation/">CLAUDE CODE</a>
+      <a href="../multi-profile-chrome-automation/">MULTI-PROFILE</a>
+      <a href="../parallel-browser-automation/">PARALLEL</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="./">Guides</a>
+    <span>/</span>
+    <span>Cursor & Windsurf Automation</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">IDE INTEGRATION &middot; MCP WORKFLOWS</div>
+    <h1>Cursor & Windsurf Browser Automation with Chrome MCP</h1>
+    <p>Enable Cursor, Windsurf, Gemini, Qwen, and DeepSeek coding assistants to control your real signed-in Google Chrome browser with zero cloud credentials.</p>
+
+    <!-- TL;DR / QUICK ANSWER -->
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      To connect Cursor or Windsurf to your live Chrome sessions, pair your profile via <code>npm i -g agent-webbridge && awb setup "Work"</code>, then add the stdio command <code>npx -y agent-webbridge mcp</code> to your IDE's MCP settings (<code>.cursor/mcp.json</code>). Cursor will immediately gain 13 browser tools to navigate, snapshot accessibility trees, click buttons, and inspect authenticated dev servers.
+    </div>
+
+    <!-- CURSOR SETUP -->
+    <h2>1. Configuring MCP in Cursor</h2>
+    <p>Add the following block to your project's <code>.cursor/mcp.json</code> or your global Cursor MCP configuration:</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "chrome": {
+      "command": "npx",
+      "args": ["-y", "agent-webbridge", "mcp"]
+    }
+  }
+}</code></pre>
+
+    <p>Once saved, Cursor's Composer and Chat agents automatically list the 13 <code>browser_*</code> tools under active tools.</p>
+
+    <!-- WINDSURF SETUP -->
+    <h2>2. Configuring MCP in Windsurf (Cascade)</h2>
+    <p>In Windsurf, open <strong>Cascade Settings</strong> &rarr; <strong>MCP Servers</strong> (or edit <code>~/.codeium/windsurf/mcp_config.json</code>) and paste:</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "chrome": {
+      "command": "npx",
+      "args": ["-y", "agent-webbridge", "mcp"]
+    }
+  }
+}</code></pre>
+
+    <!-- CURSOR RULES -->
+    <h2>3. Recommended .cursorrules for Browser Tasks</h2>
+    <p>To ensure Cursor uses browser tools efficiently without wasting tokens on raw HTML or heavy screenshots, add these rules to <code>.cursorrules</code>:</p>
+
+    <pre><code># Browser Automation Rules (WebBridge)
+- When reading or inspecting web pages, ALWAYS use `browser_snapshot` first to get the semantic accessibility tree with @e element references.
+- DO NOT request raw HTML via `browser_evaluate` unless specifically inspecting head tags or shadow DOM.
+- When taking screenshots, ALWAYS provide a file path to `browser_screenshot` (e.g. `/tmp/preview.png`) to keep base64 images out of the context window.
+- When automating multiple tabs, pass `tabId` to run operations in parallel.</code></pre>
+
+    <!-- WORKFLOWS -->
+    <h2>4. Real-World AI IDE Workflows</h2>
+    <ul>
+      <li><strong>Live Localhost Debugging:</strong> Ask Cursor: <em>"Open localhost:3000, trigger the error state in the checkout flow, snapshot the DOM, and fix the React component in our workspace."</em></li>
+      <li><strong>API Documentation Verification:</strong> Ask Windsurf: <em>"Open the Stripe API docs in Chrome, verify the parameter types for idempotency keys, and update our TypeScript definition."</em></li>
+      <li><strong>Authenticated Cloud Console Inspection:</strong> Ask Claude or Qwen: <em>"Open my Vercel deployments page, check the build logs for the latest preview branch, and summarize the build error."</em></li>
+    </ul>
+
+    <!-- FAQ SECTION -->
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How do I configure Cursor to control Chrome via WebBridge?</button>
+      <div class="faq-content">
+        In Cursor, open Settings &rarr; Features &rarr; MCP Servers (or edit <code>.cursor/mcp.json</code> in your workspace root) and add an stdio server named 'chrome' with command 'npx' and args <code>["-y", "agent-webbridge", "mcp"]</code>.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">Can Cursor inspect authenticated local dev servers and SaaS apps?</button>
+      <div class="faq-content">
+        Yes. Because WebBridge runs inside your real Chrome browser, Cursor can inspect localhost dev servers (localhost:3000, localhost:5173), read console errors via evaluate, and interact with authenticated SaaS dashboards without re-authenticating.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">Does this work with Gemini CLI, Qwen, and DeepSeek tools?</button>
+      <div class="faq-content">
+        Yes. Any AI agent supporting the Model Context Protocol (MCP) or capable of making local HTTP REST calls to <code>127.0.0.1:10086/command</code> can control WebBridge across Claude, Gemini, Qwen, DeepSeek, and OpenAI models.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How do I tell Cursor to read pages using accessibility snapshots?</button>
+      <div class="faq-content">
+        Add a rule to your <code>.cursorrules</code> file: "When browsing web pages, use browser_snapshot to extract the accessibility tree with @e refs rather than capturing raw HTML or screenshots." This minimizes context usage while providing stable element selectors.
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="https://github.com/jeet-dhandha/agent-webbridge" class="btn">View Source on GitHub</a>
+      <a href="../claude-code-browser-automation/" class="btn btn-secondary">Claude Code Setup Guide &rarr;</a>
+    </div>
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="../cursor-browser-automation/">Cursor & Windsurf</a> &middot;
+      <a href="../multi-profile-chrome-automation/">Multi-Profile Automation</a> &middot;
+      <a href="../parallel-browser-automation/">Parallel Automation</a> &middot;
+      <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

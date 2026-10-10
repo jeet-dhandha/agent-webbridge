@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>In-Page Authenticated API Execution &amp; CORS Bypass | WebBridge Recipes</title>
+<meta name="description" content="Execute in-tab fetch() inside authenticated Chrome sessions to query GraphQL, Supabase PostgREST, and SSR state without tokens or CORS blocks on 127.0.0.1.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="in-page api scraping, cors bypass ai agent, authenticated browser scraping, nextjs __NEXT_DATA__ extraction, supabase postgrest browser fetch">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="In-Page Authenticated API Execution &amp; CORS Bypass | WebBridge Recipes">
+<meta property="og:description" content="Execute in-tab fetch() inside authenticated Chrome sessions to query GraphQL, Supabase PostgREST, and SSR state without tokens or CORS blocks on 127.0.0.1.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="In-Page Authenticated API Execution &amp; CORS Bypass | WebBridge Recipes">
+<meta name="twitter:description" content="Execute in-tab fetch() inside authenticated Chrome sessions to query GraphQL, Supabase PostgREST, and SSR state without tokens or CORS blocks on 127.0.0.1.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "In-Page Authenticated API Execution and SSR Hydration Harvesting",
+  "description": "How AI agents leverage ambient browser authentication and evaluate hooks to bypass CORS and query internal APIs directly inside live Chrome sessions.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": { "@type": "Person", "name": "jeet-dhandha" },
+  "publisher": { "@type": "Organization", "name": "WebBridge", "url": "https://jeet-dhandha.github.io/agent-webbridge/" },
+  "keywords": ["in-page api scraping", "cors bypass", "authenticated browser scraping", "nextjs data extraction"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "WebBridge", "item": "https://jeet-dhandha.github.io/agent-webbridge/" },
+    { "@type": "ListItem", "position": 2, "name": "Recipes", "item": "https://jeet-dhandha.github.io/agent-webbridge/#recipes" },
+    { "@type": "ListItem", "position": 3, "name": "In-Page API Harvesting", "item": "https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header-left { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; }
+  .header-nav { display: flex; align-items: center; gap: 1.25rem; font-size: 0.75rem; flex-wrap: wrap; }
+  .header-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  .header-nav a:hover { color: var(--text-primary); text-decoration: underline; }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.45rem; font-weight: 700; margin-top: 1rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+  h3 { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+  p { color: var(--text-secondary); }
+
+  .tldr-box {
+    background: #fff;
+    border-left: 4px solid var(--accent-green);
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .tldr-box strong { color: var(--accent-green); font-family: var(--font-mono); font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  code { font-family: var(--font-mono); background: var(--bg-code); padding: 0.15rem 0.35rem; border-radius: 2px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+
+  footer {
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- TOP DECK -->
+  <header>
+    <div class="header-left">
+      <a href="../" style="text-decoration:none; color:inherit;"><span>AWB-CONTROL</span></a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">v1.3.2</span>
+    </div>
+    <nav class="header-nav">
+      <a href="../">OVERVIEW</a>
+      <a href="../chrome-mcp-server/">CHROME MCP</a>
+      <a href="../claude-code-browser-automation/">CLAUDE CODE</a>
+      <a href="../multi-profile-chrome-automation/">MULTI-PROFILE</a>
+      <a href="../parallel-browser-automation/">PARALLEL</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="../#recipes">Recipes</a>
+    <span>/</span>
+    <span>In-Page API Harvesting</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">PRODUCTION RECIPE &middot; CORS &amp; AUTHENTICATION BYPASS</div>
+    <h1>In-Page Authenticated API Execution &amp; SSR Hydration Harvesting</h1>
+    <p>How AI agents query protected internal REST and GraphQL endpoints and extract hydration state directly through live Chrome execution contexts.</p>
+
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      External HTTP scrapers get blocked by CORS, Cloudflare TLS fingerprinting, and HttpOnly session cookies. WebBridge solves this by executing <code>fetch()</code> directly inside the browser's live page context via <code>browser_evaluate</code>. Chrome automatically supplies ambient session cookies, CSRF nonces, and Origin headers, allowing agents to harvest clean JSON payloads with zero API keys.
+    </div>
+
+    <!-- IN-TAB FETCH -->
+    <h2>1. The In-Tab Authenticated Fetch Pattern</h2>
+    <p>Rather than writing brittle Node.js scripts that attempt to parse HTML tables, navigate to the target domain in Chrome and invoke the platform's internal API directly:</p>
+
+    <pre><code>// Executes inside browser_evaluate
+(async () => {
+  const res = await fetch('/api/v2/user/billing/invoices', {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+})()</code></pre>
+    <p>Because the request originates from within the browser window on the origin domain, the request is not subject to cross-origin resource sharing (CORS) rejections, and all credentials (including <code>SameSite</code> and <code>HttpOnly</code> cookies) are automatically attached by the browser network stack.</p>
+
+    <!-- SSR HYDRATION HARVESTING -->
+    <h2>2. Single-Page App (SPA) Hydration Extraction</h2>
+    <p>Modern applications built with Next.js, Nuxt, or Redux embed complete server-rendered state trees in the initial page payload. You can read these directly with zero network requests:</p>
+
+    <h3>Next.js Hydration State:</h3>
+    <pre><code>// Executes inside browser_evaluate
+(() => {
+  return window.__NEXT_DATA__?.props?.pageProps || null;
+})()</code></pre>
+
+    <h3>Nuxt / Redux Store State:</h3>
+    <pre><code>// Executes inside browser_evaluate
+(() => {
+  return window.__INITIAL_STATE__ || window.__NUXT__ || null;
+})()</code></pre>
+
+    <!-- SCHEMA JSON-LD -->
+    <h2>3. Structured Schema.org JSON-LD Trees</h2>
+    <p>Extract all structured entity data (products, reviews, organizations) across the page without parsing DOM text:</p>
+    <pre><code>// Executes inside browser_evaluate
+(() => {
+  return Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
+    .map(s => {
+      try { return JSON.parse(s.textContent); }
+      catch (e) { return null; }
+    })
+    .filter(Boolean);
+})()</code></pre>
+
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="../multi-profile-chrome-automation/">Multi-Profile Automation</a> &middot;
+      <a href="../parallel-browser-automation/">Parallel Automation</a> &middot;
+      <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
