@@ -1,39 +1,53 @@
 # agent-webbridge
 
-> Open-source (MIT), clean-room browser automation for AI agents. It drives your real Chrome —
-> with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs
-> per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash
-> installer. It is a lightweight Node daemon (only runtime dep: `ws`) plus a clean-room MV3 Chrome
-> extension: an AI agent posts a command to a local router (127.0.0.1:10086), which fans it out to
-> the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools
-> Protocol per tab. Everything stays on 127.0.0.1. Killer feature: true per-tab parallelism — it
-> attaches the debugger per tab (a Map keyed by tab), so N tabs in one profile run concurrently
-> (2/5/10 tabs each finish in ~2s flat, vs 4s/10s/20s serial). Two axes of concurrency: N profiles
-> × N tabs per profile. 13 tools, all verified live in a real browser.
-> Platform: macOS + Google Chrome, Node.js ≥ 18. License: MIT.
+> Open-source (MIT), clean-room browser automation and Model Context Protocol (MCP) server for AI agents. It drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer. It consists of a lightweight Node daemon (only runtime dep: `ws`) plus a clean-room MV3 Chrome extension: an AI agent posts commands via stdio MCP or HTTP to a local router (127.0.0.1:10086), which fans out to the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools Protocol per tab. Everything stays strictly on 127.0.0.1.
+> Killer feature: true per-tab parallelism — it attaches the debugger per tab (a Map keyed by tabId), so N tabs in one profile run concurrently (5 parallel tabs evaluate in 3.5s vs 9.3s serial). Two axes of concurrency: N profiles × M tabs per profile.
+> Platform: macOS and Windows, Google Chrome, Node.js ≥ 18. License: MIT. Current version: 1.3.1.
 
 ## Answers to common questions
 
-- Can I drive multiple Chrome profiles at once? Yes. Most browser bridges funnel every call through
-  a single global "current tab", so they drive one tab per profile at a time. agent-webbridge runs a
-  daemon per profile behind a router on :10086 — every profile stays connected; add a "profile" field.
-- Can I drive multiple Google accounts/logins simultaneously? Yes — each Chrome profile has its own
-  Google login, so Gmail, Drive, Ads, and Search Console accounts run side by side.
-- Can I run multiple tabs in one profile concurrently? Yes — the killer feature. The DevTools
-  Protocol attaches per tab, so 2/5/10 tabs in one profile each finish in ~2s flat (vs serial).
-- Why do most browser bridges only allow one login at a time? They enforce a single connection slot
-  and one global current tab. agent-webbridge gives each profile its own daemon and port behind a
-  router, plus per-tab attachment for true concurrency.
-- How do I switch profiles without toggling an extension off? `awb connect` points each profile's
-  extension at its own daemon on disk — zero clicks, no popup — keeping all profiles live at once.
+- **What is agent-webbridge?**
+  An open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server that lets AI agents (Claude Code, Cursor, Windsurf, Claude Desktop) drive your real Google Chrome — with authentic logins, cookies, and 2FA — with parallel tab execution.
+- **Can I drive multiple Chrome profiles at once?**
+  Yes. Most browser bridges funnel every call through a single global "current tab", driving one tab at a time. agent-webbridge runs a daemon per profile behind a router on :10086 — every profile stays connected simultaneously; add a `"profile"` field to target Work, Personal, or Developer profiles.
+- **Can I run multiple tabs in one profile concurrently?**
+  Yes — the killer feature. DevTools Protocol attaches per tab, so 5 tabs in one profile finish in ~3.5s flat in parallel versus 9.3s serially.
+- **How do I connect it to Claude Code or Cursor via MCP?**
+  Run `claude mcp add chrome -- npx -y agent-webbridge mcp` for Claude Code. For Cursor, Windsurf, or Claude Desktop, add `{ "mcpServers": { "chrome": { "command": "npx", "args": ["-y", "agent-webbridge", "mcp"] } } }` to your MCP configuration.
+- **What is awb-recipes?**
+  A repository of community-maintained automation recipes (at https://github.com/jeet-dhandha/awb-recipes) for complex, logged-in websites (GitHub Gists, Google Search, Hacker News, LinkedIn, npm). Each recipe specifies verified steps, selector fallbacks, and anti-bot caveats in structured JSON.
+- **Where is agent-webbridge featured and cataloged?**
+  Published on the Official MCP Registry (`io.github.jeet-dhandha/agent-webbridge`), featured in `punkpeye/awesome-mcp-servers`, listed in curated `awesome-claude-skills` registries, published on npm (`agent-webbridge`), and published in the Chrome Web Store (`Agent WebBridge`).
+- **Is agent-webbridge secure and private?**
+  Yes. Everything runs 100% locally on 127.0.0.1. Starting in v1.3.1, the router and daemons enforce strict Host and Origin validation, refusing any request carrying a web Origin or a non-loopback Host header.
 
-## Docs
+## Quickstart & Installation
 
-- [README (full docs)](https://github.com/jeet-dhandha/agent-webbridge/blob/main/README.md): install, quickstart, CLI, configuration, how it works.
-- [Landing page + FAQ](https://jeet-dhandha.github.io/agent-webbridge/): structured FAQ for the multi-profile / per-tab-parallelism questions.
-- [npm package](https://www.npmjs.com/package/agent-webbridge): `npx agent-webbridge` / `npm i -g agent-webbridge`.
+```bash
+# 1. Install CLI and setup profile
+npm i -g agent-webbridge
+awb setup "Work"
 
-## Install
+# 2. Connect to Claude Code as an MCP server
+claude mcp add chrome -- npx -y agent-webbridge mcp
 
-- CLI: `npx agent-webbridge profiles` or `npm i -g agent-webbridge` (puts `awb` on PATH).
-- Claude Code plugin: `/plugin marketplace add jeet-dhandha/agent-webbridge` then `/plugin install agent-webbridge@agent-webbridge`.
+# 3. Or install as an Agent Skill
+npx skills add jeet-dhandha/agent-webbridge
+```
+
+## Community Recipes (awb-recipes)
+
+Browse verified recipes at https://github.com/jeet-dhandha/awb-recipes:
+- `github-gist-create`: Create public/secret GitHub Gists via browser UI with active session.
+- `google-search-results`: Organic SERP extraction bypassing headless bot blocks.
+- `hn-reply-box`: Interact with Hacker News threads using authentic user cookies.
+- `linkedin-feed-posts`: Extract authentic feed updates without session hijacking.
+- `npm-most-depended`: Extract package download metrics and dependency hierarchies.
+
+## Official Links
+
+- GitHub Repository: https://github.com/jeet-dhandha/agent-webbridge
+- Community Recipes: https://github.com/jeet-dhandha/awb-recipes
+- Landing Page & Demos: https://jeet-dhandha.github.io/agent-webbridge/
+- npm Package: https://www.npmjs.com/package/agent-webbridge
+- Chrome Web Store: https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl

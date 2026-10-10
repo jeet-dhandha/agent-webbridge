@@ -4,22 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Primary: the <title> is the strongest on-page signal a README can't set -->
-<title>agent-webbridge — Clean-Room Browser Automation for AI Agents (Multi-Profile, Parallel)</title>
-<meta name="description" content="Open-source (MIT), clean-room browser automation for AI agents. Drive your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and run multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer.">
+<!-- Primary SEO: Title & Description -->
+<title>agent-webbridge — Real Chrome Automation &amp; MCP Server for AI Agents</title>
+<meta name="description" content="Drive your real, logged-in Chrome with Claude Code, Cursor, and MCP clients. Multi-profile orchestration, true parallel tabs, awb-recipes, 100% local on 127.0.0.1.">
 <link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/">
 <meta name="robots" content="index,follow">
+<meta name="keywords" content="mcp server, claude code, chrome automation, awb recipes, browser automation, multi chrome profile, parallel tabs, cursor mcp, ai agent browser, web scraping">
 
-<!-- Open Graph — GitHub/Slack/Twitter/LLM-scraper snippet -->
+<!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="agent-webbridge">
-<meta property="og:title" content="agent-webbridge — Clean-Room Browser Automation for AI Agents">
-<meta property="og:description" content="Drive your real Chrome — with your real login sessions — across multiple Chrome profiles at once, with true per-tab parallelism. Open-source, MIT, no closed-source dependency, no telemetry.">
+<meta property="og:title" content="agent-webbridge — Real Chrome Automation &amp; MCP Server for AI Agents">
+<meta property="og:description" content="Drive your real Chrome — with your real login sessions — across multiple profiles at once, with true per-tab parallelism and community recipes. Open-source, MIT.">
 <meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/">
 <meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="agent-webbridge — Clean-Room Browser Automation for AI Agents">
-<meta name="twitter:description" content="Drive your real Chrome — with your real login sessions — across multiple Chrome profiles at once, with true per-tab parallelism. Open-source, MIT, no closed-source dependency, no telemetry.">
+<meta name="twitter:title" content="agent-webbridge — Real Chrome Automation &amp; MCP Server for AI Agents">
+<meta name="twitter:description" content="Drive your real Chrome — with your real login sessions — across multiple profiles at once, with true per-tab parallelism and community recipes. Open-source, MIT.">
 <meta name="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
 
 <!-- Structured data: SoftwareApplication (Google rich result + LLM-parseable facts) -->
@@ -28,18 +31,27 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "agent-webbridge",
-  "alternateName": "agent-webbridge (multi-profile, per-tab parallelism)",
+  "alternateName": "agent-webbridge (multi-profile, per-tab parallelism, MCP server)",
   "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "macOS, Windows",
-  "description": "Open-source (MIT), clean-room browser automation for AI agents. It drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer.",
+  "operatingSystem": "macOS, Windows, Linux",
+  "softwareVersion": "1.3.1",
+  "description": "Open-source (MIT), clean-room browser automation and Model Context Protocol (MCP) server for AI agents. Drives your real Chrome — with your real login sessions — across multiple profiles at once, with true per-tab DevTools parallelism and community recipes.",
   "url": "https://jeet-dhandha.github.io/agent-webbridge/",
   "downloadUrl": "https://www.npmjs.com/package/agent-webbridge",
   "codeRepository": "https://github.com/jeet-dhandha/agent-webbridge",
   "license": "https://opensource.org/licenses/MIT",
-  "keywords": "multiple chrome profiles, multi-account, browser automation, scraping, ai agent, parallel, claude code",
+  "keywords": "mcp server, claude code, chrome automation, awb recipes, browser automation, multi chrome profile, parallel tabs, cursor mcp, ai agent browser",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "author": { "@type": "Person", "name": "jeet-dhandha" }
+  "author": { "@type": "Person", "name": "jeet-dhandha" },
+  "featureList": [
+    "Zero-dependency stdio Model Context Protocol (MCP) server for Claude Code, Cursor, Windsurf, Claude Desktop",
+    "Real-browser headful automation preserving authentic logins, cookies, and 2FA",
+    "Multi-profile concurrency behind a single loopback router (127.0.0.1:10086)",
+    "Per-tab Chrome DevTools Protocol parallelism (5 tabs evaluate in 3.5s parallel vs 9.3s serial)",
+    "Community-maintained website automation playbooks via awb-recipes",
+    "Loopback security guards rejecting remote Origin and non-loopback Host headers"
+  ]
 }
 </script>
 
@@ -51,28 +63,38 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Can I drive multiple Chrome profiles at once?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Most browser-automation bridges funnel every call through a single global \"current tab\", so they drive exactly one tab per profile at a time. agent-webbridge runs a daemon per profile behind one local router, so every Chrome profile stays connected simultaneously. You drive each by adding a \"profile\" field to the same call." }
+      "name": "What is agent-webbridge?",
+      "acceptedAnswer": { "@type": "Answer", "text": "agent-webbridge is an open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server. It allows AI agents like Claude Code, Cursor, and Windsurf to drive your real Google Chrome — with your real login sessions — across multiple profiles simultaneously, with true per-tab parallel execution." }
     },
     {
       "@type": "Question",
-      "name": "Can I drive multiple Google accounts or logins at the same time?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Each Chrome profile carries its own Google login, so agent-webbridge lets Gmail, Drive, Ads, and Search Console accounts all be driven side by side from a single command interface — no logging in and out." }
+      "name": "How does agent-webbridge run tabs in parallel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Most browser bridges funnel every CDP call through one global current tab, limiting execution to one tab at a time. agent-webbridge attaches the Chrome DevTools Protocol per tab using an internal Map keyed by tabId. 2, 5, or 10 tabs in a single profile evaluate concurrently in parallel (~3.5s for 5 tabs vs 9.3s serially)." }
     },
     {
       "@type": "Question",
-      "name": "Can I run multiple tabs in one profile concurrently?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes — this is the killer feature. agent-webbridge attaches the Chrome DevTools Protocol per tab (a Map keyed by tab), so N tabs in one profile run in parallel. Measured: 2, 5, and 10 tabs in a single profile each finish in about 2 seconds flat, versus 4s, 10s, and 20s if they ran serially." }
+      "name": "How do I connect agent-webbridge as an MCP server in Claude or Cursor?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Run npm i -g agent-webbridge && awb setup \"Work\" once to install the extension and daemon. Then in Claude Code run \"claude mcp add chrome -- npx -y agent-webbridge mcp\", or add the stdio server config to your Claude Desktop or Cursor configuration." }
     },
     {
       "@type": "Question",
-      "name": "Why do most browser bridges only allow one login at a time?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Most bridges enforce a single connection slot and a single global current tab, so exactly one profile and one tab can be driven at a time. agent-webbridge sidesteps that with isolated daemons per profile behind a central router, plus per-tab DevTools Protocol attachment for true concurrency." }
+      "name": "What is awb-recipes and how do I use community recipes?",
+      "acceptedAnswer": { "@type": "Answer", "text": "awb-recipes is an open-source repository of community-maintained automation playbooks for complex, logged-in websites (such as GitHub Gists, Google Search, Hacker News, LinkedIn, npm). Each recipe defines verified steps, selector fallbacks, and anti-bot caveats in structured JSON, so agents never have to guess or break on layout updates." }
     },
     {
       "@type": "Question",
-      "name": "How do I switch profiles without toggling an extension off?",
-      "acceptedAnswer": { "@type": "Answer", "text": "You don't. agent-webbridge points each profile's extension at its own daemon on disk with zero clicks and no popup, and keeps all profiles live at once — so there is nothing to toggle when you switch." }
+      "name": "Can I drive multiple Chrome profiles or Google accounts at once?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Each Chrome profile carries its own independent Google session, cookies, and credentials. agent-webbridge runs an isolated daemon per profile behind a central router on 127.0.0.1:10086. By passing a profile argument, your agent drives Work, Personal, and Developer profiles side-by-side without logging in and out." }
+    },
+    {
+      "@type": "Question",
+      "name": "Where is agent-webbridge listed and featured?",
+      "acceptedAnswer": { "@type": "Answer", "text": "agent-webbridge is published in the Official Model Context Protocol Registry (io.github.jeet-dhandha/agent-webbridge), featured on punkpeye/awesome-mcp-servers, listed in curated Awesome Claude Skills directories, installable via the Skills CLI (npx skills add jeet-dhandha/agent-webbridge), and published on npm and the Chrome Web Store." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is agent-webbridge private and secure?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. agent-webbridge runs 100% locally on 127.0.0.1. There is no cloud proxy, no account creation, no telemetry, and zero remote data transfer. Starting in v1.3.1, the router and daemons enforce strict Host and Origin filtering, blocking any external website from sending unauthorized commands to your local bridge." }
     }
   ]
 }
@@ -119,11 +141,11 @@
   }
 
   .container {
-    max-width: 72rem;
+    max-width: 76rem;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 
   /* Control Panel Deck Header */
@@ -137,6 +159,8 @@
     font-family: var(--font-mono);
     font-size: 0.8rem;
     letter-spacing: 0.05em;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .header-left {
@@ -144,6 +168,26 @@
     align-items: center;
     gap: 0.75rem;
     font-weight: 700;
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .header-nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.15s ease;
+  }
+
+  .header-nav a:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
   }
 
   .status-indicator {
@@ -179,7 +223,7 @@
     gap: 1.5rem;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     .grid-hero {
       grid-template-columns: 1fr;
     }
@@ -215,7 +259,7 @@
   }
 
   .card-title {
-    font-size: 2rem;
+    font-size: 2.1rem;
     font-weight: 800;
     line-height: 1.15;
     margin-bottom: 1rem;
@@ -277,11 +321,17 @@
   /* Metrics Grid */
   .metrics-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     margin-top: auto;
     border-top: 1px solid var(--border-color);
     padding-top: 1.5rem;
+  }
+
+  @media (max-width: 600px) {
+    .metrics-grid {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
   .metric-item {
@@ -291,14 +341,14 @@
 
   .metric-value {
     font-family: var(--font-mono);
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     line-height: 1.1;
     color: var(--text-primary);
   }
 
   .metric-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: 0.25rem;
     font-weight: 500;
@@ -401,7 +451,7 @@
     font-weight: 700;
   }
 
-  /* CLI walkthrough tab container */
+  /* Section Titles */
   .section-title-wrap {
     margin-top: 1rem;
     display: flex;
@@ -409,6 +459,8 @@
     justify-content: space-between;
     border-bottom: 2px solid var(--border-accent);
     padding-bottom: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .section-title {
@@ -422,6 +474,246 @@
     font-size: 0.75rem;
     color: var(--text-muted);
   }
+
+  /* Demos 2x2 Showcase Grid */
+  .demos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 860px) {
+    .demos-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .demo-card {
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .demo-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .demo-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .demo-badge {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    color: var(--accent-blue);
+  }
+
+  .demo-badge.perf {
+    color: var(--accent-green);
+  }
+
+  .demo-badge.auth {
+    color: var(--accent-amber);
+  }
+
+  .demo-img-box {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    background: #000000;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .demo-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .demo-caption {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* Recipes Section Grid */
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 900px) {
+    .recipes-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .recipe-card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: transform 0.15s ease;
+  }
+
+  .recipe-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-accent);
+  }
+
+  .recipe-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .recipe-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  .recipe-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    font-weight: 700;
+  }
+
+  .recipe-tag.verified {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+
+  .recipe-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    flex-grow: 1;
+  }
+
+  .recipe-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dotted var(--border-color);
+    padding-top: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  /* Ecosystem / Listings Grid */
+  .ecosystem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 900px) {
+    .ecosystem-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .ecosystem-card {
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 2px 2px 0px var(--border-accent);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease;
+  }
+
+  .ecosystem-card:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .ecosystem-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-blue);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .ecosystem-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .ecosystem-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* MCP Quickstart Deck */
+  .mcp-deck {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 860px) {
+    .mcp-deck {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .mcp-box {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .code-snippet {
+    background-color: var(--text-primary);
+    color: #e5e5e1;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.5;
+  }
+
+  /* CLI Walkthrough Tabs */
   .cli-tabs {
     display: flex;
     border: 1px solid var(--border-color);
@@ -432,7 +724,7 @@
 
   .cli-tab {
     flex: 1;
-    min-width: 110px;
+    min-width: 100px;
     text-align: center;
     padding: 0.75rem 0.5rem;
     font-family: var(--font-mono);
@@ -520,7 +812,6 @@
     }
   }
 
-  /* Form controls styled minimalist brutalist */
   .form-group {
     margin-bottom: 1.25rem;
     display: flex;
@@ -550,65 +841,55 @@
 
   .form-control:focus {
     border-color: var(--border-accent);
-    background-color: #ffffff;
   }
 
-  select.form-control {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0l5 5 5-5z' fill='%23121212'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 10px;
-    padding-right: 2rem;
-  }
-
-  /* Code Panel & Response Pane */
   .payload-tabs {
     display: flex;
     border: 1px solid var(--border-color);
     border-bottom: none;
-    background-color: var(--bg-code);
+    background-color: var(--bg-panel);
   }
 
   .payload-tab {
+    flex: 1;
     padding: 0.5rem 1rem;
     font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 700;
+    background: transparent;
     border: none;
     border-right: 1px solid var(--border-color);
-    background-color: transparent;
     color: var(--text-secondary);
     cursor: pointer;
   }
 
+  .payload-tab:last-child {
+    border-right: none;
+  }
+
   .payload-tab.active {
-    background-color: var(--bg-panel);
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--bg-panel);
-    margin-bottom: -1px;
+    background-color: var(--text-primary);
+    color: var(--bg-panel);
   }
 
   .code-container {
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-panel);
-    padding: 1rem;
+    background-color: var(--text-primary);
+    color: #e5e5e1;
     font-family: var(--font-mono);
-    font-size: 0.78rem;
+    font-size: 0.8rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
     overflow-x: auto;
+    white-space: pre;
+    line-height: 1.45;
     min-height: 140px;
-    white-space: pre-wrap;
-    word-break: break-all;
-    position: relative;
   }
 
-  .code-accent-key { color: #85144b; font-weight: 700; }
-  .code-accent-val { color: #2ecc40; }
-  .code-accent-num { color: #0074d9; }
-  .code-accent-method { color: #b10dc9; font-weight: 700; }
+  .code-accent-key { color: #38bdf8; }
+  .code-accent-val { color: #facc15; }
+  .code-accent-num { color: #f43f5e; }
+  .code-accent-method { color: #4ade80; }
 
-  /* Response Block simulator */
   .response-deck {
     margin-top: 1rem;
     border: 1px solid var(--border-color);
@@ -618,134 +899,131 @@
   }
 
   .response-deck-title {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    font-weight: 700;
     padding: 0.5rem 1rem;
-    background-color: var(--bg-code);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
+  .response-body {
+    background-color: var(--bg-code);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    min-height: 110px;
+    max-height: 190px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
   .response-status-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background-color: var(--border-color);
     display: inline-block;
   }
 
-  .response-status-dot.success { background-color: var(--accent-green); }
-  .response-status-dot.loading { background-color: var(--accent-amber); animation: pulse 1s infinite; }
-
-  .response-body {
-    padding: 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    min-height: 120px;
-    max-height: 200px;
-    overflow-y: auto;
-    white-space: pre;
-    color: var(--text-secondary);
-    background-color: var(--bg-panel);
+  .response-status-dot.loading {
+    background-color: var(--accent-amber);
+    animation: pulse 1s infinite;
   }
 
-  /* Visual diagram deck */
+  .response-status-dot.success {
+    background-color: var(--accent-green);
+  }
+
+  /* Architecture flow diagram panel */
   .diagram-deck {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
     border: 1px solid var(--border-color);
-    background-color: var(--bg-panel);
-    padding: 1.75rem;
-  }
-
-  @media (max-width: 900px) {
-    .diagram-deck {
-      grid-template-columns: 1fr;
-    }
+    background-color: #ffffff;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
 
   .diagram-visual {
+    width: 100%;
+    overflow-x: auto;
     display: flex;
     justify-content: center;
-    align-items: center;
+    background-color: var(--bg-panel);
     border: 1px solid var(--border-color);
-    background-color: #ffffff;
-    padding: 1rem;
-    overflow: hidden;
+    padding: 1.5rem;
   }
 
   .diagram-visual img {
     max-width: 100%;
     height: auto;
-    object-fit: contain;
   }
 
   .diagram-notes {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 800px) {
+    .diagram-notes {
+      grid-template-columns: 1fr;
+    }
   }
 
   .diagram-note-item {
-    border-left: 2px solid var(--border-accent);
-    padding-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .diagram-note-h {
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 0.25rem;
     font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-primary);
   }
 
   .diagram-note-p {
     font-size: 0.88rem;
     color: var(--text-secondary);
+    line-height: 1.45;
   }
 
-  /* FAQ Accordions */
+  /* FAQ Accordion */
   .faq-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .faq-item {
     border: 1px solid var(--border-color);
     background-color: var(--bg-panel);
-    overflow: hidden;
-    transition: border-color 0.15s ease;
-  }
-
-  .faq-item:hover {
-    border-color: var(--border-accent);
   }
 
   .faq-trigger {
     width: 100%;
-    text-align: left;
-    background-color: transparent;
-    border: none;
-    padding: 1.1rem 1.5rem;
-    font-family: var(--font-sans);
-    font-size: 1.02rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    cursor: pointer;
+    padding: 1rem 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    background: transparent;
+    border: none;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
   }
 
   .faq-trigger-icon {
     font-family: var(--font-mono);
-    font-weight: 400;
     font-size: 1.2rem;
     color: var(--text-muted);
     transition: transform 0.2s ease;
@@ -795,6 +1073,8 @@
     display: flex;
     gap: 1.5rem;
     font-weight: 700;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .footer-links a {
@@ -808,14 +1088,8 @@
 
   .disclaimer {
     font-size: 0.7rem;
-    max-width: 32rem;
+    max-width: 38rem;
     line-height: 1.4;
-  }
-
-  hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 1rem 0;
   }
 </style>
 </head>
@@ -826,12 +1100,21 @@
   <!-- TOP DECK: SYSTEM METRICS AND ROUTER STATS -->
   <header>
     <div class="header-left">
-      <span>AWB-CONTROL v0.0.2</span>
+      <span>AWB-CONTROL v1.3.1</span>
       <span class="status-indicator">
         <span class="status-pulse"></span>
         <span>SYSTEM ONLINE</span>
       </span>
     </div>
+    <nav class="header-nav">
+      <a href="#demos">DEMOS</a>
+      <a href="#recipes">RECIPES</a>
+      <a href="#mcp">MCP SETUP</a>
+      <a href="#ecosystem">ECOSYSTEM</a>
+      <a href="#install-section">CLI</a>
+      <a href="#playground">PLAYGROUND</a>
+      <a href="#faq">FAQ</a>
+    </nav>
     <div class="header-right" id="live-clock">
       UTC: --:--:--
     </div>
@@ -842,34 +1125,35 @@
     
     <!-- LEFT CARD: INTRODUCTION AND QUICK ACTIONS -->
     <div class="card">
-      <div class="card-header-sub">Configuration Overview</div>
-      <h1 class="card-title">Clean-Room Browser Automation for AI Agents</h1>
+      <div class="card-header-sub">System Architecture &amp; Overview</div>
+      <h1 class="card-title">Real Chrome Browser Automation &amp; MCP Server for AI Agents</h1>
       <p class="card-desc">
-        <strong>agent-webbridge</strong> is open-source (MIT), clean-room browser automation for AI agents. It drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer.
+        <strong>agent-webbridge</strong> is open-source (MIT), clean-room browser automation for AI agents. Drive your real Chrome — with your real login sessions — across multiple profiles at once, with true per-tab parallelism. Zero cloud costs, no telemetry, no closed-source dependency, 100% local on <code>127.0.0.1</code>.
       </p>
 
       <div class="actions-row">
         <a href="https://github.com/jeet-dhandha/agent-webbridge" class="btn btn-accent">GitHub Repository &rarr;</a>
-        <a href="https://www.npmjs.com/package/agent-webbridge" class="btn">NPM Package</a>
-        <a href="#install-section" class="btn">View Setup</a>
+        <a href="https://www.npmjs.com/package/agent-webbridge" class="btn">npm Package (v1.3.1)</a>
+        <a href="#recipes" class="btn">awb-recipes &rarr;</a>
+        <a href="#mcp" class="btn">MCP Quickstart</a>
       </div>
 
       <div class="metrics-grid">
         <div class="metric-item">
-          <span class="metric-value">&infin;</span>
-          <span class="metric-label">Concurrent Accounts</span>
+          <span class="metric-value">N&times;M</span>
+          <span class="metric-label">Profiles &times; Parallel Tabs</span>
         </div>
         <div class="metric-item">
-          <span class="metric-value">N&times;N</span>
-          <span class="metric-label">Profiles &times; Tabs in Parallel</span>
+          <span class="metric-value">3.5s</span>
+          <span class="metric-label">5 Tabs Concurrently</span>
         </div>
         <div class="metric-item">
-          <span class="metric-value">macOS · Windows</span>
-          <span class="metric-label">Optimized Target</span>
+          <span class="metric-value">macOS · Win</span>
+          <span class="metric-label">+ Linux (Node 18+)</span>
         </div>
         <div class="metric-item">
-          <span class="metric-value">MIT</span>
-          <span class="metric-label">Open Source</span>
+          <span class="metric-value">MCP</span>
+          <span class="metric-label">Stdio &amp; HTTP Router</span>
         </div>
       </div>
     </div>
@@ -918,60 +1202,278 @@
       <div class="log-console" id="log-console">
         <div class="log-entry">
           <span class="log-ts">[19:27:52]</span>
-          <span class="log-msg system">INIT: Router successfully bound and listening</span>
+          <span class="log-msg system">INIT: Router v1.3.1 listening on 127.0.0.1:10086</span>
         </div>
         <div class="log-entry">
           <span class="log-ts">[19:27:53]</span>
-          <span class="log-msg system">FLEET: Found 3 Chrome profile extension mappings.</span>
+          <span class="log-msg system">FLEET: 3 profile daemons active with per-tab debugger Map</span>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- DUAL DEMO & CAPABILITIES SECTION -->
-  <div class="section-title-wrap">
-    <div class="section-title">Execution Demonstration &amp; Capabilities</div>
-    <div class="section-subtitle-mono">Simultaneous Multi-Session Orchestration</div>
+  <!-- REAL-RUN DEMOS SECTION -->
+  <div class="section-title-wrap" id="demos">
+    <div class="section-title">Execution Demonstration (Real Runs)</div>
+    <div class="section-subtitle-mono">Recorded from live MCP runs driving authentic Chrome</div>
   </div>
 
-  <div class="grid-hero" style="grid-template-columns: 1fr 1.2fr;">
-    <!-- LEFT SIDE: CAPABILITIES LIST -->
-    <div class="card">
-      <div class="card-header-sub">Engine Capabilities</div>
-      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; margin-top: 0.5rem;">Multi-Session Scraping &amp; Data Collection</h3>
-      <p class="card-desc" style="font-size: 0.92rem; margin-bottom: 1.25rem;">
-        Perform concurrent web scraping, DOM queries, and file collection across separate logged-in profiles. Perfect for compiling combined reports from multiple Search Consoles, reading multiple Gmail accounts, or downloading files from different drives simultaneously.
+  <div class="card" style="padding: 1rem 1.25rem; font-size: 0.9rem; color: var(--text-secondary); background: #ffffff;">
+    <strong>Real runs, not mock-ups:</strong> an AI agent sends MCP calls to <code>npx agent-webbridge mcp</code>, which drives a real, signed-in Chrome profile. Timings are measured live on a MacBook on broadband. Public pages only; nothing is submitted to any account.
+  </div>
+
+  <div class="demos-grid">
+    <!-- DEMO 1: READ ANY PAGE -->
+    <div class="demo-card">
+      <div class="demo-card-header">
+        <div class="demo-card-title">1. Read Any Page Without Bot-Blocks</div>
+        <span class="demo-badge">Snapshot + Eval</span>
+      </div>
+      <div class="demo-img-box">
+        <img src="demos/read-a-page.gif" alt="Real demo: agent-webbridge taking accessibility snapshot and evaluating JavaScript on Hacker News" loading="lazy">
+      </div>
+      <div class="demo-caption">
+        Snapshot + evaluate on Hacker News: extracts structured accessibility trees with stable <code>@e</code> element references in &lt;600ms, bypassing headless bot detection entirely.
+      </div>
+    </div>
+
+    <!-- DEMO 2: FIVE TABS AT ONCE -->
+    <div class="demo-card">
+      <div class="demo-card-header">
+        <div class="demo-card-title">2. True Parallelism (5 Tabs Concurrently)</div>
+        <span class="demo-badge perf">3.5s vs 9.3s (2.6x Speedup)</span>
+      </div>
+      <div class="demo-img-box">
+        <img src="demos/parallel-tabs.gif" alt="Real demo: 5 parallel tabs evaluated concurrently in 3.5 seconds vs 9.3 seconds serial" loading="lazy">
+      </div>
+      <div class="demo-caption">
+        Five tabs evaluate at once: the extension attaches <code>chrome.debugger</code> per tab (a Map keyed by tabId), finishing in <strong>3.5s in parallel</strong> versus <strong>9.3s serially</strong>.
+      </div>
+    </div>
+
+    <!-- DEMO 3: SIGNED-IN SESSIONS -->
+    <div class="demo-card">
+      <div class="demo-card-header">
+        <div class="demo-card-title">3. Drive Real Authenticated Sessions</div>
+        <span class="demo-badge auth">Zero Re-Auth · Preserves 2FA</span>
+      </div>
+      <div class="demo-img-box">
+        <img src="demos/signed-in.gif" alt="Real demo: driving a signed-in editor safely using authentic cookies" loading="lazy">
+      </div>
+      <div class="demo-caption">
+        Your real login sessions: a signed-in web app safely filled and verified with authentic cookies and localStorage state, stopping safely before publishing.
+      </div>
+    </div>
+
+    <!-- DEMO 4: FORM FILLING -->
+    <div class="demo-card">
+      <div class="demo-card-header">
+        <div class="demo-card-title">4. Fill &amp; Submit Complex Forms</div>
+        <span class="demo-badge">Inputs, Radios &amp; Contenteditable</span>
+      </div>
+      <div class="demo-img-box">
+        <img src="demos/fill-a-form.gif" alt="Real demo: filling native inputs, radio buttons, checkboxes, and contenteditable editors" loading="lazy">
+      </div>
+      <div class="demo-caption">
+        Comprehensive input dispatch: fills native text inputs, radio selections, checkboxes, and modern <code>contenteditable</code> rich text editors via CDP input events.
+      </div>
+    </div>
+  </div>
+
+  <!-- AWB-RECIPES SECTION -->
+  <div class="section-title-wrap" id="recipes">
+    <div class="section-title">Community Automation Recipes (awb-recipes)</div>
+    <div class="section-subtitle-mono">Battle-tested playbooks for automating complex websites</div>
+  </div>
+
+  <div class="card" style="gap: 1rem;">
+    <div class="card-header-sub">Why Recipes?</div>
+    <p class="card-desc" style="margin-bottom: 0.5rem;">
+      Websites frequently shift dynamic classes, change DOM layouts, or deploy anti-scraping traps. Rather than forcing your AI agent to guess selectors or break on site updates, <a href="https://github.com/jeet-dhandha/awb-recipes" target="_blank" style="color: var(--text-primary); font-weight: 700;">awb-recipes</a> provides community-maintained, verified playbooks (<code>recipe.json</code>) detailing exact actions, selector fallbacks, and caveats for each service.
+    </p>
+
+    <div class="recipes-grid">
+      <div class="recipe-card">
+        <div class="recipe-head">
+          <span class="recipe-name">github-gist-create</span>
+          <span class="recipe-tag verified">Verified</span>
+        </div>
+        <div class="recipe-desc">
+          Creates public or secret GitHub Gists through your real browser UI without creating personal access tokens or OAuth credentials.
+        </div>
+        <div class="recipe-footer">
+          <span>Task: Gist Host</span>
+          <a href="https://github.com/jeet-dhandha/awb-recipes/tree/main/recipes/github-gist-create" target="_blank" style="color: var(--text-primary); font-weight: 700; text-decoration: none;">View recipe &rarr;</a>
+        </div>
+      </div>
+
+      <div class="recipe-card">
+        <div class="recipe-head">
+          <span class="recipe-name">google-search-results</span>
+          <span class="recipe-tag verified">Verified</span>
+        </div>
+        <div class="recipe-desc">
+          Extracts clean organic search result titles, snippets, and destination URLs headfully, bypassing cloud-IP bot blocks.
+        </div>
+        <div class="recipe-footer">
+          <span>Task: SERP Scrape</span>
+          <a href="https://github.com/jeet-dhandha/awb-recipes/tree/main/recipes/google-search-results" target="_blank" style="color: var(--text-primary); font-weight: 700; text-decoration: none;">View recipe &rarr;</a>
+        </div>
+      </div>
+
+      <div class="recipe-card">
+        <div class="recipe-head">
+          <span class="recipe-name">hn-reply-box</span>
+          <span class="recipe-tag verified">Verified</span>
+        </div>
+        <div class="recipe-desc">
+          Reads comment threads and submits replies on Hacker News using your authentic logged-in cookies and karma history.
+        </div>
+        <div class="recipe-footer">
+          <span>Task: HN Engage</span>
+          <a href="https://github.com/jeet-dhandha/awb-recipes/tree/main/recipes/hn-reply-box" target="_blank" style="color: var(--text-primary); font-weight: 700; text-decoration: none;">View recipe &rarr;</a>
+        </div>
+      </div>
+
+      <div class="recipe-card">
+        <div class="recipe-head">
+          <span class="recipe-name">linkedin-feed-posts</span>
+          <span class="recipe-tag verified">Verified</span>
+        </div>
+        <div class="recipe-desc">
+          Extracts post text, engagement counts, and author information from your authentic LinkedIn feed without session hijacking.
+        </div>
+        <div class="recipe-footer">
+          <span>Task: Social Harvest</span>
+          <a href="https://github.com/jeet-dhandha/awb-recipes/tree/main/recipes/linkedin-feed-posts" target="_blank" style="color: var(--text-primary); font-weight: 700; text-decoration: none;">View recipe &rarr;</a>
+        </div>
+      </div>
+
+      <div class="recipe-card">
+        <div class="recipe-head">
+          <span class="recipe-name">npm-most-depended</span>
+          <span class="recipe-tag verified">Verified</span>
+        </div>
+        <div class="recipe-desc">
+          Harvests package download counts, maintainers, and dependent package hierarchies from npm without hitting rate limits.
+        </div>
+        <div class="recipe-footer">
+          <span>Task: Package Intel</span>
+          <a href="https://github.com/jeet-dhandha/awb-recipes/tree/main/recipes/npm-most-depended" target="_blank" style="color: var(--text-primary); font-weight: 700; text-decoration: none;">View recipe &rarr;</a>
+        </div>
+      </div>
+
+      <div class="recipe-card" style="background-color: #ffffff; border-style: dashed;">
+        <div class="recipe-head">
+          <span class="recipe-name">+ Add a Recipe</span>
+          <span class="recipe-tag">15 Min PR</span>
+        </div>
+        <div class="recipe-desc">
+          The easiest contribution: pick an open issue labelled <code>good first recipe</code>, run its steps on your account, verify or fix the selectors, and open a PR!
+        </div>
+        <div class="recipe-footer">
+          <span>Contributing</span>
+          <a href="https://github.com/jeet-dhandha/awb-recipes/issues?q=label%3A%22good+first+recipe%22" target="_blank" style="color: var(--accent-blue); font-weight: 700; text-decoration: none;">Claim an issue &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
+      <a href="https://github.com/jeet-dhandha/awb-recipes" target="_blank" class="btn btn-accent">Explore all recipes on GitHub &rarr;</a>
+      <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
+        Format validated by CI on every pull request. No secrets or tokens stored.
+      </span>
+    </div>
+  </div>
+
+  <!-- ECOSYSTEM & LISTINGS SECTION -->
+  <div class="section-title-wrap" id="ecosystem">
+    <div class="section-title">Ecosystem &amp; Verified Listings</div>
+    <div class="section-subtitle-mono">Where agent-webbridge is cataloged, integrated, and recognized</div>
+  </div>
+
+  <div class="ecosystem-grid">
+    <a href="https://github.com/modelcontextprotocol/servers" target="_blank" class="ecosystem-card">
+      <span class="ecosystem-tag">Official Protocol Registry</span>
+      <div class="ecosystem-title">MCP Registry Entry</div>
+      <div class="ecosystem-desc">
+        Registered under <code>io.github.jeet-dhandha/agent-webbridge</code> as a zero-dependency stdio server for Claude, Cursor, and Windsurf.
+      </div>
+    </a>
+
+    <a href="https://github.com/punkpeye/awesome-mcp-servers" target="_blank" class="ecosystem-card">
+      <span class="ecosystem-tag">Community Index</span>
+      <div class="ecosystem-title">Awesome MCP Servers</div>
+      <div class="ecosystem-desc">
+        Cataloged in punkpeye/awesome-mcp-servers under browser automation with true per-tab parallelism and multi-profile routing.
+      </div>
+    </a>
+
+    <a href="https://github.com/BehiSecc/awesome-claude-skills" target="_blank" class="ecosystem-card">
+      <span class="ecosystem-tag">Curated Collection</span>
+      <div class="ecosystem-title">Awesome Claude Skills</div>
+      <div class="ecosystem-desc">
+        Featured in curated Claude skills indices as the native solution for driving authentic Google Chrome without headless captchas.
+      </div>
+    </a>
+
+    <a href="https://skills.sh" target="_blank" class="ecosystem-card">
+      <span class="ecosystem-tag">Agent CLI Registry</span>
+      <div class="ecosystem-title">Skills CLI Ecosystem</div>
+      <div class="ecosystem-desc">
+        Installable across Claude Code, Cursor, and Codex with one simple command: <code>npx skills add jeet-dhandha/agent-webbridge</code>.
+      </div>
+    </a>
+
+    <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl" target="_blank" class="ecosystem-card">
+      <span class="ecosystem-tag">Chrome Extension</span>
+      <div class="ecosystem-title">Chrome Web Store</div>
+      <div class="ecosystem-desc">
+        Published as "Agent WebBridge" for easy one-click installation via <code>awb setup</code>, with Load-unpacked supported for local hacking.
+      </div>
+    </a>
+
+    <a href="https://www.npmjs.com/package/agent-webbridge" target="_blank" class="ecosystem-card">
+      <span class="ecosystem-tag">Package Registry</span>
+      <div class="ecosystem-title">npm Package (v1.3.1)</div>
+      <div class="ecosystem-desc">
+        Published globally with one runtime dependency (<code>ws</code>) and built-in cross-platform support for macOS, Windows, and Linux.
+      </div>
+    </a>
+  </div>
+
+  <!-- MCP QUICKSTART SECTION -->
+  <div class="section-title-wrap" id="mcp">
+    <div class="section-title">Model Context Protocol (MCP) Setup</div>
+    <div class="section-subtitle-mono">One-click stdio connection for Claude Code, Cursor &amp; Claude Desktop</div>
+  </div>
+
+  <div class="mcp-deck">
+    <div class="mcp-box">
+      <div class="card-header-sub">Claude Code</div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">
+        Add the bridge to Claude Code in a single command:
       </p>
-
-      <div class="diagram-notes" style="gap: 1rem; margin-top: auto;">
-        <div class="diagram-note-item">
-          <div class="diagram-note-h">Concurrent Sessions</div>
-          <div class="diagram-note-p" style="font-size: 0.85rem;">
-            Drive multiple authentic Chrome cookies and local storage states at once. No session hijacking or logging out.
-          </div>
-        </div>
-        <div class="diagram-note-item">
-          <div class="diagram-note-h">Real Browser Moat</div>
-          <div class="diagram-note-p" style="font-size: 0.85rem;">
-            Unlike headless scraping tools that face captcha blocks, fleet operates your real, logged-in Google Chrome instance headful, preserving authentic cookies and configurations.
-          </div>
-        </div>
-        <div class="diagram-note-item">
-          <div class="diagram-note-h">Claude Code Skill Support</div>
-          <div class="diagram-note-p" style="font-size: 0.85rem;">
-            Equip your agent with the ability to scrape, navigate, and query several profiles sequentially or concurrently via one simple skill.
-          </div>
-        </div>
-      </div>
+      <div class="code-snippet">claude mcp add chrome -- npx -y agent-webbridge mcp</div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: auto;">
+        Or add as an agent skill: <code>npx skills add jeet-dhandha/agent-webbridge</code>
+      </p>
     </div>
 
-    <!-- RIGHT SIDE: GIF SCREENPLAY PREVIEW -->
-    <div class="card" style="padding: 1rem; align-items: center; justify-content: center; background-color: #ffffff;">
-      <img src="demo.gif" alt="Live demo of an AI agent driving Work and Personal Chrome profiles simultaneously through agent-webbridge" style="max-width: 100%; height: auto; border: 1px solid var(--border-color); border-radius: 4px;">
-      <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; line-height: 1.4;">
-        ● SCREENPLAY PREVIEW: One AI agent driving several profiles (Work and Personal) in parallel, opening distinct URLs and loading data simultaneously.
-      </div>
+    <div class="mcp-box">
+      <div class="card-header-sub">Cursor / Claude Desktop / Windsurf</div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">
+        Add to your <code>claude_desktop_config.json</code> or Cursor MCP settings:
+      </p>
+      <div class="code-snippet">{
+  "mcpServers": {
+    "chrome": {
+      "command": "npx",
+      "args": ["-y", "agent-webbridge", "mcp"]
+    }
+  }
+}</div>
     </div>
   </div>
 
@@ -982,7 +1484,8 @@
   </div>
 
   <div class="cli-tabs">
-    <button class="cli-tab active" onclick="showCliTab('install')">1. Install</button>
+    <button class="cli-tab active" onclick="showCliTab('mcp')">0. MCP Server</button>
+    <button class="cli-tab" onclick="showCliTab('install')">1. Install</button>
     <button class="cli-tab" onclick="showCliTab('profiles')">2. Profiles List</button>
     <button class="cli-tab" onclick="showCliTab('connect')">3. Zero-Click Connect</button>
     <button class="cli-tab" onclick="showCliTab('up')">4. Launch Fleet</button>
@@ -991,23 +1494,22 @@
 
   <div class="cli-panel">
     <div class="cli-desc" id="cli-tab-description">
-      Download and install the CLI layer globally, or add it to Claude Code as an autonomous developer agent plugin.
+      Run the zero-dependency stdio Model Context Protocol (MCP) server. Exposes browser navigation, snapshots, and execution to Claude Code, Cursor, and Windsurf.
     </div>
     <div class="cli-terminal">
-      <div class="cli-input-line" id="cli-command-line">npm i -g agent-webbridge</div>
+      <div class="cli-input-line" id="cli-command-line">npx agent-webbridge mcp</div>
       <div class="cli-output-line" id="cli-output-content">
-added 1 package, and audited 2 packages in 1s
-
-found 0 vulnerabilities
-
-$ awb --version
-0.0.2
+[agent-webbridge] MCP stdio server ready (13 tools registered).
+[agent-webbridge] Connecting to router at 127.0.0.1:10086...
+✓ Connected to fleet router.
+Tools: browser_navigate, browser_snapshot, browser_click, browser_fill, browser_evaluate, browser_screenshot...
+Ready for agent commands.
       </div>
     </div>
   </div>
 
   <!-- INTERACTIVE PLAYGROUND SECTION -->
-  <div class="section-title-wrap">
+  <div class="section-title-wrap" id="playground">
     <div class="section-title">Command Builder &amp; Network Playground</div>
     <div class="section-subtitle-mono">Test routing contract interactively</div>
   </div>
@@ -1066,9 +1568,7 @@ $ awb --version
         <button class="payload-tab active" id="tab-curl" onclick="setPayloadFormat('curl')">cURL Request</button>
         <button class="payload-tab" id="tab-json" onclick="setPayloadFormat('json')">JSON Body</button>
       </div>
-      <div class="code-container" id="playground-code-box">curl -s -X POST http://127.0.0.1:10086/command \
-  -H 'Content-Type: application/json' \
-  -d '{"action":"navigate","args":{"url":"https://search.google.com/search-console"},"session":"audit","profile":"Work"}'</div>
+      <div class="code-container" id="playground-code-box">curl -s -X POST http://127.0.0.1:10086/command   -H 'Content-Type: application/json'   -d '{"action":"navigate","args":{"url":"https://search.google.com/search-console"},"session":"audit","profile":"Work"}'</div>
 
       <div class="response-deck">
         <div class="response-deck-title">
@@ -1082,7 +1582,7 @@ $ awb --version
   </div>
 
   <!-- ARCHITECTURE FLOW SECTION -->
-  <div class="section-title-wrap">
+  <div class="section-title-wrap" id="architecture">
     <div class="section-title">Architecture Comparison</div>
     <div class="section-subtitle-mono">Old Single Slot vs. Fleet Routing</div>
   </div>
@@ -1095,87 +1595,111 @@ $ awb --version
       <div class="diagram-note-item">
         <div class="diagram-note-h">The Single-Slot Limitation</div>
         <div class="diagram-note-p">
-          Most browser-automation bridges enforce a single connection slot and one global "current tab", so they drive exactly one tab per profile at a time. Attempting to connect a second Chrome profile results in connection rejection, requiring manual toggle adjustments.
+          Most browser bridges enforce a single connection slot and a single global "current tab", so they drive exactly one tab per profile at a time. Attempting to connect a second Chrome profile results in connection rejection.
         </div>
       </div>
       <div class="diagram-note-item">
         <div class="diagram-note-h">Simultaneous Session Isolation</div>
         <div class="diagram-note-p">
-          We spawn one isolated background daemon process per Chrome profile (using deterministic port mappings). This allows each Google account profile to run fully isolated with separate cookies and local storage.
+          We spawn one isolated background daemon per Chrome profile on deterministic hashed ports. Each Google account profile runs fully isolated with independent cookies and storage.
         </div>
       </div>
       <div class="diagram-note-item">
         <div class="diagram-note-h">Transparent Router Gateway</div>
         <div class="diagram-note-p">
-          The proxy router serves as the central API gateway on the native port <code>10086</code>. It accepts standard HTTP commands, extracts the <code>"profile"</code> parameter, and forwards the payload transparently to the corresponding browser daemon.
+          The proxy router serves as the central API gateway on port <code>10086</code>. It accepts standard HTTP / MCP commands, extracts the <code>"profile"</code> parameter, and forwards the payload transparently to the corresponding daemon.
         </div>
       </div>
     </div>
   </div>
 
   <!-- FAQ SECTION -->
-  <div class="section-title-wrap">
+  <div class="section-title-wrap" id="faq">
     <div class="section-title">Frequently Asked Questions</div>
-    <div class="section-subtitle-mono">Internal Diagnostic Manual</div>
+    <div class="section-subtitle-mono">Diagnostic and architectural documentation</div>
   </div>
 
   <div class="faq-list">
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Can I drive multiple Chrome profiles at once?</span>
+        <span>What is agent-webbridge?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Yes. Most browser-automation bridges enforce a single connection slot, meaning only one Chrome profile is driven at a time. <code>agent-webbridge</code> runs a daemon per profile and places a router on <code>10086</code>. Every profile stays connected simultaneously, allowing you to select the target by passing a <code>"profile"</code> field in the request payload.
+          <code>agent-webbridge</code> is an open-source (MIT) browser automation engine and Model Context Protocol (MCP) server. It allows AI agents like Claude Code, Cursor, and Windsurf to drive your real Google Chrome — with your real login sessions — across multiple profiles simultaneously, with true per-tab parallel execution.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Can I drive multiple Google accounts / logins at the same time?</span>
+        <span>How does agent-webbridge run tabs in parallel?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Yes. Each Chrome profile carries its own independent Google session and credentials. Because <code>agent-webbridge</code> runs a separate daemon for each profile, actions directed at Gmail, Search Console, Ads, or Google Drive for different logins can execute side-by-side.
+          This is the killer feature. Most bridges funnel every CDP call through one global "current tab". <code>agent-webbridge</code> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tabId). 2, 5, and 10 tabs in a single profile evaluate concurrently in parallel: 5 tabs finish in ~3.5s flat versus 9.3s serially.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Can I run multiple tabs in one profile concurrently?</span>
+        <span>How do I connect agent-webbridge as an MCP server?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Yes — this is the killer feature. <code>agent-webbridge</code> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tab), so N tabs in one profile run in parallel. Measured: 2, 5, and 10 tabs in a single profile each finish in about 2 seconds flat, versus 4s, 10s, and 20s if they ran serially. Two axes of concurrency: N profiles × N tabs per profile.
+          Run <code>npm i -g agent-webbridge &amp;&amp; awb setup "Work"</code> once to install the extension and daemon. Then run <code>claude mcp add chrome -- npx -y agent-webbridge mcp</code> in Claude Code, or add the stdio command to your Cursor / Claude Desktop configuration file.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>Why do most browser bridges only allow one login at a time?</span>
+        <span>What is awb-recipes and how do I use community recipes?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          Most bridges enforce two singletons: a process refuses to start if port <code>10086</code> is occupied, and a single daemon will only connect to one browser extension at a time. <code>agent-webbridge</code> sidesteps these constraints by assigning isolated local directories and distinct ports to each daemon process, keeping the central port free for its router.
+          <a href="https://github.com/jeet-dhandha/awb-recipes" target="_blank">awb-recipes</a> is a repository of community-maintained playbooks for automating complex websites (such as GitHub Gists, Google Search, Hacker News, LinkedIn, npm). Each recipe specifies verified steps, selector fallbacks, and anti-bot caveats in structured JSON, preventing agents from hallucinating broken selectors.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>How do I switch profiles without toggling an extension off?</span>
+        <span>Can I drive multiple Google accounts or Chrome profiles simultaneously?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          You don't have to. The <code>awb connect</code> command points each profile's extension at its own daemon by directly writing the destination URL to the Chrome extension's on-disk Local Storage LevelDB files (while Chrome is quit), with zero manual clicks — and keeps every profile live at once.
+          Yes. Each Chrome profile carries its own independent Google session and credentials. Because <code>agent-webbridge</code> runs a separate daemon for each profile behind a central router, commands directed at Gmail, Search Console, Ads, or Google Drive for different logins execute side-by-side without logging out.
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Where is agent-webbridge listed and featured?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          <code>agent-webbridge</code> is published in the Official Model Context Protocol Registry (<code>io.github.jeet-dhandha/agent-webbridge</code>), featured on <code>punkpeye/awesome-mcp-servers</code>, listed in curated Awesome Claude Skills collections, installable via the Skills CLI (<code>npx skills add jeet-dhandha/agent-webbridge</code>), and published on npm and the Chrome Web Store.
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>Is agent-webbridge private and secure?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          Everything listens strictly on loopback <code>127.0.0.1</code> only. Starting in version 1.3.1, the router and daemons enforce strict Host and Origin validation, refusing any request carrying a web <code>Origin</code> or a non-loopback <code>Host</code> header. Websites you visit cannot drive the bridge.
         </div>
       </div>
     </div>
@@ -1184,14 +1708,18 @@ $ awb --version
   <!-- FOOTER -->
   <footer>
     <div class="footer-links">
-      <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub Repo</a>
       <span>&middot;</span>
-      <a href="https://www.npmjs.com/package/agent-webbridge">NPM Registry</a>
+      <a href="https://github.com/jeet-dhandha/awb-recipes">awb-recipes</a>
+      <span>&middot;</span>
+      <a href="https://www.npmjs.com/package/agent-webbridge">npm Package (v1.3.1)</a>
+      <span>&middot;</span>
+      <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a>
       <span>&middot;</span>
       <a href="https://github.com/jeet-dhandha/agent-webbridge/blob/main/LICENSE">MIT License</a>
     </div>
     <div class="disclaimer">
-      &copy; 2026 jeet-dhandha. Crafted with premium minimalist neo-brutalist design patterns.
+      &copy; 2026 jeet-dhandha. Open source browser automation &amp; MCP server.
     </div>
   </footer>
 
@@ -1202,6 +1730,7 @@ $ awb --version
   // 1. UTC live clock updates
   function updateClock() {
     const clock = document.getElementById('live-clock');
+    if (!clock) return;
     const now = new Date();
     const timeStr = now.toISOString().split('T')[1].slice(0, 8);
     clock.textContent = 'UTC: ' + timeStr;
@@ -1232,7 +1761,9 @@ $ awb --version
     { type: 'router', msg: 'POST /command -> forwarding to "Developer" Profile' },
     { type: 'daemon', msg: 'Developer daemon: Executing click selector: "button.submit"' },
     { type: 'daemon', msg: 'Developer daemon: Click action resolved (target verified)' },
-    { type: 'system', msg: 'SYSTEM: Connection checked on active profiles. Heartbeat OK.' }
+    { type: 'system', msg: 'SYSTEM: Connection checked on active profiles. Heartbeat OK.' },
+    { type: 'router', msg: 'MCP stdio: Received call browser_snapshot for session audit' },
+    { type: 'daemon', msg: 'Per-tab CDP Map: 5 tabs evaluating concurrently in 3.5s' }
   ];
 
   function addMockLog() {
@@ -1241,7 +1772,7 @@ $ awb --version
     
     const randomMsg = logMsgs[Math.floor(Math.random() * logMsgs.length)];
     const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0];
+    const timeStr = now.toISOString().split('T')[1].slice(0, 8);
     
     const logNode = document.createElement('div');
     logNode.className = 'log-entry';
@@ -1253,7 +1784,6 @@ $ awb --version
     consoleEl.appendChild(logNode);
     consoleEl.scrollTop = consoleEl.scrollHeight;
     
-    // Cap log items count at 30 to prevent DOM overhead
     if (consoleEl.children.length > 30) {
       consoleEl.removeChild(consoleEl.firstChild);
     }
@@ -1262,6 +1792,15 @@ $ awb --version
 
   // 4. CLI tabs walkthrough logic
   const cliData = {
+    mcp: {
+      desc: 'Run the zero-dependency stdio Model Context Protocol (MCP) server. Exposes browser navigation, snapshots, evaluate, and inputs to Claude Code, Cursor, and Windsurf.',
+      cmd: 'npx agent-webbridge mcp',
+      out: `[agent-webbridge] MCP stdio server ready (13 tools registered).
+[agent-webbridge] Connecting to router at 127.0.0.1:10086...
+✓ Connected to fleet router.
+Tools: browser_navigate, browser_snapshot, browser_click, browser_fill, browser_evaluate, browser_screenshot...
+Ready for agent commands.`
+    },
     install: {
       desc: 'Download and install the CLI globally, or add it to Claude Code as an autonomous developer agent plugin.',
       cmd: 'npm i -g agent-webbridge',
@@ -1270,7 +1809,7 @@ $ awb --version
 found 0 vulnerabilities
 
 $ awb --version
-0.0.2`
+1.3.1`
     },
     profiles: {
       desc: 'Resolve and display all Chrome user profiles detected on this machine. Shows deterministic ports, extension directory installation state, and active daemon statuses.',
@@ -1281,23 +1820,23 @@ Found 3 profiles:
 - Profile: "Work"
   Directory: /Users/jeetdhandha/Library/Application Support/Google/Chrome/Profile 1
   Hashed Port: 13222
-  Extension Installed: Yes (fldmhceldgbpfpkbgopacenieobmligc)
+  Extension Installed: Yes (kgnhhbkooeplfdkfnicgekdmegckcnpl)
   Daemon Status: UP (pid: 58821)
 
 - Profile: "Personal"
   Directory: /Users/jeetdhandha/Library/Application Support/Google/Chrome/Default
   Hashed Port: 13336
-  Extension Installed: Yes (fldmhceldgbpfpkbgopacenieobmligc)
+  Extension Installed: Yes (kgnhhbkooeplfdkfnicgekdmegckcnpl)
   Daemon Status: UP (pid: 58824)
 
 - Profile: "Developer"
   Directory: /Users/jeetdhandha/Library/Application Support/Google/Chrome/Profile 2
   Hashed Port: 14820
-  Extension Installed: Yes (fldmhceldgbpfpkbgopacenieobmligc)
+  Extension Installed: Yes (kgnhhbkooeplfdkfnicgekdmegckcnpl)
   Daemon Status: UP (pid: 58826)`
     },
     connect: {
-      desc: 'Connect profiles to their deterministic ports without manual clicks. Quits Chrome (saving sessions) and writes the hashed port URL directly to the extension\'s local LevelDB storage.',
+      desc: 'Connect profiles to their deterministic ports without manual clicks. Quits Chrome (saving sessions) and writes the hashed port URL directly to the extension's local LevelDB storage.',
       cmd: 'awb connect "Work" "Personal" "Developer"',
       out: `Quitting Google Chrome (saving sessions for restore)...
 Chrome closed successfully.
@@ -1326,7 +1865,7 @@ Waiting for extension connections (max 10s)...
 Fleet ready. Route requests through http://127.0.0.1:10086/command`
     },
     down: {
-      desc: 'Tears down the active router, shuts down running profile daemons safely, and optionally restores the default single-connection configuration.',
+      desc: 'Tears down the active router, shuts down running profile daemons safely, and restores clean state.',
       cmd: 'awb down',
       out: `Stopping HTTP proxy router on port 10086...
 Stopping daemon process Work (pid 58821)...
@@ -1339,10 +1878,9 @@ Fleet stopped successfully.`
   };
 
   function showCliTab(tabKey) {
-    // Toggle active tab class
     const tabs = document.querySelectorAll('.cli-tab');
+    const keys = ['mcp', 'install', 'profiles', 'connect', 'up', 'down'];
     tabs.forEach((tab, index) => {
-      const keys = ['install', 'profiles', 'connect', 'up', 'down'];
       if (keys[index] === tabKey) {
         tab.classList.add('active');
       } else {
@@ -1350,15 +1888,16 @@ Fleet stopped successfully.`
       }
     });
 
-    // Load tab contents
     const tabItem = cliData[tabKey];
-    document.getElementById('cli-tab-description').textContent = tabItem.desc;
-    document.getElementById('cli-command-line').textContent = tabItem.cmd;
-    document.getElementById('cli-output-content').textContent = tabItem.out;
+    if (tabItem) {
+      document.getElementById('cli-tab-description').textContent = tabItem.desc;
+      document.getElementById('cli-command-line').textContent = tabItem.cmd;
+      document.getElementById('cli-output-content').textContent = tabItem.out;
+    }
   }
 
   // 5. Playground Live Command Builder
-  let playgroundFormat = 'curl'; // or 'json'
+  let playgroundFormat = 'curl';
 
   function getPlaygroundPayload() {
     const profile = document.getElementById('play-profile').value;
@@ -1416,10 +1955,9 @@ Fleet stopped successfully.`
     if (playgroundFormat === 'json') {
       codeBox.innerHTML = syntaxHighlightJson(JSON.stringify(payload, null, 2));
     } else {
-      // Curl presentation format
       const bodyStr = JSON.stringify(payload);
-      codeBox.innerHTML = `<span class="code-accent-method">curl</span> -s -X <span class="code-accent-key">POST</span> http://127.0.0.1:10086/command \\
-  -H <span class="code-accent-val">'Content-Type: application/json'</span> \\
+      codeBox.innerHTML = `<span class="code-accent-method">curl</span> -s -X <span class="code-accent-key">POST</span> http://127.0.0.1:10086/command \
+  -H <span class="code-accent-val">'Content-Type: application/json'</span> \
   -d <span class="code-accent-val">'${bodyStr}'</span>`;
     }
   }
@@ -1429,7 +1967,7 @@ Fleet stopped successfully.`
       json = JSON.stringify(json, undefined, 2);
     }
     json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|\b[0-9]+\b)/g, function (match) {
+    return json.replace(/("(\u[a-zA-Z0-9]{4}|\[^u]|[^\"])*"(\s*:)?|(true|false|null)|[0-9]+)/g, function (match) {
       let cls = 'code-accent-val';
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
@@ -1501,13 +2039,12 @@ Fleet stopped successfully.`
           result: daemonResult
         };
 
-        responseBox.textContent = 'HTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: ' + new Date().toUTCString() + '\nServer: AWB-Router/0.0.2\n\n' + JSON.stringify(simulatedResponse, null, 2);
+        responseBox.textContent = 'HTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: ' + new Date().toUTCString() + '\nServer: AWB-Router/1.3.1\n\n' + JSON.stringify(simulatedResponse, null, 2);
       }, 1000);
 
     }, 800);
   }
 
-  // Initial code load
   updatePlaygroundCode();
 
   // 6. FAQ Accordion toggle logic
@@ -1516,7 +2053,6 @@ Fleet stopped successfully.`
     const content = item.querySelector('.faq-content');
     const isActive = item.classList.contains('active');
 
-    // Close all FAQ items
     const allItems = document.querySelectorAll('.faq-item');
     allItems.forEach(i => {
       i.classList.remove('active');

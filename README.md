@@ -144,6 +144,28 @@ The router proxies each command to the per-profile daemon on its deterministic h
 
 Ship it as a [Claude Code skill / plugin](.claude-plugin/) — the bundled `agent-webbridge` skill teaches an agent the full flow (install via `awb check --json`, then drive over `POST /command`). To hack on the extension itself, `awb install-dev` Load-unpacks the in-repo build (`chrome://extensions` → Developer mode → Load unpacked → [`agent-webbridge-extension/`](agent-webbridge-extension/)); it ships its own key, so the dev id is stable across reloads.
 
+## Community recipes (awb-recipes)
+
+Websites update their markup and deploy anti-bot traps all the time. Rather than forcing your agent to guess selectors or fail on edge cases, browse community-maintained, verified playbooks in [**awb-recipes**](https://github.com/jeet-dhandha/awb-recipes).
+
+- `github-gist-create`: Create secret or public GitHub Gists via browser UI with active session.
+- `google-search-results`: Organic SERP extraction bypassing cloud-IP bot blocks.
+- `hn-reply-box`: Interact with Hacker News threads using authentic user cookies.
+- `linkedin-feed-posts`: Extract authentic feed updates without session hijacking.
+- `npm-most-depended`: Extract package download metrics and dependency hierarchies.
+
+Hand a recipe to your agent: *"Do the `github-gist-create` recipe from awb-recipes with my Work profile."*
+To contribute, claim an open issue labelled [`good first recipe`](https://github.com/jeet-dhandha/awb-recipes/issues?q=label%3A%22good+first+recipe%22) and open a PR!
+
+## Ecosystem & listings
+
+- **Official MCP Registry**: Registered as `io.github.jeet-dhandha/agent-webbridge`
+- **Awesome MCP Servers**: Featured on [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)
+- **Awesome Claude Skills**: Featured in [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills) and [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)
+- **Skills CLI**: Installable via `npx skills add jeet-dhandha/agent-webbridge`
+- **Chrome Web Store**: Published extension [Agent WebBridge](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
+- **Website & Interactive Demos**: [jeet-dhandha.github.io/agent-webbridge](https://jeet-dhandha.github.io/agent-webbridge/)
+
 ## Platform
 
 | | macOS | Windows |
