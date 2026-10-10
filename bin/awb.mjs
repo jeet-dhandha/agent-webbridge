@@ -84,7 +84,7 @@ import {
   removeExtensionOnDisk,
 } from "../src/extension.mjs";
 import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
-import { waitForStoredUrl } from "../src/connect-poll.mjs";
+import { waitForStoredUrl, eitherSignalUrl } from "../src/connect-poll.mjs";
 import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
 import { runDoctor, printDoctor } from "../src/doctor.mjs";
 
@@ -342,9 +342,19 @@ async function connectViaPopup(targets, { startDaemons = false, timeoutMs = 1200
     if (i < attempted.length - 1) await sleep(600);
   }
   const results = await Promise.all(attempted.map(async (p) => {
-    // A build that understands the hint stores p.wsUrl as local_url within moments; one that
-    // predates it never does, so give up on it now rather than after the full daemon timeout.
-    const stored = await waitForStoredUrl({ readUrl: () => readLocalUrl(p.dir), expected: p.wsUrl, sleep });
+    // A build that understands the hint stores p.wsUrl as local_url (or the daemon sees it connect)
+    // within moments; one that predates it does neither, so give up on it now rather than after the
+    // full daemon timeout. Two signals, so a stored-URL read that misses (LevelDB flush) cannot send a
+    // working build down the quit-Chrome path.
+    const stored = await waitForStoredUrl({
+      readUrl: eitherSignalUrl({
+        readStored: () => readLocalUrl(p.dir),
+        isConnected: async () => (await daemonStatus(p.port))?.extension_connected === true,
+        expected: p.wsUrl,
+      }),
+      expected: p.wsUrl,
+      sleep,
+    });
     return { p, ok: stored && (await waitConnected(p.port, timeoutMs)) };
   }));
   const connected = [];

@@ -4,7 +4,7 @@
 // for a short window and give up on profiles that never change, instead of waiting out the full
 // daemon-connect timeout. Pure logic: every effect (read, sleep, clock) is injected.
 
-export const STORED_URL_WINDOW_MS = 4000;
+export const STORED_URL_WINDOW_MS = 6000; // measured connect takes ~0.5-1 s; generous, because a false "old build" verdict means quitting Chrome
 export const STORED_URL_POLL_MS = 250;
 
 // Resolves true as soon as readUrl() returns `expected`, false once `windowMs` has elapsed without
@@ -26,4 +26,18 @@ export async function waitForStoredUrl({
     if (left <= 0) return false;
     await sleep(Math.min(intervalMs, left));
   }
+}
+
+// A profile counts as handled once EITHER signal shows up: the stored local_url equals the URL we
+// handed it, OR the daemon already sees the extension connected. The second signal matters because
+// readLocalUrl only reads the newest LevelDB log; if Chrome flushes the key into a table file, the
+// stored-URL read misses even though the extension took the URL. Returns a readUrl() for
+// waitForStoredUrl.
+export function eitherSignalUrl({ readStored, isConnected, expected }) {
+  return async () => {
+    try {
+      if (await isConnected()) return expected;
+    } catch { /* daemon not reachable yet: fall through to the stored URL */ }
+    return await readStored();
+  };
 }

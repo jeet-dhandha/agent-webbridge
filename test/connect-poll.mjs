@@ -1,6 +1,6 @@
 // connect-poll.mjs — waitForStoredUrl: the stored-URL poll that lets connectViaPopup give up early on
 // extension builds that predate zero-restart connect. Fake clock and fake sleep: no timers, no browser.
-import { waitForStoredUrl, STORED_URL_WINDOW_MS, STORED_URL_POLL_MS } from "../src/connect-poll.mjs";
+import { waitForStoredUrl, eitherSignalUrl, STORED_URL_WINDOW_MS, STORED_URL_POLL_MS } from "../src/connect-poll.mjs";
 
 let pass = 0, fail = 0;
 const check = (name, ok) => { console.log((ok ? "PASS  " : "FAIL  ") + name); ok ? pass++ : fail++; };
@@ -29,7 +29,7 @@ function scripted(values) {
 const sum = (xs) => xs.reduce((a, b) => a + b, 0);
 
 // --- constants: the window and interval are named, with the agreed values
-check("window constant is ~4 s", STORED_URL_WINDOW_MS === 4000);
+check("window constant is 6 s", STORED_URL_WINDOW_MS === 6000);
 check("poll interval constant is ~250 ms", STORED_URL_POLL_MS === 250);
 
 // --- returns true as soon as the URL matches
@@ -54,8 +54,8 @@ check("poll interval constant is ~250 ms", STORED_URL_POLL_MS === 250);
   const c = fakeClock(); const r = scripted(["ws://127.0.0.1:10086/ws"]);
   const ok = await waitForStoredUrl({ readUrl: r.fn, expected: WANT, sleep: c.sleep, now: c.now });
   check("never matches: false", ok === false);
-  check("never matches: waits the full window (4000 ms)", sum(c.slept) === STORED_URL_WINDOW_MS);
-  check("never matches: reads at 0, 250, ..., 4000 (17 reads)", r.reads === 17);
+  check("never matches: waits the full window (6000 ms)", sum(c.slept) === STORED_URL_WINDOW_MS);
+  check("never matches: reads at 0, 250, ..., 6000 (25 reads)", r.reads === 25);
 }
 
 // --- a match that only lands after the window is not seen
@@ -119,6 +119,19 @@ check("poll interval constant is ~250 ms", STORED_URL_POLL_MS === 250);
   const c = fakeClock(); const r = scripted([null]);
   const ok = await waitForStoredUrl({ readUrl: r.fn, expected: WANT, sleep: c.sleep, now: c.now, windowMs: 0 });
   check("zero window: one read, no sleep, false", ok === false && r.reads === 1 && c.slept.length === 0);
+}
+
+// --- eitherSignalUrl: the daemon seeing the extension connect counts even if the stored-URL read misses
+{
+  const E = "ws://127.0.0.1:13222/ws";
+  const a = await eitherSignalUrl({ readStored: () => null, isConnected: async () => true, expected: E })();
+  check("either-signal: daemon connected wins when the stored read misses (LevelDB flush)", a === E);
+  const b = await eitherSignalUrl({ readStored: () => E, isConnected: async () => false, expected: E })();
+  check("either-signal: stored URL alone is enough", b === E);
+  const c = await eitherSignalUrl({ readStored: () => "ws://127.0.0.1:13994/ws", isConnected: async () => false, expected: E })();
+  check("either-signal: neither signal -> returns the (stale) stored value, not expected", c !== E);
+  const d = await eitherSignalUrl({ readStored: () => E, isConnected: async () => { throw new Error("unreachable"); }, expected: E })();
+  check("either-signal: an unreachable daemon falls back to the stored URL", d === E);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
