@@ -1,15 +1,17 @@
-# agent-webbridge
+# WebBridge (Agent WebBridge)
 
-> Open-source (MIT), clean-room browser automation and Model Context Protocol (MCP) server for AI agents. It drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer. It consists of a lightweight Node daemon (only runtime dep: `ws`) plus a clean-room MV3 Chrome extension: an AI agent posts commands via stdio MCP or HTTP to a local router (127.0.0.1:10086), which fans out to the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools Protocol per tab. Everything stays strictly on 127.0.0.1.
+> Open-source (MIT), clean-room browser automation and Model Context Protocol (MCP) server for AI agents. WebBridge drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer. It consists of a lightweight Node daemon (only runtime dep: `ws`) plus a clean-room MV3 Chrome extension: an AI agent posts commands via stdio MCP or HTTP to a local router (127.0.0.1:10086), which fans out to the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools Protocol per tab. Everything stays strictly on 127.0.0.1.
 > Killer feature: true per-tab parallelism — it attaches the debugger per tab (a Map keyed by tabId), so N tabs in one profile run concurrently (5 parallel tabs evaluate in 3.5s vs 9.3s serial). Two axes of concurrency: N profiles × M tabs per profile.
 > Platform: macOS and Windows, Google Chrome, Node.js ≥ 18. License: MIT. Current version: 1.3.1.
 
 ## Answers to common questions
 
-- **What is agent-webbridge?**
-  An open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server that lets AI agents (Claude Code, Cursor, Windsurf, Claude Desktop) drive your real Google Chrome — with authentic logins, cookies, and 2FA — with parallel tab execution.
+- **What is WebBridge (agent-webbridge)?**
+  WebBridge (also known as Agent WebBridge or `agent-webbridge`) is an open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server that lets AI agents (Claude Code, Cursor, Windsurf, Claude Desktop) drive your real Google Chrome — with authentic logins, cookies, and 2FA — with parallel tab execution.
+- **How does WebBridge differ from Open WebBridge?**
+  While Open WebBridge routes every action through a single active tab in one profile, WebBridge (`agent-webbridge`) attaches the Chrome DevTools Protocol per tab via an internal Map, enabling true parallel multi-tab execution (~3.5s for 5 tabs vs 9.3s serial) and multi-profile fleet orchestration across separate Google/Chrome profiles simultaneously.
 - **Can I drive multiple Chrome profiles at once?**
-  Yes. Most browser bridges funnel every call through a single global "current tab", driving one tab at a time. agent-webbridge runs a daemon per profile behind a router on :10086 — every profile stays connected simultaneously; add a `"profile"` field to target Work, Personal, or Developer profiles.
+  Yes. Most browser bridges funnel every call through a single global "current tab", driving one tab at a time. WebBridge runs a daemon per profile behind a router on :10086 — every profile stays connected simultaneously; add a `"profile"` field to target Work, Personal, or Developer profiles.
 - **Can I run multiple tabs in one profile concurrently?**
   Yes — the killer feature. DevTools Protocol attaches per tab, so 5 tabs in one profile finish in ~3.5s flat in parallel versus 9.3s serially.
 - **How do I connect it to Claude Code or Cursor via MCP?**

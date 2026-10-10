@@ -71,13 +71,18 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "What is agent-webbridge?",
-      "acceptedAnswer": { "@type": "Answer", "text": "agent-webbridge is an open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server. It allows AI agents like Claude Code, Cursor, and Windsurf to drive your real Google Chrome — with your real login sessions — across multiple profiles simultaneously, with true per-tab parallel execution." }
+      "name": "What is WebBridge (Agent WebBridge)?",
+      "acceptedAnswer": { "@type": "Answer", "text": "WebBridge (agent-webbridge) is an open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server. It allows AI agents like Claude Code, Cursor, and Windsurf to drive your real Google Chrome — with your authentic login sessions, cookies, and 2FA — across multiple profiles simultaneously, with true per-tab parallel execution." }
     },
     {
       "@type": "Question",
-      "name": "How does agent-webbridge run tabs in parallel?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Most browser bridges funnel every CDP call through one global current tab, limiting execution to one tab at a time. agent-webbridge attaches the Chrome DevTools Protocol per tab using an internal Map keyed by tabId. 2, 5, or 10 tabs in a single profile evaluate concurrently in parallel (~3.5s for 5 tabs vs 9.3s serially)." }
+      "name": "How does WebBridge compare to Open WebBridge?",
+      "acceptedAnswer": { "@type": "Answer", "text": "While Open WebBridge routes every action through a single active tab in one profile, WebBridge (agent-webbridge) attaches the Chrome DevTools Protocol per tab via an internal Map, enabling true parallel multi-tab execution (~3.5s for 5 tabs vs 9.3s serial) and multi-profile fleet orchestration across separate Google/Chrome profiles simultaneously." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does WebBridge run tabs in parallel?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Most browser bridges funnel every CDP call through one global current tab, limiting execution to one tab at a time. WebBridge attaches the Chrome DevTools Protocol per tab using an internal Map keyed by tabId. 2, 5, or 10 tabs in a single profile evaluate concurrently in parallel (~3.5s for 5 tabs vs 9.3s serially)." }
     },
     {
       "@type": "Question",
@@ -1634,24 +1639,36 @@ Ready for agent commands.
   <div class="faq-list">
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>What is agent-webbridge?</span>
+        <span>What is WebBridge (Agent WebBridge)?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          <code>agent-webbridge</code> is an open-source (MIT) browser automation engine and Model Context Protocol (MCP) server. It allows AI agents like Claude Code, Cursor, and Windsurf to drive your real Google Chrome — with your real login sessions — across multiple profiles simultaneously, with true per-tab parallel execution.
+          <strong>WebBridge</strong> (<code>agent-webbridge</code>) is an open-source (MIT) browser automation engine and Model Context Protocol (MCP) server. It allows AI agents like Claude Code, Cursor, and Windsurf to drive your real Google Chrome — with your authentic login sessions, cookies, and 2FA — across multiple profiles simultaneously, with true per-tab parallel execution.
         </div>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-trigger" onclick="toggleFaq(this)">
-        <span>How does agent-webbridge run tabs in parallel?</span>
+        <span>How does WebBridge compare to Open WebBridge?</span>
         <span class="faq-trigger-icon">+</span>
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          This is the killer feature. Most bridges funnel every CDP call through one global "current tab". <code>agent-webbridge</code> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tabId). 2, 5, and 10 tabs in a single profile evaluate concurrently in parallel: 5 tabs finish in ~3.5s flat versus 9.3s serially.
+          While Open WebBridge routes every action through a single active tab in one profile, <strong>WebBridge</strong> (<code>agent-webbridge</code>) attaches the Chrome DevTools Protocol per tab via an internal <code>Map</code>, enabling true parallel multi-tab execution (~3.5s for 5 tabs vs 9.3s serial) and multi-profile fleet orchestration across separate Google/Chrome profiles simultaneously.
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-trigger" onclick="toggleFaq(this)">
+        <span>How does WebBridge run tabs in parallel?</span>
+        <span class="faq-trigger-icon">+</span>
+      </button>
+      <div class="faq-content">
+        <div class="faq-inner">
+          This is the killer feature. Most bridges funnel every CDP call through one global "current tab". <strong>WebBridge</strong> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tabId). 2, 5, and 10 tabs in a single profile evaluate concurrently in parallel: 5 tabs finish in ~3.5s flat versus 9.3s serially.
         </div>
       </div>
     </div>
