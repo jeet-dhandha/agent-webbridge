@@ -117,18 +117,21 @@ assertion. **Status: 11/11 PASS.**
 **Live gates (require Chrome for Testing):**
 
 ```bash
-# Point AWB_CHROME_BIN at a Chrome / Chrome for Testing binary, then:
-AWB_CHROME_BIN="/path/to/Google Chrome for Testing" node scratch/live_m1.mjs   # → 7/7
-AWB_CHROME_BIN="/path/to/Google Chrome for Testing" node scratch/live_m2.mjs   # → 19/19
+# The scripts read KWB_CHROME_BIN (live_m2 requires it; live_m1 falls back to branded Chrome, which
+# ignores --load-extension, so always set it). Use a Chrome for Testing binary:
+export KWB_CHROME_BIN="$PWD/chrome/mac_arm-<version>/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+node scratch/live_m1.mjs   # → 7/7
+node scratch/live_m2.mjs   # → 20/20  (all 15 tools; includes trusted_click)
 ```
 
 Both live scripts are **fully isolated** — they cold-start a throwaway Chrome with a fresh
 `--user-data-dir` and load the unpacked `agent-webbridge-extension/`; they **never touch the
 user's real Chrome or profiles**. `live_m1.mjs` drives two tabs to evaluate concurrently and
 asserts their in-page sleep intervals overlap (true per-tab parallelism). `live_m2.mjs` serves a
-controlled test page and exercises every one of the 13 tools with real assertions. If
-`AWB_CHROME_BIN` is unset, the scripts fall back to a default Chrome path; prefer Chrome for
-Testing so the run is reproducible and never collides with your daily browser.
+controlled test page and exercises every tool with real assertions. Branded Google Chrome 137+
+ignores `--load-extension`, so a Chrome for Testing build is required (the repo's gitignored
+`chrome/` folder is a convenient place to keep one). `scratch/` is gitignored, so these scripts
+exist only in a local checkout.
 
 > Per the project's verification discipline: don't stop at the contract test. Any change to the
 > daemon, extension, fleet, or parallelism path must be re-validated against the live gates.
