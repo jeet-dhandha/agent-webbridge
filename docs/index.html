@@ -39,7 +39,7 @@
   "alternateName": ["WebBridge", "Agent WebBridge", "Open WebBridge Alternative", "Kimi WebBridge Alternative", "WebBridge MCP"],
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS, Windows, Linux",
-  "softwareVersion": "1.3.1",
+  "softwareVersion": "1.3.2",
   "datePublished": "2026-03-01",
   "dateModified": "2026-10-10",
   "releaseNotes": "https://github.com/jeet-dhandha/agent-webbridge/releases",
@@ -1113,7 +1113,7 @@
   <!-- TOP DECK: SYSTEM METRICS AND ROUTER STATS -->
   <header>
     <div class="header-left">
-      <span>AWB-CONTROL v1.3.1</span>
+      <span>AWB-CONTROL v1.3.2</span>
       <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">(Updated Oct 2026)</span>
       <span class="status-indicator">
         <span class="status-pulse"></span>
@@ -1124,6 +1124,7 @@
       <a href="#demos">DEMOS</a>
       <a href="#recipes">RECIPES</a>
       <a href="#mcp">MCP SETUP</a>
+      <a href="#guides">GUIDES</a>
       <a href="#ecosystem">ECOSYSTEM</a>
       <a href="#install-section">CLI</a>
       <a href="#playground">PLAYGROUND</a>
@@ -1630,6 +1631,50 @@ Ready for agent commands.
     </div>
   </div>
 
+  <!-- GUIDES & SOLUTIONS SECTION -->
+  <div class="section-title-wrap" id="guides">
+    <div class="section-title">Deep Dive Guides &amp; Solutions</div>
+    <div class="section-subtitle-mono">In-depth technical architecture and workflow guides</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: var(--bg-panel); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-green); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">MCP Protocol</div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;"><a href="./chrome-mcp-server/" style="color: inherit; text-decoration: none;">Chrome MCP Server</a></h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">Complete setup guide, 13-tool reference matrix, compact @e accessibility snapshots, and 127.0.0.1 loopback security architecture.</p>
+      </div>
+      <a href="./chrome-mcp-server/" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); text-decoration: none;">Read Guide &rarr;</a>
+    </div>
+
+    <div style="background: var(--bg-panel); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-blue); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Claude Code</div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;"><a href="./claude-code-browser-automation/" style="color: inherit; text-decoration: none;">Claude Code Integration</a></h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">Connect Claude Code to your real Chrome profile in 5 minutes. Verified prompt recipes, safe form filling, and diagnostic troubleshooting.</p>
+      </div>
+      <a href="./claude-code-browser-automation/" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); text-decoration: none;">Read Guide &rarr;</a>
+    </div>
+
+    <div style="background: var(--bg-panel); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-amber); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Fleet Concurrency</div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;"><a href="./multi-profile-chrome-automation/" style="color: inherit; text-decoration: none;">Multi-Profile Automation</a></h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">Automate separate Chrome profiles simultaneously. Isolated cookies, deterministic hashed ports, and two-dimensional N&times;M parallel tabs.</p>
+      </div>
+      <a href="./multi-profile-chrome-automation/" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); text-decoration: none;">Read Guide &rarr;</a>
+    </div>
+
+    <div style="background: var(--bg-panel); border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent-red); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">Architecture</div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;"><a href="./real-chrome-vs-headless/" style="color: inherit; text-decoration: none;">Real Chrome vs Headless</a></h3>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">Why AI agents get stuck behind headless bot walls, preserving 2FA &amp; passkeys, zero credential storage, and avoiding cloud browser fees.</p>
+      </div>
+      <a href="./real-chrome-vs-headless/" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); text-decoration: none;">Read Guide &rarr;</a>
+    </div>
+  </div>
+
   <!-- FAQ SECTION -->
   <div class="section-title-wrap" id="faq">
     <div class="section-title">Frequently Asked Questions</div>
@@ -1737,11 +1782,19 @@ Ready for agent commands.
   <!-- FOOTER -->
   <footer>
     <div class="footer-links">
+      <a href="./chrome-mcp-server/">Chrome MCP Server</a>
+      <span>&middot;</span>
+      <a href="./claude-code-browser-automation/">Claude Code Guide</a>
+      <span>&middot;</span>
+      <a href="./multi-profile-chrome-automation/">Multi-Profile Automation</a>
+      <span>&middot;</span>
+      <a href="./real-chrome-vs-headless/">Real Chrome vs Headless</a>
+      <span>&middot;</span>
       <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub Repo</a>
       <span>&middot;</span>
       <a href="https://github.com/jeet-dhandha/awb-recipes">awb-recipes</a>
       <span>&middot;</span>
-      <a href="https://www.npmjs.com/package/agent-webbridge">npm Package (v1.3.1)</a>
+      <a href="https://www.npmjs.com/package/agent-webbridge">npm Package (v1.3.2)</a>
       <span>&middot;</span>
       <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a>
       <span>&middot;</span>

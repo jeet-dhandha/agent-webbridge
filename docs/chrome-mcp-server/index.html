@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Chrome MCP Server: Control Real Chrome Locally | WebBridge</title>
+<meta name="description" content="Open-source Chrome MCP server for AI agents. Control real signed-in Chrome profiles with CDP, multi-profile routing, and parallel tabs locally on 127.0.0.1.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/chrome-mcp-server/">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="chrome mcp server, browser automation mcp, model context protocol chrome, claude code browser, cursor mcp chrome, local browser mcp, cdp mcp server">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="Chrome MCP Server: Control Real Chrome Locally | WebBridge">
+<meta property="og:description" content="Open-source Chrome MCP server for AI agents. Control real signed-in Chrome profiles with CDP, multi-profile routing, and parallel tabs locally on 127.0.0.1.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/chrome-mcp-server/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chrome MCP Server: Control Real Chrome Locally | WebBridge">
+<meta name="twitter:description" content="Open-source Chrome MCP server for AI agents. Control real signed-in Chrome profiles with CDP, multi-profile routing, and parallel tabs locally on 127.0.0.1.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Chrome MCP Server: How to Let AI Agents Control Real Chrome Locally",
+  "description": "Comprehensive guide to setting up and operating an open-source Model Context Protocol (MCP) server for Google Chrome with real login preservation and multi-profile parallel tabs.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/chrome-mcp-server/",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": {
+    "@type": "Person",
+    "name": "jeet-dhandha"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "WebBridge",
+    "url": "https://jeet-dhandha.github.io/agent-webbridge/"
+  },
+  "keywords": ["chrome mcp server", "browser automation mcp", "cdp mcp server", "claude code chrome", "local browser automation"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Chrome MCP Server",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/chrome-mcp-server/"
+    }
+  ]
+}
+</script>
+
+<!-- Structured data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a Chrome MCP server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A Chrome MCP server is a local bridge implementing Anthropic's Model Context Protocol (MCP) that exposes Chrome DevTools Protocol capabilities to AI clients like Claude Code, Cursor, and Windsurf as structured tool calls. WebBridge (agent-webbridge) runs as a zero-dependency stdio MCP server on your local machine."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does WebBridge require sending browser data to a cloud service?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. WebBridge operates 100% locally on loopback 127.0.0.1. No cookies, page DOMs, tokens, or screenshots ever leave your machine. The local daemon and extension communicate strictly over local loopback WebSockets."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does WebBridge support parallel browser tabs?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Unlike legacy browser bridges that multiplex all commands through one global current tab, WebBridge attaches chrome.debugger per tab using an internal Map keyed by tabId. Multiple tabs within a single Chrome profile can navigate and evaluate concurrently in parallel."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install the Chrome MCP server in Claude Code?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "First run npm i -g agent-webbridge && awb setup \"Work\" to pair your Chrome profile. Then run claude mcp add chrome -- npx -y agent-webbridge mcp. Claude Code will immediately register all 13 browser tools."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header-left { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; }
+  .header-nav { display: flex; align-items: center; gap: 1.25rem; font-size: 0.75rem; flex-wrap: wrap; }
+  .header-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  .header-nav a:hover { color: var(--text-primary); text-decoration: underline; }
+  .status-indicator { display: flex; align-items: center; gap: 0.5rem; color: var(--accent-green); }
+  .status-pulse { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.45rem; font-weight: 700; margin-top: 1rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+  h3 { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+  p { color: var(--text-secondary); }
+
+  .tldr-box {
+    background: #fff;
+    border-left: 4px solid var(--accent-green);
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .tldr-box strong { color: var(--accent-green); font-family: var(--font-mono); font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  code { font-family: var(--font-mono); background: var(--bg-code); padding: 0.15rem 0.35rem; border-radius: 2px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+  th { background: #e0e0dc; font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; }
+  tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+
+  .badge-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: #e0e0dc;
+    border: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--border-accent);
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-brutal);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-accent); }
+  .btn-secondary { background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border-accent); }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    background: #fff;
+    margin-bottom: 0.75rem;
+  }
+  .faq-btn {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-content {
+    display: none;
+    padding: 0 1.25rem 1rem;
+    color: var(--text-secondary);
+    border-top: 1px dashed var(--border-color);
+  }
+  .faq-item.open .faq-content { display: block; }
+  .faq-item.open .faq-btn::after { content: "−"; font-family: var(--font-mono); }
+  .faq-item:not(.open) .faq-btn::after { content: "+"; font-family: var(--font-mono); }
+
+  footer {
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- TOP DECK -->
+  <header>
+    <div class="header-left">
+      <a href="../" style="text-decoration:none; color:inherit;"><span>AWB-CONTROL</span></a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">v1.3.2</span>
+      <span class="status-indicator">
+        <span class="status-pulse"></span>
+        <span>SYSTEM ONLINE</span>
+      </span>
+    </div>
+    <nav class="header-nav">
+      <a href="../">OVERVIEW</a>
+      <a href="../claude-code-browser-automation/">CLAUDE CODE</a>
+      <a href="../multi-profile-chrome-automation/">MULTI-PROFILE</a>
+      <a href="../real-chrome-vs-headless/">REAL VS HEADLESS</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="./">Guides</a>
+    <span>/</span>
+    <span>Chrome MCP Server</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">TECHNICAL SPECIFICATION &middot; INTEGRATION MANUAL</div>
+    <h1>Chrome MCP Server: Control Real Chrome Locally with AI Agents</h1>
+    <p>A zero-cloud, open-source Model Context Protocol (MCP) server that lets Claude Code, Cursor, and Windsurf drive your authentic, logged-in Google Chrome browser across multiple profiles in parallel.</p>
+
+    <!-- TL;DR / QUICK ANSWER -->
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      WebBridge (<code>agent-webbridge</code>) is a local Chrome browser-automation MCP server that enables AI agents to operate real, signed-in Chrome profiles with multi-profile routing and parallel tabs. It executes as a zero-dependency stdio server over <code>npx -y agent-webbridge mcp</code>, communicating with your browser via a lightweight MV3 extension on loopback <code>127.0.0.1:10086</code> without sending browsing data to any cloud service.
+    </div>
+
+    <!-- QUICKSTART -->
+    <h2>1. 30-Second Installation & Setup</h2>
+    <p>Install the CLI and pair your target Chrome profile with its local daemon:</p>
+
+    <pre><code># 1. Install agent-webbridge globally
+npm i -g agent-webbridge
+
+# 2. Pair your Chrome profile (e.g. "Work" or "Default")
+awb setup "Work"</code></pre>
+
+    <p>Add the stdio MCP server to your agent's configuration file (e.g. <code>claude.json</code>, <code>settings.json</code>, or Claude Desktop):</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "chrome": {
+      "command": "npx",
+      "args": ["-y", "agent-webbridge", "mcp"]
+    }
+  }
+}</code></pre>
+
+    <p>For Claude Code users, configure the server in one shell command:</p>
+    <pre><code>claude mcp add chrome -- npx -y agent-webbridge mcp</code></pre>
+
+    <!-- TOOL REFERENCE MATRIX -->
+    <h2>2. Complete 13-Tool MCP Interface</h2>
+    <p>WebBridge registers 13 specialized browser automation tools directly into your AI client's model context. Every tool supports optional <code>profile</code> and <code>tabId</code> parameters for multi-profile and parallel tab execution:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>MCP Tool</th>
+          <th>Purpose & Capability</th>
+          <th>Key Inputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>browser_navigate</code></td>
+          <td>Navigate to any URL. Supports opening in a new parallel tab or reusing the active session tab.</td>
+          <td><code>url</code>, <code>newTab</code>, <code>session</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_snapshot</code></td>
+          <td>Extracts an LLM-optimized accessibility tree with compact <code>@e</code> element references (e.g. <code>@e14</code>) rather than bloated raw HTML.</td>
+          <td><code>profile</code>, <code>tabId</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_click</code></td>
+          <td>Synthetically click an element by accessibility ref (<code>@e12</code>) or standard CSS selector.</td>
+          <td><code>selector</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_trusted_click</code></td>
+          <td>Dispatches authentic Chrome DevTools Protocol mouse events (<code>isTrusted: true</code>) with precise coordinates to bypass click-blocking UI overlays.</td>
+          <td><code>selector</code>, <code>x</code>, <code>y</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_fill</code></td>
+          <td>Enters text into native inputs, textareas, and rich <code>contenteditable</code> elements.</td>
+          <td><code>selector</code>, <code>value</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_evaluate</code></td>
+          <td>Executes arbitrary JavaScript in the page execution context and returns structured JSON results.</td>
+          <td><code>code</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_screenshot</code></td>
+          <td>Captures full page or element screenshots written directly to disk (never flooding context with raw base64).</td>
+          <td><code>path</code>, <code>selector</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_save_as_pdf</code></td>
+          <td>Generates clean PDF documents directly from the rendered DOM.</td>
+          <td><code>path</code>, <code>paper_format</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_network</code></td>
+          <td>Inspects live network requests and captured API responses (start, stop, list, detail).</td>
+          <td><code>cmd</code>, <code>filter</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_upload</code></td>
+          <td>Attaches local files directly to file upload form elements.</td>
+          <td><code>selector</code>, <code>files</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_list_tabs</code></td>
+          <td>Inspects all active browser tabs, URLs, titles, and tab group associations.</td>
+          <td><code>profile</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_find_tab</code></td>
+          <td>Focuses and attaches debugger control to an existing open tab by URL.</td>
+          <td><code>url</code>, <code>active</code></td>
+        </tr>
+        <tr>
+          <td><code>browser_close_session</code></td>
+          <td>Closes all tabs opened by the agent session, keeping the user's personal tabs untouched.</td>
+          <td><code>session</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ARCHITECTURE & LOCAL SECURITY -->
+    <h2>3. Architecture & Local Security Boundary</h2>
+    <p>Agent WebBridge is designed from the ground up for strict local privacy:</p>
+    <ul>
+      <li><strong>Loopback Isolation:</strong> All communication between MCP clients, the central router, and per-profile daemons occurs over <code>127.0.0.1</code>. No external traffic is ever transmitted.</li>
+      <li><strong>DNS Rebinding & Origin Protection:</strong> Built-in HTTP guards reject any incoming requests bearing a web <code>Origin</code> header or non-loopback <code>Host</code> header, ensuring untrusted web pages visited in Chrome cannot send commands to your local bridge.</li>
+      <li><strong>Session Authenticity:</strong> Because WebBridge connects to your real browser, your existing 2FA tokens, session cookies, and login credentials stay securely inside Chrome's native keychain.</li>
+      <li><strong>Visible Tab Groups:</strong> Every automated tab created by an agent session is clearly assigned to a colored Chrome tab group (e.g. <code>agent:mcp</code>), making agent actions 100% visible and manually revocable at any second.</li>
+    </ul>
+
+    <!-- COMPARISON TABLE -->
+    <h2>4. WebBridge vs Headless & Cloud MCPs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Capability</th>
+          <th>WebBridge MCP</th>
+          <th>Puppeteer / Playwright MCP</th>
+          <th>Cloud Browser MCP (Steel/Browserbase)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Browser Session</strong></td>
+          <td>Your real Chrome (active logins & cookies)</td>
+          <td>Blank incognito session (requires re-login)</td>
+          <td>Remote cloud container (requires credential upload)</td>
+        </tr>
+        <tr>
+          <td><strong>Anti-Bot & CAPTCHA</strong></td>
+          <td>No bot flags; real browser fingerprint</td>
+          <td>Frequently flagged by Cloudflare/Datadome</td>
+          <td>Requires expensive proxy rotation</td>
+        </tr>
+        <tr>
+          <td><strong>Multi-Profile Routing</strong></td>
+          <td>Built-in router across distinct profiles</td>
+          <td>Manual directory scripting</td>
+          <td>Separate billable remote containers</td>
+        </tr>
+        <tr>
+          <td><strong>Parallel Tabs</strong></td>
+          <td>Per-tab CDP attachment (~3.5s for 5 tabs)</td>
+          <td>Single-threaded script or high RAM cost</td>
+          <td>Per-tab billing and latency overhead</td>
+        </tr>
+        <tr>
+          <td><strong>Cost & Licensing</strong></td>
+          <td>Free, MIT Open Source</td>
+          <td>Free, MIT Open Source</td>
+          <td>$20–$200+/month usage-based pricing</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- FAQ SECTION -->
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">What is a Chrome MCP server?</button>
+      <div class="faq-content">
+        A Chrome MCP server is a local bridge implementing Anthropic's Model Context Protocol (MCP) that exposes Chrome DevTools Protocol capabilities to AI clients like Claude Code, Cursor, and Windsurf as structured tool calls. WebBridge (agent-webbridge) runs as a zero-dependency stdio MCP server on your local machine.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">Does WebBridge require sending browser data to a cloud service?</button>
+      <div class="faq-content">
+        No. WebBridge operates 100% locally on loopback 127.0.0.1. No cookies, page DOMs, tokens, or screenshots ever leave your machine. The local daemon and extension communicate strictly over local loopback WebSockets.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How does WebBridge support parallel browser tabs?</button>
+      <div class="faq-content">
+        Unlike legacy browser bridges that multiplex all commands through one global current tab, WebBridge attaches chrome.debugger per tab using an internal Map keyed by tabId. Multiple tabs within a single Chrome profile can navigate and evaluate concurrently in parallel.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How do I install the Chrome MCP server in Claude Code?</button>
+      <div class="faq-content">
+        First run <code>npm i -g agent-webbridge && awb setup "Work"</code> to pair your Chrome profile. Then run <code>claude mcp add chrome -- npx -y agent-webbridge mcp</code>. Claude Code will immediately register all 13 browser tools.
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="https://github.com/jeet-dhandha/agent-webbridge" class="btn">View Source on GitHub</a>
+      <a href="../claude-code-browser-automation/" class="btn btn-secondary">Claude Code Setup Guide &rarr;</a>
+    </div>
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="../multi-profile-chrome-automation/">Multi-Profile Automation</a> &middot;
+      <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

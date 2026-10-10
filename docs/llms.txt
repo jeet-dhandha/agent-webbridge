@@ -2,7 +2,7 @@
 
 > Open-source (MIT), clean-room browser automation and Model Context Protocol (MCP) server for AI agents. WebBridge drives your real Chrome — with your real login sessions — across multiple Chrome profiles at once, and runs multiple tabs per profile concurrently. No closed-source dependency, no account, no telemetry, no curl|bash installer. It consists of a lightweight Node daemon (only runtime dep: `ws`) plus a clean-room MV3 Chrome extension: an AI agent posts commands via stdio MCP or HTTP to a local router (127.0.0.1:10086), which fans out to the right profile's daemon, which speaks to the extension, which attaches the Chrome DevTools Protocol per tab. Everything stays strictly on 127.0.0.1.
 > Killer feature: true per-tab parallelism — it attaches the debugger per tab (a Map keyed by tabId), so N tabs in one profile run concurrently (5 parallel tabs evaluate in 3.5s vs 9.3s serial). Two axes of concurrency: N profiles × M tabs per profile.
-> Platform: macOS and Windows, Google Chrome, Node.js ≥ 18. License: MIT. Current version: 1.3.1.
+> Platform: macOS and Windows, Google Chrome, Node.js ≥ 18. License: MIT. Current version: 1.3.2.
 
 ## Answers to common questions
 
@@ -22,6 +22,13 @@
   Published on the Official MCP Registry (`io.github.jeet-dhandha/agent-webbridge`), featured in `punkpeye/awesome-mcp-servers`, listed in curated `awesome-claude-skills` registries, published on npm (`agent-webbridge`), and published in the Chrome Web Store (`Agent WebBridge`).
 - **Is agent-webbridge secure and private?**
   Yes. Everything runs 100% locally on 127.0.0.1. Starting in v1.3.1, the router and daemons enforce strict Host and Origin validation, refusing any request carrying a web Origin or a non-loopback Host header.
+
+## Deep Dive Guides & Technical Documentation
+
+- Chrome MCP Server: https://jeet-dhandha.github.io/agent-webbridge/chrome-mcp-server/ — Setup, complete 13-tool reference matrix, and local loopback security architecture.
+- Claude Code Browser Automation: https://jeet-dhandha.github.io/agent-webbridge/claude-code-browser-automation/ — 5-minute setup, prompt recipes, and diagnostic runbooks for Claude Code.
+- Multi-Profile Chrome Automation: https://jeet-dhandha.github.io/agent-webbridge/multi-profile-chrome-automation/ — Profile isolation, deterministic hashed ports, and two-dimensional fleet concurrency.
+- Real Chrome vs Headless Automation: https://jeet-dhandha.github.io/agent-webbridge/real-chrome-vs-headless/ — Why AI agents fail in headless browsers, authentication reuse, and bot detection mitigation.
 
 ## Quickstart & Installation
 

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Multi-Profile Chrome Automation for AI Agents | WebBridge</title>
+<meta name="description" content="Automate multiple Google Chrome profiles simultaneously. Isolated cookies, accounts, and parallel tabs behind a deterministic loopback router on 127.0.0.1.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/multi-profile-chrome-automation/">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="multi-profile chrome automation, automate multiple chrome profiles, multiple accounts browser automation, agent multiple chrome profiles, parallel chrome profiles">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="Multi-Profile Chrome Automation for AI Agents | WebBridge">
+<meta property="og:description" content="Automate multiple Google Chrome profiles simultaneously. Isolated cookies, accounts, and parallel tabs behind a deterministic loopback router on 127.0.0.1.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/multi-profile-chrome-automation/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Multi-Profile Chrome Automation for AI Agents | WebBridge">
+<meta name="twitter:description" content="Automate multiple Google Chrome profiles simultaneously. Isolated cookies, accounts, and parallel tabs behind a deterministic loopback router on 127.0.0.1.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Multi-Profile Chrome Automation: Architecture and Concurrency for AI Agents",
+  "description": "Technical guide explaining how WebBridge orchestrates multiple Google Chrome profiles concurrently with isolated cookies, hashed ports, and per-tab CDP parallelism.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/multi-profile-chrome-automation/",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": {
+    "@type": "Person",
+    "name": "jeet-dhandha"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "WebBridge",
+    "url": "https://jeet-dhandha.github.io/agent-webbridge/"
+  },
+  "keywords": ["multi-profile chrome automation", "automate multiple chrome profiles", "chrome profile router", "parallel browser tabs", "agentic browser automation"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Multi-Profile Chrome Automation",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/multi-profile-chrome-automation/"
+    }
+  ]
+}
+</script>
+
+<!-- Structured data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does WebBridge isolate multiple Chrome profiles?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Each Chrome profile maintains its own completely independent cookie jar, localStorage, session cache, and extension storage. WebBridge runs an isolated lightweight Node daemon on a deterministic hashed port for each profile, behind a central loopback router on 127.0.0.1:10086."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can an AI agent automate actions across two profiles at the same time?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. By specifying the target profile in the command (e.g. { profile: 'Work' } and { profile: 'Personal' }), an agent can read an email in one profile while updating a pull request or verifying a dashboard in another, without logging in and out."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does WebBridge achieve parallel tab execution?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "WebBridge attaches chrome.debugger per tab in a Map keyed by tabId rather than funneling calls through a single global active tab. This allows 5 tabs in a profile to evaluate in parallel at ~3.5s compared to 9.3s serially."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are legitimate use cases for multi-profile automation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Legitimate use cases include multi-tenant web application testing, client-authorized account workflows, verifying user permissions across admin and standard roles, and separating work and personal workspaces. Mass platform manipulation or botting is prohibited."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header-left { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; }
+  .header-nav { display: flex; align-items: center; gap: 1.25rem; font-size: 0.75rem; flex-wrap: wrap; }
+  .header-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  .header-nav a:hover { color: var(--text-primary); text-decoration: underline; }
+  .status-indicator { display: flex; align-items: center; gap: 0.5rem; color: var(--accent-green); }
+  .status-pulse { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.45rem; font-weight: 700; margin-top: 1rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+  h3 { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+  p { color: var(--text-secondary); }
+
+  .tldr-box {
+    background: #fff;
+    border-left: 4px solid var(--accent-green);
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .tldr-box strong { color: var(--accent-green); font-family: var(--font-mono); font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  code { font-family: var(--font-mono); background: var(--bg-code); padding: 0.15rem 0.35rem; border-radius: 2px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+
+  .arch-diagram {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+  th { background: #e0e0dc; font-family: var(--font-mono); font-size: 0.8rem; text-transform: uppercase; }
+  tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--border-accent);
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-brutal);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-accent); }
+  .btn-secondary { background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border-accent); }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    background: #fff;
+    margin-bottom: 0.75rem;
+  }
+  .faq-btn {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-content {
+    display: none;
+    padding: 0 1.25rem 1rem;
+    color: var(--text-secondary);
+    border-top: 1px dashed var(--border-color);
+  }
+  .faq-item.open .faq-content { display: block; }
+  .faq-item.open .faq-btn::after { content: "−"; font-family: var(--font-mono); }
+  .faq-item:not(.open) .faq-btn::after { content: "+"; font-family: var(--font-mono); }
+
+  footer {
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- TOP DECK -->
+  <header>
+    <div class="header-left">
+      <a href="../" style="text-decoration:none; color:inherit;"><span>AWB-CONTROL</span></a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">v1.3.2</span>
+      <span class="status-indicator">
+        <span class="status-pulse"></span>
+        <span>SYSTEM ONLINE</span>
+      </span>
+    </div>
+    <nav class="header-nav">
+      <a href="../">OVERVIEW</a>
+      <a href="../chrome-mcp-server/">CHROME MCP</a>
+      <a href="../claude-code-browser-automation/">CLAUDE CODE</a>
+      <a href="../real-chrome-vs-headless/">REAL VS HEADLESS</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="./">Guides</a>
+    <span>/</span>
+    <span>Multi-Profile Chrome Automation</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">FLEET ARCHITECTURE &middot; CONCURRENCY RUNBOOK</div>
+    <h1>Multi-Profile Chrome Automation for AI Agents</h1>
+    <p>How WebBridge orchestrates multiple Google Chrome profiles simultaneously with isolated cookies, deterministic port routing, and two-dimensional parallelism.</p>
+
+    <!-- TL;DR / QUICK ANSWER -->
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      WebBridge solves multi-profile Chrome automation by pairing each local Chrome profile (e.g. Work, Personal, QA) with a dedicated background daemon bound to a deterministic hashed port (10000–15000). A central proxy router on <code>127.0.0.1:10086</code> inspects the top-level <code>"profile"</code> argument of incoming MCP requests and transparently forwards them to the correct profile. Sessions, logins, and cookies remain 100% isolated.
+    </div>
+
+    <!-- ARCHITECTURE -->
+    <h2>1. The Multi-Profile Fleet Architecture</h2>
+    <p>Standard browser automation scripts struggle with multiple profiles because Chrome locks profile directories against multiple simultaneous instances. WebBridge works with Chrome's native multi-profile engine rather than fighting it:</p>
+
+    <div class="arch-diagram">caller (Claude Code / MCP client / curl)
+  │
+  ▼ POST /command (includes "profile": "Work" or "Personal")
+Router (127.0.0.1:10086)
+  │
+  ├── routes "Work" ──▶ Daemon 1 (port 13222) ──WS──▶ Extension in Profile "Work"
+  │                                                      └── CDP per-tab Map (Tab 1, Tab 2...)
+  │
+  └── routes "Personal" ─▶ Daemon 2 (port 13336) ──WS─▶ Extension in Profile "Personal"
+                                                         └── CDP per-tab Map (Tab 1, Tab 2...)</div>
+
+    <p>Key architectural properties:</p>
+    <ul>
+      <li><strong>Deterministic Hashed Ports:</strong> Each profile directory name is hashed to a stable port in the range 10000–15000 (e.g. <code>Work</code> &rarr; 13222). There is never a port collision.</li>
+      <li><strong>LevelDB Direct Configuration:</strong> The <code>awb connect</code> command writes the daemon URL directly to the extension's local LevelDB storage, eliminating manual popup configuration clicks.</li>
+      <li><strong>Session Tab Groups:</strong> Each agent session organizes its opened tabs into a visible Chrome tab group named after the session (e.g. <code>agent:audit</code>), completely separated from your daily tabs.</li>
+    </ul>
+
+    <!-- COMMANDS -->
+    <h2>2. CLI Management & Profile Discovery</h2>
+    <p>Discovering and bringing up your fleet requires only two CLI commands:</p>
+
+    <pre><code># 1. Discover all Chrome profiles on your system
+awb profiles
+
+# Output:
+# Found 3 profiles:
+# - Profile: "Work"     (Port: 13222, Daemon: UP)
+# - Profile: "Personal" (Port: 13336, Daemon: UP)
+# - Profile: "QA-Test"  (Port: 14102, Daemon: UP)
+
+# 2. Boot the entire fleet behind router 10086
+awb up "Work" "Personal" "QA-Test"</code></pre>
+
+    <!-- TWO-DIMENSIONAL PARALLELISM -->
+    <h2>3. Two-Dimensional Fleet Concurrency (N &times; M)</h2>
+    <p>WebBridge offers two distinct dimensions of parallelism:</p>
+    <ul>
+      <li><strong>Dimension 1 (Cross-Profile):</strong> N different Chrome profiles running simultaneously, each with distinct accounts and IP sessions.</li>
+      <li><strong>Dimension 2 (Per-Tab CDP):</strong> M concurrent tabs per profile running independent CDP sessions attached via a Map.</li>
+    </ul>
+    <p>This delivers total concurrency of <strong>N &times; M</strong>. In reproducible live benchmarks, 5 tabs in a single profile evaluate in <strong>~3.5 seconds in parallel vs 9.3 seconds serially</strong>:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Execution Model</th>
+          <th>1 Tab</th>
+          <th>3 Tabs</th>
+          <th>5 Tabs</th>
+          <th>Profile Isolation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Legacy Browser Bridges</strong></td>
+          <td>~1.9s</td>
+          <td>~5.8s (serial queue)</td>
+          <td>~9.3s (serial queue)</td>
+          <td>1 profile at a time</td>
+        </tr>
+        <tr>
+          <td><strong>WebBridge Fleet (AWB)</strong></td>
+          <td>~1.9s</td>
+          <td>~2.2s (parallel)</td>
+          <td>~3.5s (parallel)</td>
+          <td>N isolated profiles</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- LEGITIMATE USES & GUARDRAILS -->
+    <h2>4. Legitimate Use Cases & Safety Guardrails</h2>
+    <p>Multi-profile automation is designed for authorized developer workflows:</p>
+    <ul>
+      <li><strong>Role-Based Access Testing:</strong> Verifying permissions simultaneously as Admin in Profile 1 and Standard User in Profile 2.</li>
+      <li><strong>Work vs Personal Isolation:</strong> Allowing an agent to access company GitHub in Profile "Work" without exposing personal Google Drive in Profile "Personal".</li>
+      <li><strong>Client Account Separation:</strong> Maintaining strictly isolated browser states for independent client consulting engagements.</li>
+    </ul>
+    <p><strong>Guardrails:</strong> WebBridge is not designed for platform evasion, multi-account mass botting, or circumventing website terms of service. All profiles share your local machine's egress IP address and hardware fingerprint.</p>
+
+    <!-- FAQ SECTION -->
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How does WebBridge isolate multiple Chrome profiles?</button>
+      <div class="faq-content">
+        Each Chrome profile maintains its own completely independent cookie jar, localStorage, session cache, and extension storage. WebBridge runs an isolated lightweight Node daemon on a deterministic hashed port for each profile, behind a central loopback router on 127.0.0.1:10086.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">Can an AI agent automate actions across two profiles at the same time?</button>
+      <div class="faq-content">
+        Yes. By specifying the target profile in the command (e.g. <code>{ profile: "Work" }</code> and <code>{ profile: "Personal" }</code>), an agent can read an email in one profile while updating a pull request or verifying a dashboard in another, without logging in and out.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How does WebBridge achieve parallel tab execution?</button>
+      <div class="faq-content">
+        WebBridge attaches chrome.debugger per tab in a Map keyed by tabId rather than funneling calls through a single global active tab. This allows 5 tabs in a profile to evaluate in parallel at ~3.5s compared to 9.3s serially.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">What are legitimate use cases for multi-profile automation?</button>
+      <div class="faq-content">
+        Legitimate use cases include multi-tenant web application testing, client-authorized account workflows, verifying user permissions across admin and standard roles, and separating work and personal workspaces. Mass platform manipulation or botting is prohibited.
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="https://github.com/jeet-dhandha/agent-webbridge" class="btn">View Source on GitHub</a>
+      <a href="../real-chrome-vs-headless/" class="btn btn-secondary">Real Chrome vs Headless Guide &rarr;</a>
+    </div>
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="../multi-profile-chrome-automation/">Multi-Profile Automation</a> &middot;
+      <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

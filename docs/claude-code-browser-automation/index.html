@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Claude Code Browser Automation with Chrome MCP | WebBridge</title>
+<meta name="description" content="Connect Claude Code to your real Google Chrome profile in 5 minutes. Run authenticated browser workflows, multi-tab scraping, and form filling locally.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/claude-code-browser-automation/">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="claude code browser automation, give claude code access to chrome, claude code chrome mcp, claude desktop browser automation, claude code browser tools">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="Claude Code Browser Automation with Chrome MCP | WebBridge">
+<meta property="og:description" content="Connect Claude Code to your real Google Chrome profile in 5 minutes. Run authenticated browser workflows, multi-tab scraping, and form filling locally.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/claude-code-browser-automation/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Claude Code Browser Automation with Chrome MCP | WebBridge">
+<meta name="twitter:description" content="Connect Claude Code to your real Google Chrome profile in 5 minutes. Run authenticated browser workflows, multi-tab scraping, and form filling locally.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Claude Code Browser Automation: Connect Claude Code to Real Chrome",
+  "description": "Step-by-step tutorial on connecting Claude Code to your real signed-in Google Chrome browser using WebBridge MCP server, with practical prompts and troubleshooting.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/claude-code-browser-automation/",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": {
+    "@type": "Person",
+    "name": "jeet-dhandha"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "WebBridge",
+    "url": "https://jeet-dhandha.github.io/agent-webbridge/"
+  },
+  "keywords": ["claude code browser automation", "claude code chrome mcp", "claude browser tools", "claude desktop chrome", "browser automation mcp"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Claude Code Browser Automation",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/claude-code-browser-automation/"
+    }
+  ]
+}
+</script>
+
+<!-- Structured data: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How does Claude Code control my Chrome browser?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Claude Code uses the Model Context Protocol (MCP) to send commands to the local WebBridge stdio process, which forwards commands to your Chrome profile over a loopback WebSocket. The Chrome extension executes the actions via Chrome DevTools Protocol (CDP)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can Claude Code access my passwords or payment info?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Claude Code does not access your Chrome password store or saved cards. It interacts with the rendered DOM through accessibility snapshots and synthetic input events within an explicitly designated Chrome tab group."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if Claude Code tries to submit a form without permission?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Best practices dictate keeping human-in-the-loop review. By default, WebBridge tab actions run inside visible tab groups on your desktop, and agents can be instructed to prompt the human user for confirmation before clicking submit buttons."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I troubleshoot if Claude Code says the MCP server is not responding?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Run 'awb doctor' to verify local extension installation, followed by 'awb up' to ensure daemons and the 127.0.0.1:10086 router are running. You can test the connection directly via 'curl http://127.0.0.1:10086/status'."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header-left { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; }
+  .header-nav { display: flex; align-items: center; gap: 1.25rem; font-size: 0.75rem; flex-wrap: wrap; }
+  .header-nav a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  .header-nav a:hover { color: var(--text-primary); text-decoration: underline; }
+  .status-indicator { display: flex; align-items: center; gap: 0.5rem; color: var(--accent-green); }
+  .status-pulse { width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  h1 { font-size: 2.25rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.45rem; font-weight: 700; margin-top: 1rem; letter-spacing: -0.01em; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+  h3 { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+  p { color: var(--text-secondary); }
+
+  .tldr-box {
+    background: #fff;
+    border-left: 4px solid var(--accent-green);
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .tldr-box strong { color: var(--accent-green); font-family: var(--font-mono); font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.25rem; }
+
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  code { font-family: var(--font-mono); background: var(--bg-code); padding: 0.15rem 0.35rem; border-radius: 2px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+
+  .recipe-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    margin-top: 0.75rem;
+  }
+  .recipe-card h4 { font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent-blue); margin-bottom: 0.5rem; }
+
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--border-accent);
+    color: #fff;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-brutal);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--border-accent); }
+  .btn-secondary { background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border-accent); }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    background: #fff;
+    margin-bottom: 0.75rem;
+  }
+  .faq-btn {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-content {
+    display: none;
+    padding: 0 1.25rem 1rem;
+    color: var(--text-secondary);
+    border-top: 1px dashed var(--border-color);
+  }
+  .faq-item.open .faq-content { display: block; }
+  .faq-item.open .faq-btn::after { content: "−"; font-family: var(--font-mono); }
+  .faq-item:not(.open) .faq-btn::after { content: "+"; font-family: var(--font-mono); }
+
+  footer {
+    border: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    padding: 1.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- TOP DECK -->
+  <header>
+    <div class="header-left">
+      <a href="../" style="text-decoration:none; color:inherit;"><span>AWB-CONTROL</span></a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">v1.3.2</span>
+      <span class="status-indicator">
+        <span class="status-pulse"></span>
+        <span>SYSTEM ONLINE</span>
+      </span>
+    </div>
+    <nav class="header-nav">
+      <a href="../">OVERVIEW</a>
+      <a href="../chrome-mcp-server/">CHROME MCP</a>
+      <a href="../multi-profile-chrome-automation/">MULTI-PROFILE</a>
+      <a href="../real-chrome-vs-headless/">REAL VS HEADLESS</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="./">Guides</a>
+    <span>/</span>
+    <span>Claude Code Browser Automation</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">INTEGRATION GUIDE &middot; CLAUDE CODE</div>
+    <h1>Claude Code Browser Automation: Connect Claude Code to Real Chrome</h1>
+    <p>Give Claude Code complete, secure access to your authenticated Google Chrome sessions. Automate research, web app debugging, form submissions, and data extraction with zero cloud dependencies.</p>
+
+    <!-- TL;DR / QUICK ANSWER -->
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      To give Claude Code access to your real Chrome browser, pair your Chrome profile with the local WebBridge bridge via <code>npm i -g agent-webbridge && awb setup "Work"</code>, then execute <code>claude mcp add chrome -- npx -y agent-webbridge mcp</code>. Claude Code instantly receives 13 browser control tools (navigation, accessibility snapshots with <code>@e</code> refs, clicks, typing, JavaScript execution) operating inside your live browser sessions.
+    </div>
+
+    <!-- STEP-BY-STEP SETUP -->
+    <h2>1. 5-Minute Setup Walkthrough</h2>
+    <p>Follow these three steps to connect your local Claude Code terminal environment to your browser:</p>
+
+    <h3>Step 1: Install the WebBridge CLI</h3>
+    <pre><code>npm i -g agent-webbridge</code></pre>
+
+    <h3>Step 2: Pair Your Chrome Profile</h3>
+    <p>Run the guided setup wizard. This locates your Chrome profiles, prints the exact extension path to load into Chrome, and pairs your profile with its local daemon:</p>
+    <pre><code>awb setup "Work"</code></pre>
+
+    <h3>Step 3: Register WebBridge in Claude Code</h3>
+    <p>Register the stdio Model Context Protocol (MCP) server directly inside Claude Code:</p>
+    <pre><code>claude mcp add chrome -- npx -y agent-webbridge mcp</code></pre>
+    <p>Alternatively, install it into Claude Code's agent skill registry:</p>
+    <pre><code>npx skills add jeet-dhandha/agent-webbridge</code></pre>
+
+    <!-- PROMPT RECIPES -->
+    <h2>2. Tested Claude Code Prompt Recipes</h2>
+    <p>Here are verified prompt patterns that Claude Code executes accurately using WebBridge:</p>
+
+    <div class="recipe-card">
+      <h4>Recipe 1: Authenticated SaaS & Cloud Console Inspection</h4>
+      <p><em>"Open my AWS Billing console or Stripe Dashboard in Chrome, take an accessibility snapshot of current month usage, and summarize anomalies."</em></p>
+      <p>Claude Code uses <code>browser_navigate</code> to load the URL, leverages your existing login cookies without triggering 2FA, reads the DOM via <code>browser_snapshot</code>, and returns structured tables.</p>
+    </div>
+
+    <div class="recipe-card">
+      <h4>Recipe 2: Multi-Tab Documentation Research</h4>
+      <p><em>"Navigate to these 3 GitHub issue links in parallel tabs, evaluate the recommended fixes in each discussion, and synthesize a code patch."</em></p>
+      <p>Claude Code spawns parallel tabs using <code>newTab: true</code>, concurrently snapshots all 3 pages in seconds, and synthesizes the result without losing terminal focus.</p>
+    </div>
+
+    <div class="recipe-card">
+      <h4>Recipe 3: Complex Multi-Step Form Filling with Confirmation</h4>
+      <p><em>"Fill out the staging deployment form with our test environment parameters. Show me the filled state before clicking Submit."</em></p>
+      <p>Claude Code targets fields using compact accessibility refs (e.g. <code>browser_fill</code> on <code>@e12</code>), captures a screenshot with <code>browser_screenshot</code>, and asks for your confirmation before executing <code>browser_click</code> on the submit button.</p>
+    </div>
+
+    <!-- SAFETY & CONTROL BOUNDARIES -->
+    <h2>3. Safety & Human Review Boundaries</h2>
+    <p>When giving AI agents access to real browser sessions, safety is paramount:</p>
+    <ul>
+      <li><strong>Visible Tab Groups:</strong> Claude Code's browser sessions are grouped under an explicit tab group (e.g. <code>agent:mcp</code>). You can see every tab as it opens and watch actions occur in real time.</li>
+      <li><strong>Kill Switch:</strong> Closing the tab group or running <code>awb down</code> instantly terminates daemon access. You remain in complete control.</li>
+      <li><strong>Localhost Loopback Only:</strong> Requests never leave <code>127.0.0.1</code>. No third-party servers see your prompts, browsing history, or session data.</li>
+      <li><strong>Human-in-the-Loop:</strong> You can explicitly instruct Claude Code never to submit forms, process payments, or delete resources without human confirmation in the terminal.</li>
+    </ul>
+
+    <!-- TROUBLESHOOTING -->
+    <h2>4. Troubleshooting & Diagnostics</h2>
+    <p>If Claude Code encounters connection issues, run these diagnostic commands in your shell:</p>
+    <pre><code># Check extension, daemon, and profile status
+awb doctor
+
+# Verify the fleet router is healthy
+curl -s http://127.0.0.1:10086/status
+
+# Start or restart profile daemons
+awb up "Work"</code></pre>
+
+    <!-- FAQ SECTION -->
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How does Claude Code control my Chrome browser?</button>
+      <div class="faq-content">
+        Claude Code uses the Model Context Protocol (MCP) to send commands to the local WebBridge stdio process, which forwards commands to your Chrome profile over a loopback WebSocket. The Chrome extension executes the actions via Chrome DevTools Protocol (CDP).
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">Can Claude Code access my passwords or payment info?</button>
+      <div class="faq-content">
+        No. Claude Code does not access your Chrome password store or saved cards. It interacts with the rendered DOM through accessibility snapshots and synthetic input events within an explicitly designated Chrome tab group.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">What happens if Claude Code tries to submit a form without permission?</button>
+      <div class="faq-content">
+        Best practices dictate keeping human-in-the-loop review. By default, WebBridge tab actions run inside visible tab groups on your desktop, and agents can be instructed to prompt the human user for confirmation before clicking submit buttons.
+      </div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How do I troubleshoot if Claude Code says the MCP server is not responding?</button>
+      <div class="faq-content">
+        Run <code>awb doctor</code> to verify local extension installation, followed by <code>awb up</code> to ensure daemons and the <code>127.0.0.1:10086</code> router are running. You can test the connection directly via <code>curl http://127.0.0.1:10086/status</code>.
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="https://github.com/jeet-dhandha/agent-webbridge" class="btn">View Source on GitHub</a>
+      <a href="../multi-profile-chrome-automation/" class="btn btn-secondary">Multi-Profile Guide &rarr;</a>
+    </div>
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="../multi-profile-chrome-automation/">Multi-Profile Automation</a> &middot;
+      <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
