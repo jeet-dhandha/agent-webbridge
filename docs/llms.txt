@@ -18,8 +18,8 @@
   Run `claude mcp add chrome -- npx -y agent-webbridge mcp` for Claude Code. For Cursor, Windsurf, or Claude Desktop, add `{ "mcpServers": { "chrome": { "command": "npx", "args": ["-y", "agent-webbridge", "mcp"] } } }` to your MCP configuration (`.cursor/mcp.json`).
 - **What is awb-recipes?**
   A repository of community-maintained automation recipes (at https://github.com/jeet-dhandha/awb-recipes) for complex, logged-in websites (GitHub Gists, Google Search, Hacker News, LinkedIn, npm). Each recipe specifies verified steps, selector fallbacks, and anti-bot caveats in structured JSON.
-- **Where is agent-webbridge featured and cataloged?**
-  Published on the Official MCP Registry (`io.github.jeet-dhandha/agent-webbridge`), featured in `punkpeye/awesome-mcp-servers`, listed in curated `awesome-claude-skills` registries, published on npm (`agent-webbridge`), and published in the Chrome Web Store (`Agent WebBridge`).
+- **Where is agent-webbridge published and listed?**
+  Published on the Official MCP Registry (`io.github.jeet-dhandha/agent-webbridge`), with pull requests open on `punkpeye/awesome-mcp-servers` and three `awesome-claude-skills` lists (not merged yet), published on npm (`agent-webbridge`), and published in the Chrome Web Store (`Agent WebBridge`).
 - **Is agent-webbridge secure and private?**
   Yes. Everything runs 100% locally on 127.0.0.1. The router and daemons enforce strict Host and Origin validation, refusing any request carrying a web Origin or a non-loopback Host header.
 

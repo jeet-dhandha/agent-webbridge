@@ -103,10 +103,10 @@
     },
     {
       "@type": "Question",
-      "name": "How should agents avoid background tab throttling in Chrome?",
+      "name": "How do agents run commands in several tabs at once?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Chrome DevTools Protocol sessions attached via chrome.debugger bypass background tab timer throttling, allowing timers and async evaluations to run at full speed even when tabs are not in the foreground."
+        "text": "The extension attaches Chrome's debugger separately to each tab, so commands for different tabs run concurrently instead of waiting for each other."
       }
     }
   ]
@@ -463,9 +463,9 @@ await client.closeSession();</code></pre>
       </div>
     </div>
     <div class="faq-item">
-      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How should agents avoid background tab throttling in Chrome?</button>
+      <button class="faq-btn" onclick="this.parentElement.classList.toggle('open')">How do agents run commands in several tabs at once?</button>
       <div class="faq-content">
-        Chrome DevTools Protocol sessions attached via <code>chrome.debugger</code> bypass background tab timer throttling, allowing timers and async evaluations to run at full speed even when tabs are not in the foreground.
+        The extension attaches Chrome's debugger separately to each tab, so commands for different tabs run concurrently instead of waiting for each other.
       </div>
     </div>
 

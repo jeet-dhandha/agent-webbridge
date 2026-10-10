@@ -188,9 +188,9 @@ To contribute, claim an open issue labelled [`good first recipe`](https://github
 
 ## Ecosystem & listings
 
-- **Official MCP Registry**: Registered as `io.github.jeet-dhandha/agent-webbridge`
-- **Awesome MCP Servers**: Featured on [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)
-- **Awesome Claude Skills**: Featured in [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills) and [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)
+- **Official MCP Registry**: Registered as `io.github.jeet-dhandha/agent-webbridge` (the registry currently shows 1.3.1)
+- **Awesome MCP Servers**: pull request open on [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) (waiting on a Glama listing)
+- **Awesome Claude Skills**: pull requests open on [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills), [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills) and [travisvn/awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills)
 - **Skills CLI**: Installable via `npx skills add jeet-dhandha/agent-webbridge`
 - **Chrome Web Store**: Published extension [Agent WebBridge](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
 - **Website & Interactive Demos**: [jeet-dhandha.github.io/agent-webbridge](https://jeet-dhandha.github.io/agent-webbridge/)

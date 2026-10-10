@@ -112,7 +112,7 @@ npm test            # → node test/contract.mjs
 connects a **stub** extension over the WebSocket `/ws` (no real Chrome), serves canned tool
 results, and asserts the daemon's `/command` envelopes match `BUILD_SPEC` §1 — including the
 not-connected path and the screenshot disk-write side effect. Exits non-zero on any failed
-assertion. **Status: 11/11 PASS.**
+assertion. **Status: 25/25 PASS.** (`npm test` runs this plus platform, guard, MCP, client and connect suites.)
 
 **Live gates (require Chrome for Testing):**
 

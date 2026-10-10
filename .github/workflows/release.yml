@@ -2,7 +2,7 @@ name: release
 
 # Cuts a release when you push a version tag (e.g. `git tag v1.0.0 && git push --tags`),
 # or on manual dispatch. It gates on the browser-free daemon contract test, builds the
-# downloadable extension zip (for "Load unpacked" — there is no Chrome Web Store listing),
+# downloadable extension zip (for "Load unpacked"; the Chrome Web Store build is uploaded separately by hand),
 # creates a GitHub Release with that zip + INSTALL.md attached, and (if an NPM_TOKEN secret
 # is configured) publishes the npm package.
 on:
