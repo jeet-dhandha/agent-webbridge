@@ -64,7 +64,7 @@ cmd '{"action":"snapshot","session":"audit","profile":"Work"}'
 cmd '{"action":"click","args":{"selector":"@e42"},"session":"audit","profile":"Work"}'
 ```
 
-### B. In-Page Authenticated API Execution (CORS Bypass)
+### B. In-Page Authenticated API Execution (Same-Origin)
 When scraping authenticated APIs, execute `fetch()` inside the page via `evaluate` so the browser attaches session cookies automatically:
 ```bash
 cmd '{"action":"evaluate","args":{"code":"(async()=>{ const r=await fetch(\"/api/v1/user/data\"); return await r.json(); })()"},"session":"audit","profile":"Work"}'

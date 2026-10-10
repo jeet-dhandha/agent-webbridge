@@ -363,8 +363,8 @@ Downloadable standalone client implementations are available in `docs/skill/`:
 - **Python 3 (`docs/skill/awb_client.py`)**: Zero pip dependencies (uses standard `urllib.request`). Auto-pins `_tabId` to prevent focus drift.
 - **Node.js ESM (`docs/skill/awb-client.mjs`)**: Zero external dependencies (uses standard `fetch`). Auto-tracks active tab IDs.
 
-### 1. In-Page Authenticated API Execution (CORS & Auth Bypass)
-Instead of scraping HTML or fighting anti-bot challenges externally, navigate to the target domain and fire `fetch()` inside the active tab via `evaluate`. The browser automatically includes all ambient cookies, session tokens, and CORS headers:
+### 1. In-Page Authenticated API Execution (Same-Origin, Uses Your Session)
+Instead of scraping HTML, navigate to the target domain and fire `fetch()` inside the active tab via `evaluate`. The browser automatically includes all ambient cookies, session tokens, and CORS headers:
 ```bash
 cmd '{"action":"evaluate","args":{"code":"(async()=>{ const res = await fetch(\"/api/v1/protected/data\"); return await res.json(); })()"},"session":"harvest","profile":"Work"}'
 ```

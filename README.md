@@ -4,7 +4,6 @@
 [![npm](https://img.shields.io/npm/v/agent-webbridge)](https://www.npmjs.com/package/agent-webbridge)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Agent%20WebBridge-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
 [![Glama](https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge/badges/score.svg)](https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge)
-[![Packaging status](https://repology.org/badge/tiny-repos/agent-webbridge.svg)](https://repology.org/project/agent-webbridge/versions)
 [![license](https://img.shields.io/npm/l/agent-webbridge)](LICENSE)
 [![node](https://img.shields.io/node/v/agent-webbridge)](https://nodejs.org)
 
@@ -40,7 +39,7 @@ Your agent now has `browser_navigate`, `browser_snapshot`, `browser_click`, `bro
 |---|---|---|---|
 | Cost | usage-based | free | **free, MIT** |
 | Your logins, passkeys, 2FA | re-auth or upload cookies | re-login; 2FA breaks | **already signed in** |
-| Bot detection (Cloudflare, Datadome) | flagged cloud IPs | often blocked | **it's your real browser** |
+| Browser identity | cloud and datacenter IPs are often challenged | headless browsers are often challenged | **your own Chrome profile (sites can still limit automation)** |
 | Where your data goes | a third-party server | local | **local only, `127.0.0.1`** |
 | Several accounts at once | separate sessions to manage | manual orchestration | **one profile per account, parallel tabs** |
 
@@ -62,7 +61,7 @@ Timings come from one MacBook on home broadband; yours will differ.
 ## Overview
 
 - **Drive your real browser** — your actual Chrome, your actual login sessions. No headless re-login, no scraping around auth.
-- **Run tabs in parallel** — the extension attaches `chrome.debugger` per tab, so N tabs in one profile run concurrently. 10 tabs finish as fast as 1 (~2 s, flat).
+- **Run tabs in parallel** — the extension attaches `chrome.debugger` per tab, so N tabs in one profile run concurrently. In our benchmark, 5 tabs took 3.5 s in parallel vs 9.3 s one at a time (one MacBook; yours will differ).
 - **Span multiple profiles** — one daemon per profile. Total concurrency = **profiles × tabs**, all from one endpoint.
 - **Stay private** — own daemon, own MV3 extension, no closed-source dependency, no account. Everything is local.
 
@@ -179,7 +178,7 @@ Ship it as a [Claude Code skill / plugin](.claude-plugin/) — the bundled `agen
 Websites update their markup and deploy anti-bot traps all the time. Rather than forcing your agent to guess selectors or fail on edge cases, browse community-maintained, verified playbooks in [**awb-recipes**](https://github.com/jeet-dhandha/awb-recipes).
 
 - `github-gist-create`: Create secret or public GitHub Gists via browser UI with active session.
-- `google-search-results`: Organic SERP extraction bypassing cloud-IP bot blocks.
+- `google-search-results`: Organic SERP extraction from your own signed-in browser.
 - `hn-reply-box`: Interact with Hacker News threads using authentic user cookies.
 - `linkedin-feed-posts`: Extract authentic feed updates without session hijacking.
 - `npm-most-depended`: Extract package download metrics and dependency hierarchies.

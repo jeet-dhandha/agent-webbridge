@@ -4,25 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>In-Page Authenticated API Execution &amp; CORS Bypass | WebBridge Recipes</title>
+<title>In-Page Authenticated API Calls (Same-Origin) | WebBridge Recipes</title>
 <meta name="description" content="Execute in-tab fetch() inside authenticated Chrome sessions to query GraphQL, Supabase PostgREST, and SSR state without tokens or CORS blocks on 127.0.0.1.">
 <link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html">
 <meta name="robots" content="index,follow">
-<meta name="keywords" content="in-page api scraping, cors bypass ai agent, authenticated browser scraping, nextjs __NEXT_DATA__ extraction, supabase postgrest browser fetch">
+<meta name="keywords" content="in-page api scraping, same-origin fetch ai agent, authenticated browser scraping, nextjs __NEXT_DATA__ extraction, supabase postgrest browser fetch">
 <meta name="date" content="2026-10-10">
 <meta name="last-modified" content="2026-10-10">
 
 <!-- Open Graph -->
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="WebBridge">
-<meta property="og:title" content="In-Page Authenticated API Execution &amp; CORS Bypass | WebBridge Recipes">
+<meta property="og:title" content="In-Page Authenticated API Calls (Same-Origin) | WebBridge Recipes">
 <meta property="og:description" content="Execute in-tab fetch() inside authenticated Chrome sessions to query GraphQL, Supabase PostgREST, and SSR state without tokens or CORS blocks on 127.0.0.1.">
 <meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html">
 <meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="In-Page Authenticated API Execution &amp; CORS Bypass | WebBridge Recipes">
+<meta name="twitter:title" content="In-Page Authenticated API Calls (Same-Origin) | WebBridge Recipes">
 <meta name="twitter:description" content="Execute in-tab fetch() inside authenticated Chrome sessions to query GraphQL, Supabase PostgREST, and SSR state without tokens or CORS blocks on 127.0.0.1.">
 <meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
 
@@ -32,13 +32,13 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "In-Page Authenticated API Execution and SSR Hydration Harvesting",
-  "description": "How AI agents leverage ambient browser authentication and evaluate hooks to bypass CORS and query internal APIs directly inside live Chrome sessions.",
+  "description": "How AI agents use the page's own signed-in session to make same-origin requests to its internal APIs from inside a live Chrome tab.",
   "url": "https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html",
   "datePublished": "2026-10-10T12:00:00Z",
   "dateModified": "2026-10-10T12:00:00Z",
   "author": { "@type": "Person", "name": "jeet-dhandha" },
   "publisher": { "@type": "Organization", "name": "WebBridge", "url": "https://jeet-dhandha.github.io/agent-webbridge/" },
-  "keywords": ["in-page api scraping", "cors bypass", "authenticated browser scraping", "nextjs data extraction"]
+  "keywords": ["in-page api scraping", "same-origin fetch", "authenticated browser scraping", "nextjs data extraction"]
 }
 </script>
 
@@ -208,7 +208,7 @@
 
   <!-- HERO CARD -->
   <article class="card">
-    <div class="card-header-sub">PRODUCTION RECIPE &middot; CORS &amp; AUTHENTICATION BYPASS</div>
+    <div class="card-header-sub">PRODUCTION RECIPE &middot; SAME-ORIGIN, SIGNED-IN REQUESTS</div>
     <h1>In-Page Authenticated API Execution &amp; SSR Hydration Harvesting</h1>
     <p>How AI agents query protected internal REST and GraphQL endpoints and extract hydration state directly through live Chrome execution contexts.</p>
 

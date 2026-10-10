@@ -82,7 +82,7 @@
     {
       "@type": "Question",
       "name": "How does WebBridge run tabs in parallel?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Most browser bridges funnel every CDP call through one global current tab, limiting execution to one tab at a time. WebBridge attaches the Chrome DevTools Protocol per tab using an internal Map keyed by tabId. 2, 5, or 10 tabs in a single profile evaluate concurrently in parallel (~3.5s for 5 tabs vs 9.3s serially)." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Most browser bridges funnel every CDP call through one global current tab, limiting execution to one tab at a time. WebBridge attaches the Chrome DevTools Protocol per tab using an internal Map keyed by tabId. 2, 5, or 10 tabs in a single profile evaluate concurrently in parallel (~3.5s for 5 tabs vs 9.3s serially in our benchmark on one MacBook; results vary)." }
     },
     {
       "@type": "Question",
@@ -1245,14 +1245,14 @@
     <!-- DEMO 1: READ ANY PAGE -->
     <div class="demo-card">
       <div class="demo-card-header">
-        <div class="demo-card-title">1. Read Any Page Without Bot-Blocks</div>
+        <div class="demo-card-title">1. Read Any Page in Your Own Chrome</div>
         <span class="demo-badge">Snapshot + Eval</span>
       </div>
       <div class="demo-img-box">
         <img src="demos/read-a-page.gif" alt="Real demo: agent-webbridge taking accessibility snapshot and evaluating JavaScript on Hacker News" loading="lazy">
       </div>
       <div class="demo-caption">
-        Snapshot + evaluate on Hacker News: extracts structured accessibility trees with stable <code>@e</code> element references in &lt;600ms, bypassing headless bot detection entirely.
+        Snapshot + evaluate on Hacker News: extracts structured accessibility trees with stable <code>@e</code> element references, read from your own signed-in Chrome.
       </div>
     </div>
 
@@ -1332,7 +1332,7 @@
           <span class="recipe-tag verified">Verified</span>
         </div>
         <div class="recipe-desc">
-          Extracts clean organic search result titles, snippets, and destination URLs headfully, bypassing cloud-IP bot blocks.
+          Extracts clean organic search result titles, snippets, and destination URLs headfully from your own signed-in browser.
         </div>
         <div class="recipe-footer">
           <span>Task: SERP Scrape</span>
@@ -1731,7 +1731,7 @@ Ready for agent commands.
       </button>
       <div class="faq-content">
         <div class="faq-inner">
-          This is the killer feature. Most bridges funnel every CDP call through one global "current tab". <strong>WebBridge</strong> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tabId). 2, 5, and 10 tabs in a single profile evaluate concurrently in parallel: 5 tabs finish in ~3.5s flat versus 9.3s serially.
+          This is the killer feature. Most bridges funnel every CDP call through one global "current tab". <strong>WebBridge</strong> attaches the Chrome DevTools Protocol per tab (a <code>Map</code> keyed by tabId). 2, 5, and 10 tabs in a single profile evaluate concurrently in parallel: 5 tabs finished in ~3.5s versus 9.3s serially in our benchmark (one MacBook; results vary).
         </div>
       </div>
     </div>

@@ -403,7 +403,7 @@ awb setup "Work"</code></pre>
         </tr>
         <tr>
           <td><code>browser_trusted_click</code></td>
-          <td>Dispatches authentic Chrome DevTools Protocol mouse events (<code>isTrusted: true</code>) with precise coordinates to bypass click-blocking UI overlays.</td>
+          <td>Dispatches authentic Chrome DevTools Protocol mouse events (<code>isTrusted: true</code>) with precise coordinates, for pages that ignore script-generated clicks.</td>
           <td><code>selector</code>, <code>x</code>, <code>y</code></td>
         </tr>
         <tr>
@@ -483,10 +483,10 @@ awb setup "Work"</code></pre>
           <td>Remote cloud container (requires credential upload)</td>
         </tr>
         <tr>
-          <td><strong>Anti-Bot & CAPTCHA</strong></td>
-          <td>No bot flags; real browser fingerprint</td>
-          <td>Frequently flagged by Cloudflare/Datadome</td>
-          <td>Requires expensive proxy rotation</td>
+          <td><strong>Anti-bot checks &amp; CAPTCHA</strong></td>
+          <td>Your own Chrome profile; sites can still limit automation</td>
+          <td>Often challenged; varies by site</td>
+          <td>Often needs proxies</td>
         </tr>
         <tr>
           <td><strong>Multi-Profile Routing</strong></td>
