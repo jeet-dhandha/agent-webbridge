@@ -84,6 +84,7 @@ import {
   removeExtensionOnDisk,
 } from "../src/extension.mjs";
 import { setLocalUrl, readLocalUrl } from "../src/storage.mjs";
+import { waitForStoredUrl } from "../src/connect-poll.mjs";
 import { RUN, ROUTER_PID, ROUTER_LOG, ensureRun, readState, writeState, patchState } from "../src/runstate.mjs";
 import { runDoctor, printDoctor } from "../src/doctor.mjs";
 
@@ -340,7 +341,12 @@ async function connectViaPopup(targets, { startDaemons = false, timeoutMs = 1200
     wakeExtension(p.dir, p.extId, { connectUrl: p.wsUrl });
     if (i < attempted.length - 1) await sleep(600);
   }
-  const results = await Promise.all(attempted.map(async (p) => ({ p, ok: await waitConnected(p.port, timeoutMs) })));
+  const results = await Promise.all(attempted.map(async (p) => {
+    // A build that understands the hint stores p.wsUrl as local_url within moments; one that
+    // predates it never does, so give up on it now rather than after the full daemon timeout.
+    const stored = await waitForStoredUrl({ readUrl: () => readLocalUrl(p.dir), expected: p.wsUrl, sleep });
+    return { p, ok: stored && (await waitConnected(p.port, timeoutMs)) };
+  }));
   const connected = [];
   for (const { p, ok } of results) {
     if (p.extId) cleanupAnnoyingTabs(p.extId); // best effort; the worker also closes the popup tab itself
