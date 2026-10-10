@@ -3,6 +3,7 @@
 [![Documentation](https://img.shields.io/badge/docs-website-brightgreen)](https://jeet-dhandha.github.io/agent-webbridge/)
 [![npm](https://img.shields.io/npm/v/agent-webbridge)](https://www.npmjs.com/package/agent-webbridge)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Agent%20WebBridge-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
+[![Glama](https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge/badges/score.svg)](https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge)
 [![license](https://img.shields.io/npm/l/agent-webbridge)](LICENSE)
 [![node](https://img.shields.io/node/v/agent-webbridge)](https://nodejs.org)
 
