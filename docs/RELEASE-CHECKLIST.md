@@ -11,35 +11,36 @@ Steps marked **[OWNER]** need the owner's accounts, tokens or browser login. An 
 
 ---
 
-## Current state (read 2026-10-10)
+## Current state (read 2026-10-10, on branch `feat/zero-restart-connect`)
 
 | Item | Value | Where it was read |
 | --- | --- | --- |
-| `package.json` version (main) | `1.3.2` | `package.json` |
-| Extension manifest version (main) | `1.3.2` (keeps `key`) | `agent-webbridge-extension/manifest.json` |
+| `package.json` version | `1.3.3` | `package.json` |
+| Extension manifest version | `1.3.3` (keeps `key`) | `agent-webbridge-extension/manifest.json` |
 | `server.json` top-level `version` | `1.3.1` (stale) | `server.json` |
 | `server.json` `packages[0].version` | `1.3.1` (stale) | `server.json` |
-| Latest CHANGELOG entry | `[1.3.2] — 2026-10-10` | `CHANGELOG.md` |
-| `npm view agent-webbridge version` | `1.3.2` (published 2026-10-10T13:33:57Z) | npm registry |
-| MCP registry entry `io.github.jeet-dhandha/agent-webbridge` | lists `1.3.0` and `1.3.1`; `1.3.2` absent | public GET on registry.modelcontextprotocol.io |
-| Git tags / GitHub Releases | latest tag and release `v1.3.1`; no `v1.3.2` | `git tag`, `gh release list` |
-| Branch `feat/zero-restart-connect` (not merged to main) | `1.3.3` in `package.json`, manifest and CHANGELOG | `git show` |
+| `.claude-plugin/plugin.json` `version` | `0.0.1` | `.claude-plugin/plugin.json` |
+| Latest CHANGELOG entry | `[1.3.3] — 2026-10-10` | `CHANGELOG.md` |
+| `npm view agent-webbridge version` | `1.3.2` (1.3.3 not yet published) | npm registry |
+| MCP registry entry `io.github.jeet-dhandha/agent-webbridge` | lists `1.3.0` and `1.3.1` | public GET on registry.modelcontextprotocol.io |
+| Git tags / GitHub Releases | latest tag and release `v1.3.1`; no `v1.3.2`, no `v1.3.3` | `git tag`, `gh release list` |
+| `main` | `3ebe53e`; this branch is stacked on it and not yet merged | `git log` |
 
 What this means:
 
-- `1.3.2` is already on npm but has no git tag, no GitHub Release and no MCP registry entry.
-- `server.json` is two versions behind npm and must be fixed in the next release commit.
-- `npm` still shows the description "no bot detection" (`package.json` line 4 on main). The corrected
-  copy is in commit `79b2c88`, which is only on feature branches so far (see `docs/cws/LISTING-UPDATE.md`).
-- Decision for the owner: the next release is either `1.3.3` from `feat/zero-restart-connect`
-  (recommended, it already carries the corrected copy and the 1.3.3 CHANGELOG entry) or a fresh
-  patch number. Merge the chosen branch into `main` before step 2.
+- `1.3.2` is on npm but has no git tag, no GitHub Release and no MCP registry entry.
+- `server.json` is two versions behind npm and must be fixed in the release commit.
+- The npm description still carries the old "no bot detection" wording until `1.3.3` is published.
+  The corrected copy is already in `package.json`, `docs/cws/STORE-LISTING.md` and the site on this branch.
+- The release is `1.3.3`, from this branch. Its PR to `main` must merge before step 2.
+  Versions in `package.json`, the manifest and `CHANGELOG.md` already say `1.3.3`; `server.json` and
+  `.claude-plugin/plugin.json` still need the bump in step 2.
 
 ---
 
 ## 0. Choose the release commit
 
-1. **[OWNER]** Decide the version and merge the release branch into `main` through a PR.
+1. **[OWNER]** Merge the release PR for `feat/zero-restart-connect` (version `1.3.3`) into `main`.
    Never commit straight to `main`.
 2. Check the working tree is clean and the release commit is the one you intend to ship:
    `git status` and `git log --oneline -5`.
@@ -47,12 +48,14 @@ What this means:
 ## 1. Tests and live gates (before any version bump)
 
 1. `npm ci` (or `npm install`).
-2. `npm test`. This runs `test/contract.mjs`, `test/platform.mjs`, `test/guard.mjs` and `test/mcp.mjs`.
+2. `npm test`. This runs seven browser-free suites: `test/contract.mjs`, `platform.mjs`, `guard.mjs`, `mcp.mjs`,
+   `client.mjs`, `connect-hint.mjs` and `connect-poll.mjs`. Expect `0 failed` in each.
    It is browser-free. CI runs the same on ubuntu, macOS and Windows with Node 18 and 22
    (`.github/workflows/test.yml`, on push to `main` and on PRs).
 3. Live gates. Required by `AGENTS.md` for any change to the daemon, extension, fleet or parallelism path:
-   - `AWB_CHROME_BIN="<Chrome for Testing binary>" node scratch/live_m1.mjs` must report 7/7.
-   - `AWB_CHROME_BIN="<Chrome for Testing binary>" node scratch/live_m2.mjs` must report 19/19.
+   - `KWB_CHROME_BIN="<Chrome for Testing binary>" node scratch/live_m1.mjs` must report 7/7.
+   - `KWB_CHROME_BIN="<Chrome for Testing binary>" node scratch/live_m2.mjs` must report 20/20.
+   - The variable is `KWB_CHROME_BIN`, not `AWB_CHROME_BIN`. Branded Chrome ignores `--load-extension`.
    - `scratch/` is gitignored and exists only in the owner's main checkout.
    - **[OWNER]** Run these. They start an isolated Chrome for Testing with its own profile dir.
      Do not point them at the daily Chrome.
@@ -66,8 +69,10 @@ What this means:
    repo manifest. It pins the dev extension ID `ifodkkbkmngjlkhiphcjmbceeolhpfeo`. Only the `--store`
    build removes it.
 3. `server.json`: set the top-level `"version"` AND `packages[0].version` to `X.Y.Z`. Both must match.
+   `.claude-plugin/plugin.json`: it is at `0.0.1` today. Set `"version"` to `X.Y.Z` as well, or decide on
+   purpose to version the plugin separately.
 4. `CHANGELOG.md`: add a `## [X.Y.Z] — YYYY-MM-DD` section above the previous entry.
-5. Check for leftovers: `grep -n "1\.3\.[0-9]" package.json server.json agent-webbridge-extension/manifest.json`.
+5. Check for leftovers: `grep -n '"version"' package.json server.json agent-webbridge-extension/manifest.json .claude-plugin/plugin.json`.
    Every hit should be `X.Y.Z`.
 6. Commit as `release: vX.Y.Z` and open a PR to `main`. **[OWNER]** merges it.
 
@@ -146,10 +151,12 @@ Its manifest has no `key` field.
 3. `gh release view vX.Y.Z --repo jeet-dhandha/agent-webbridge` lists the expected assets.
 4. **[OWNER]** The Chrome Web Store dashboard shows the new version as pending review or published.
 5. The GitHub Pages site https://jeet-dhandha.github.io/agent-webbridge/ serves the `main` branch, `/docs`.
-   Docs changes go live only after they reach `main`. The unhedged bot-detection wording on `main` is live now.
+   Docs changes go live only after they reach `main`. Until the PR for this branch merges, the live site still has the
+   old unhedged bot-detection wording and an inline-script syntax error on the home page.
 6. Glama: https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge returned HTTP 404 when checked on
    2026-10-10. The open PR punkpeye/awesome-mcp-servers #16069 is waiting on Glama evaluation.
-7. **[OWNER]** The dev.to article still has the "Bot Detection Bypass" row. See `docs/cws/LISTING-UPDATE.md`.
+7. The dev.to article row "Bot Detection Bypass" is replaced separately. See `docs/cws/LISTING-UPDATE.md`
+   and confirm with the public dev.to API (`body_markdown`).
 
 ---
 
@@ -168,4 +175,4 @@ Its manifest has no `key` field.
 - The exact `mcp-publisher` subcommand syntax.
 - The live Chrome Web Store version and review state.
 - Whether a store-built zip loaded unpacked connects to the daemon. This is inferred from `src/profiles.mjs`, not tested.
-- The live gates and `npm test` were not run for this file.
+- The live gates were not re-run for this file. `npm test` passed all seven suites on this branch on 2026-10-10.
