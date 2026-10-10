@@ -38,7 +38,10 @@
     "LICENSE"
   ],
   "keywords": [
+    "webbridge",
     "agent-webbridge",
+    "open-webbridge",
+    "kimi-webbridge",
     "browser-automation",
     "web-automation",
     "chrome",
@@ -68,7 +71,7 @@
     "type": "git",
     "url": "git+https://github.com/jeet-dhandha/agent-webbridge.git"
   },
-  "homepage": "https://github.com/jeet-dhandha/agent-webbridge#readme",
+  "homepage": "https://jeet-dhandha.github.io/agent-webbridge/",
   "bugs": {
     "url": "https://github.com/jeet-dhandha/agent-webbridge/issues"
   },
