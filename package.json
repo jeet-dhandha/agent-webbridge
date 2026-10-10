@@ -18,7 +18,7 @@
   },
   "scripts": {
     "awb": "node ./bin/awb.mjs",
-    "test": "node test/contract.mjs && node test/platform.mjs && node test/guard.mjs && node test/mcp.mjs && node test/client.mjs"
+    "test": "node test/contract.mjs && node test/platform.mjs && node test/guard.mjs && node test/mcp.mjs && node test/client.mjs && node test/connect-hint.mjs"
   },
   "dependencies": {
     "ws": "^8.21.0"

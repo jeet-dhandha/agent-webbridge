@@ -160,7 +160,7 @@ The router proxies each command to the per-profile daemon on its deterministic h
 | `awb setup <profile…>` | One-time install: walk through "Load unpacked", connect, bring the fleet up |
 | `awb up <profile…>` | Start the named profiles' daemons + router, open windows, connect |
 | `awb down` | Stop the router + fleet |
-| `awb connect <profile…>` | Point each profile's extension at its daemon |
+| `awb connect <profile…> [--no-restart]` | Point each profile's extension at its daemon. Chrome stays open when the extension is current; `--no-restart` never closes Chrome (fails instead) |
 | `awb check [profile…] [--json]` | Read-only readiness probe (folder? dev-mode? loaded? connected?) — what an agent polls during install |
 | `awb status` | Per-profile daemon + extension-connection status |
 | `awb doctor` | Diagnose the environment (Chrome, profiles, daemon, extension) |

@@ -495,10 +495,20 @@ export function openUrlInProfile({ profileDir, windowId, url, anchorUrl }) {
 // equivalent of the user clicking the toolbar icon, which is in fact the only manual
 // reconnect path after a restart. about:blank is opened first (and stays the active,
 // driveable tab) so the popup never sits in front of the agent's navigation.
-export function wakeExtension(profileDir, extId) {
+//
+// ZERO-RESTART CONNECT: pass `connectUrl` (the profile's daemon ws URL) and the popup URL carries it
+// in its hash (popup.html#connect=<url>). The popup forwards it to the worker, which validates it
+// (loopback only), stores it as local_url itself and connects — so a RUNNING Chrome never has to be
+// closed to edit the extension's storage on disk. Extension builds that predate this ignore the hash
+// (they still wake), which callers detect by the daemon never seeing a connection.
+export function connectHintUrl(extId, wsUrl) {
+  return `chrome-extension://${extId}/popup.html#connect=${encodeURIComponent(wsUrl)}`;
+}
+
+export function wakeExtension(profileDir, extId, { connectUrl } = {}) {
   const id = extId || awbExtId(profileDir);
   if (!id) throw new Error(`no agent-webbridge extension in profile "${profileDir}"`);
-  const popupUrl = `chrome-extension://${id}/popup.html`;
+  const popupUrl = connectUrl ? connectHintUrl(id, connectUrl) : `chrome-extension://${id}/popup.html`;
   launchChrome(profileDir, [popupUrl]);
   return { woke: true, profileDir, extId: id, popupUrl };
 }

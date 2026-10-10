@@ -11,9 +11,12 @@
 //   awb tabs <profile>           list a profile's NORMAL open tabs (from disk, no bridge)
 //   awb status                   fleet status (all profiles' daemons)
 //   awb state                    last recorded start (time, per-profile connected) + stop
-//   awb connect <profile...>     point each profile's extension at its daemon by
-//                                editing storage.local on disk (no popup, no click);
-//                                closes Chrome to write, then you `awb up`
+//   awb connect <profile...>     point each profile's extension at its daemon. A RUNNING Chrome is
+//                                handed the URL through the extension's own popup (no restart); only
+//                                profiles that don't accept it fall back to editing storage.local on
+//                                disk, which needs Chrome closed (no popup, no click).
+//                                --no-restart never closes Chrome (reports failure instead);
+//                                then you `awb up`
 //   awb connect <p...> --restore point them back at the stock :10086 bridge
 //   awb up <profile...>          stop legacy :10086, start the named profiles' daemons,
 //                                start the router on :10086, auto-connect (if Chrome is
@@ -211,10 +214,15 @@ async function cmdUp(args) {
   if (!args.includes("--no-connect")) {
     const mismatched = targets.filter((p) => readLocalUrl(p.dir) !== p.wsUrl);
     if (mismatched.length && isChromeRunning()) {
-      console.log(`\nℹ ${mismatched.length} profile(s) not yet pointed at their daemon. Chrome is`);
-      console.log("  running, so their on-disk storage can't be edited. Set them up with:");
-      console.log(`    awb connect ${mismatched.map((p) => `'${p.dir}'`).join(" ")}`);
-      console.log("  (closes Chrome, writes the URLs) then re-run this `awb up`.\n");
+      console.log(`• ${mismatched.length} profile(s) not yet pointed at their daemon; Chrome is running, so handing them the URL through the extension popup (no restart)…`);
+      const { connected, pending } = await connectViaPopup(mismatched);
+      for (const p of connected) console.log(`• connected ${p.name} → :${p.port} (via extension popup, no restart)`);
+      if (pending.length) {
+        console.log(`\nℹ ${pending.length} profile(s) did not accept the URL: their extension build predates zero-restart`);
+        console.log("  connect. Reload it in chrome://extensions (dev build) or update it, or set them up with:");
+        console.log(`    awb connect ${pending.map((p) => `'${p.dir}'`).join(" ")}`);
+        console.log("  (closes Chrome, writes the URLs) then re-run this `awb up`.\n");
+      }
     } else {
       for (const p of mismatched) {
         const r = setLocalUrl(p.dir, p.wsUrl);
@@ -318,6 +326,29 @@ async function waitConnected(port, timeoutMs) {
   return false;
 }
 
+// Zero-restart connect: hand each profile's extension its daemon URL through its own popup page
+// (popup.html#connect=<ws url>) in the RUNNING Chrome, then wait for the daemon to see it connect.
+// Needs an extension build that understands the hint (an unpacked dev build after a reload; the Web
+// Store build once it is updated). Profiles that don't connect come back in `pending` so the caller
+// can fall back to the quit-Chrome + on-disk write.
+async function connectViaPopup(targets, { startDaemons = false, timeoutMs = 12000 } = {}) {
+  const attempted = targets.filter((p) => p.extId);
+  const pending = targets.filter((p) => !p.extId);
+  for (let i = 0; i < attempted.length; i++) {
+    const p = attempted[i];
+    if (startDaemons) await startDaemon(p);
+    wakeExtension(p.dir, p.extId, { connectUrl: p.wsUrl });
+    if (i < attempted.length - 1) await sleep(600);
+  }
+  const results = await Promise.all(attempted.map(async (p) => ({ p, ok: await waitConnected(p.port, timeoutMs) })));
+  const connected = [];
+  for (const { p, ok } of results) {
+    if (p.extId) cleanupAnnoyingTabs(p.extId); // best effort; the worker also closes the popup tab itself
+    (ok ? connected : pending).push(p);
+  }
+  return { connected, pending };
+}
+
 // `awb connect <profiles...> [--restore]` — point each profile's extension at its
 // daemon URL (or back at the stock :10086 with --restore) by editing storage.local
 // on disk. Requires Chrome closed, so it quits Chrome first (graceful, then force).
@@ -326,6 +357,7 @@ async function waitConnected(port, timeoutMs) {
 // to process.exit or compose further. The CLI dispatch case "connect" does the exit.
 async function cmdConnect(args, { exitOnDone = true } = {}) {
   const restore = args.includes("--restore");
+  const noRestart = args.includes("--no-restart"); // never close Chrome; report failure instead
   const targets = args.includes("--all-ext")
     ? listProfiles().filter((p) => p.hasExtension)
     : args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
@@ -336,7 +368,40 @@ async function cmdConnect(args, { exitOnDone = true } = {}) {
     }
     return { ok: false, results: [] };
   }
-  if (isChromeRunning()) {
+  const results = [];
+  let ok = true;
+  let toWrite = targets;
+  if (!restore && isChromeRunning()) {
+    // Zero-restart route first: the extension stores the URL itself, so Chrome stays open.
+    const stale = targets.filter((p) => readLocalUrl(p.dir) !== p.wsUrl);
+    for (const p of targets.filter((p) => !stale.includes(p))) {
+      console.log(`✓ ${p.name.padEnd(18)} already → ${p.wsUrl}`);
+      results.push({ profile: p, ok: true, mode: "already", url: p.wsUrl });
+    }
+    if (stale.length) {
+      console.log("• Chrome is running: handing the URL to each extension through its popup (no restart)…");
+      const { connected, pending } = await connectViaPopup(stale, { startDaemons: true });
+      for (const p of connected) {
+        console.log(`✓ ${p.name.padEnd(18)} → ${p.wsUrl} (popup, no restart)`);
+        results.push({ profile: p, ok: true, mode: "popup", url: p.wsUrl });
+      }
+      toWrite = pending;
+      if (pending.length) console.log(`• ${pending.length} profile(s) did not accept it (extension build predates zero-restart connect); falling back to the on-disk write, which needs Chrome closed.`);
+    } else {
+      toWrite = [];
+    }
+  }
+  if (toWrite.length && noRestart && isChromeRunning()) {
+    // --no-restart: the caller (often an agent) must not close the user's browser.
+    for (const p of toWrite) {
+      console.log(`✗ ${p.name.padEnd(18)} not connected, and --no-restart forbids closing Chrome`);
+      results.push({ profile: p, ok: false, error: "needs Chrome closed (extension build predates zero-restart connect)" });
+    }
+    console.log("  Reload/update the extension (chrome://extensions), or re-run without --no-restart to close Chrome and write the URL.");
+    if (exitOnDone) process.exit(1);
+    return { ok: false, results, error: "needs Chrome closed" };
+  }
+  if (toWrite.length && isChromeRunning()) {
     console.log("• closing Chrome to edit extension storage (session is saved for restore)…");
     const q = quitChrome();
     if (!q.stopped) {
@@ -344,13 +409,11 @@ async function cmdConnect(args, { exitOnDone = true } = {}) {
         console.error("could not quit Chrome — close it manually and retry");
         process.exit(1);
       }
-      return { ok: false, results: [], error: "could not quit Chrome" };
+      return { ok: false, results, error: "could not quit Chrome" };
     }
     console.log(`• Chrome closed${q.forced ? " (forced)" : ""}`);
   }
-  const results = [];
-  let ok = true;
-  for (const p of targets) {
+  for (const p of toWrite) {
     const url = restore ? `ws://127.0.0.1:${ROUTER_PORT}/ws` : p.wsUrl;
     try {
       const r = setLocalUrl(p.dir, url);

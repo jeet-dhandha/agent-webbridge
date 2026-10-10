@@ -204,7 +204,7 @@ Full, copy-pasteable setup is in **[AGENTS.md](AGENTS.md)**. Quick version:
 ```bash
 npm i -g agent-webbridge         # daemon + `awb` CLI
 awb setup "Work" "Personal"      # install the extension (opens Web Store, "Add to Chrome") + bring the fleet up
-awb connect "Work" "Personal"    # (re)point each extension at its daemon (zero clicks; closes Chrome)
+awb connect "Work" "Personal"    # (re)point each extension at its daemon (no restart if Chrome is open and the extension is current)
 awb up      "Work" "Personal"    # start each profile's daemon + router on :10086, open windows
 awb status                       # verify: extensionConnected:true per profile
 awb down                         # tear down the fleet
@@ -231,10 +231,17 @@ through that click and poll for success* rather than waiting blindly:
 > Developers iterating on the extension source use `awb install-dev` instead, which Load-unpacks
 > the in-repo build. The daemon recognizes both the store id and the dev id.
 
-**Zero-click connect:** `awb connect` points each profile's extension at its daemon by writing
-`local_url` directly into the extension's on-disk `storage.local` — no popup, no clicks. It
-quits Chrome to write (LevelDB is single-writer) and the value persists, so later `awb up` runs
-just reconnect. If Chrome is already quit, `awb up` alone does the write for you.
+**Zero-restart connect:** with Chrome running, `awb connect` / `awb up` hand each profile's extension
+its daemon URL through the extension's own popup (`popup.html#connect=<ws url>`). The extension
+checks that it is `ws://127.0.0.1:<port>/ws`, stores it as `local_url` itself and connects, so
+Chrome is **not** closed. The value persists, so later runs just reconnect.
+
+Fallback: an extension build that predates this ignores the hint (reload an unpacked build in
+`chrome://extensions`, or update the Web Store build). For those profiles only, `awb connect` writes
+`local_url` into the extension's on-disk `storage.local`, which needs Chrome closed (LevelDB is
+single-writer), so it quits Chrome first. **Agents: pass `--no-restart`** so the command never
+closes the user's browser and reports failure instead. If Chrome is already quit, `awb up` alone does
+the write for you.
 
 ### Driving a profile
 
