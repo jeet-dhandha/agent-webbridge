@@ -3,6 +3,15 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] — 2026-10-10
+
+**Documentation, SEO metadata, and ecosystem synchronization.**
+
+- Added comprehensive `awb-recipes` catalog integration and community playbooks.
+- Updated documentation and JSON-LD schema with front-loaded `WebBridge` entity definitions and comparisons.
+- Synchronized package keywords (`webbridge`, `open-webbridge`, `kimi-webbridge`, `playwright-alternative`) and official documentation homepage (`https://jeet-dhandha.github.io/agent-webbridge/`).
+- Bumped extension manifest to v1.3.2.
+
 ## [1.3.1] — 2026-10-10
 
 **Security fix: web pages could drive the local bridge.** Please upgrade, then restart the fleet
