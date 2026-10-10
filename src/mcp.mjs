@@ -26,8 +26,8 @@ const AUTO_UP_ALLOWED =
 
 const common = {
   profile: { type: "string", description: "Chrome profile name, email or directory (e.g. \"Work\"). Omit to use the default profile." },
-  session: { type: "string", description: `Task id that groups tabs (default "${DEFAULT_SESSION}"). Use different sessions for independent tasks.` },
-  tabId: { type: "number", description: "Target a specific tab (from list_tabs / navigate). Lets several tabs of one profile run in parallel." },
+  session: { type: "string", description: `Task id that groups tabs into one Chrome tab group (default "${DEFAULT_SESSION}", which every call that omits it shares). Use ONE session per task and the same value for every call of that task, including parallel workers.` },
+  tabId: { type: "number", description: "Target a specific tab (the tabId returned by navigate, or list_tabs). REQUIRED for parallel work: without it a call goes to the profile's shared current tab and queues behind other calls." },
 };
 
 const tool = (action, description, props = {}, required = []) => ({
@@ -43,7 +43,8 @@ const TOOLS = [
   tool("navigate", "Open a URL in the user's real, logged-in Chrome. Returns {url, tabId}.", {
     url: { type: "string" },
     newTab: { type: "boolean", description: "Open in a new tab instead of reusing the current one." },
-    group_title: { type: "string", description: "Label for the session's tab group." },
+    group_title: { type: "string", description: "Label for the session's tab group. Pass the same value on every navigate of a session (each call re-applies it)." },
+    active: { type: "boolean", description: "false opens/loads the tab in the background without taking focus (use for parallel tabs). Default: focus the tab." },
   }, ["url"]),
   tool("snapshot", "Accessibility tree of the page with @e refs for interactive elements. Prefer this over screenshots for reading a page.", {}),
   tool("click", "Click an element by @e ref or CSS selector (synthetic click).", {

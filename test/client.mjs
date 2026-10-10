@@ -66,6 +66,11 @@ try {
   check("navigate payload has session and profile", navCmd.session === "test-sess" && navCmd.profile === "TestProfile");
   check("navigate payload has args", navCmd.args.url === "https://example.com" && navCmd.args.newTab === true && navCmd.args.group_title === "MyGroup");
 
+  await client.navigate("https://example.com/bg", { newTab: true, groupTitle: "MyGroup", active: false });
+  check("navigate sends active:false for a background tab", seen.at(-1).args.active === false);
+  await client.navigate("https://example.com/fg", { newTab: true });
+  check("navigate omits active by default", !("active" in seen.at(-1).args));
+
   // 2. Evaluate uses pinned tabId & unwraps value
   const evalRes = await client.evaluate("document.title");
   check("evaluate unwraps value", evalRes === "mock title");

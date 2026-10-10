@@ -88,10 +88,13 @@ class WebBridgeClient:
         url: str,
         new_tab: bool = False,
         group_title: Optional[str] = None,
+        active: Optional[bool] = None,
     ) -> Dict[str, Any]:
         args = {"url": url, "newTab": new_tab}
         if group_title:
             args["group_title"] = group_title
+        if active is not None:
+            args["active"] = active  # False = open in the background
         return self.command("navigate", args)
 
     def evaluate(self, code: str, timeout: int = 30) -> Any:

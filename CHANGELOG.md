@@ -9,6 +9,7 @@ here. This project adheres to [Semantic Versioning](https://semver.org/).
 
 - Added first-class programmatic client SDK for Node.js (`src/client.mjs`, exported via `agent-webbridge` and `agent-webbridge/client`) with automatic tab tracking and tab pinning.
 - Added standalone zero-dependency Python 3 client (`scripts/awb_client.py`).
+- `active` option for background tabs: `browser_navigate` (MCP) and `navigate()` in the Node and Python clients now accept `active: false`, so parallel tabs open without stealing focus. The MCP `session`, `tabId` and `group_title` descriptions now explain one session per task and per-tab targeting for parallel work.
 - Added `browser_file_chooser_intercept` to MCP server for full 15-tool parity (suppressing native OS file pickers during programmatic uploads).
 - Zero-friction MCP auto-start: when the router is down, MCP automatically starts the router and fleet in the background with `--auto-up`.
 - Updated all tool counts and documentation to accurately reflect all 15 native tools across README, AGENTS, BUILD_SPEC, and skills.
