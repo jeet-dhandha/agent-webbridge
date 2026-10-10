@@ -7,13 +7,13 @@
 ## Answers to common questions
 
 - **What is WebBridge (agent-webbridge)?**
-  WebBridge (also known as Agent WebBridge or `agent-webbridge`) is an open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server that lets AI agents (Claude Code, Cursor, Windsurf, Claude Desktop, Gemini, Qwen) drive your real Google Chrome — with authentic logins, cookies, and 2FA — with parallel tab execution.
-- **How does WebBridge differ from Open WebBridge?**
-  While Open WebBridge routes every action through a single active tab in one profile, WebBridge (`agent-webbridge`) attaches the Chrome DevTools Protocol per tab via an internal Map, enabling true parallel multi-tab execution (~3.5s for 5 tabs vs 9.3s serial) and multi-profile fleet orchestration across separate Google/Chrome profiles simultaneously.
+  WebBridge (published as `agent-webbridge`, also written Agent WebBridge) is an open-source (MIT) browser automation engine and stdio Model Context Protocol (MCP) server that lets AI agents (Claude Code, Cursor, Windsurf, Claude Desktop, Gemini, Qwen) drive your real Google Chrome — with authentic logins, cookies, and 2FA — with parallel tab execution.
+- **Is agent-webbridge the same as other projects called WebBridge?**
+  No. agent-webbridge (also written WebBridge or Agent WebBridge) is an independent open-source project at github.com/jeet-dhandha/agent-webbridge, not affiliated with other projects that use the name, including Open WebBridge.
 - **Can I drive multiple Chrome profiles at once?**
   Yes. Most browser bridges funnel every call through a single global "current tab", driving one tab at a time. WebBridge runs a daemon per profile behind a router on :10086 — every profile stays connected simultaneously; add a `"profile"` field to target Work, Personal, or Developer profiles.
 - **Can I run multiple tabs in one profile concurrently?**
-  Yes — the killer feature. DevTools Protocol attaches per tab, so 5 tabs in one profile finish in ~3.5s flat in parallel versus 9.3s serially.
+  Yes — the killer feature. DevTools Protocol attaches per tab, so 5 tabs in one profile finish in about 3.5s in parallel versus 9.3s serially in our benchmark on one MacBook (results vary).
 - **How do I connect it to Claude Code, Cursor, or Windsurf via MCP?**
   Run `claude mcp add chrome -- npx -y agent-webbridge mcp` for Claude Code. For Cursor, Windsurf, or Claude Desktop, add `{ "mcpServers": { "chrome": { "command": "npx", "args": ["-y", "agent-webbridge", "mcp"] } } }` to your MCP configuration (`.cursor/mcp.json`).
 - **What is awb-recipes?**
@@ -25,6 +25,10 @@
 
 ## Deep Dive Guides & Technical Documentation
 
+- What Can I Ask It To Do?: https://jeet-dhandha.github.io/agent-webbridge/what-you-can-ask/ — Copy-paste requests for an AI using your own signed-in Chrome, tagged by evidence.
+- How It Works: https://jeet-dhandha.github.io/agent-webbridge/how-it-works/ — Router, per-profile daemons, per-tab control and the security guard.
+- Ecosystem: https://jeet-dhandha.github.io/agent-webbridge/ecosystem/ — Registries, packages and lists with current status.
+- FAQ: https://jeet-dhandha.github.io/agent-webbridge/faq/ — Setup, safety, profiles and parallel tabs.
 - Chrome MCP Server: https://jeet-dhandha.github.io/agent-webbridge/chrome-mcp-server/ — Setup, complete 13-tool reference matrix, and local loopback security architecture.
 - Claude Code Browser Automation: https://jeet-dhandha.github.io/agent-webbridge/claude-code-browser-automation/ — 5-minute setup, prompt recipes, and diagnostic runbooks for Claude Code.
 - Multi-Profile Chrome Automation: https://jeet-dhandha.github.io/agent-webbridge/multi-profile-chrome-automation/ — Profile isolation, deterministic hashed ports, and two-dimensional fleet concurrency.

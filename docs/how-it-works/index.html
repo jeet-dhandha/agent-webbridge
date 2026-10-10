@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How WebBridge Works: Router, Profiles and Per-Tab Control | WebBridge</title>
+<meta name="description" content="How agent-webbridge routes AI agent commands to the right Chrome profile and tab: extension, per-profile daemons, local router on 127.0.0.1, and the security guard.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/how-it-works/">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="How WebBridge Works: Router, Profiles and Per-Tab Control | WebBridge">
+<meta property="og:description" content="How agent-webbridge routes AI agent commands to the right Chrome profile and tab: extension, per-profile daemons, local router on 127.0.0.1, and the security guard.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/how-it-works/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="last-modified" content="2026-10-10">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "How WebBridge Works: Router, Profiles and Per-Tab Control",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/how-it-works/"
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/home.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-left"><a href="../" style="color: var(--text-primary); text-decoration: none; font-weight: 700;">WEBBRIDGE</a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">agent-webbridge &middot; MIT &middot; runs on your computer</span></div>
+    <nav class="header-nav">
+      <a href="../what-you-can-ask/">WHAT TO ASK</a>
+      <a href="../#install">INSTALL</a>
+      <a href="../how-it-works/" style="color: var(--text-primary);">HOW IT WORKS</a>
+      <a href="../recipes/">RECIPES</a>
+      <a href="../ecosystem/">ECOSYSTEM</a>
+      <a href="../faq/">FAQ</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+  <div class="card">
+    <div class="card-header-sub" style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;"><span><a href="https://jeet-dhandha.github.io/agent-webbridge/" style="color: inherit;">WebBridge</a> / How it works</span><time datetime="2026-10-10">Updated 2026-10-10</time></div>
+    <h1 class="card-title">How it works</h1>
+    <p class="card-desc">A request goes from your AI app to a local router, then to the daemon for the Chrome profile you named, then to the extension, which controls each tab separately.</p>
+  </div>
+  <!-- ARCHITECTURE FLOW SECTION -->
+  <div class="section-title-wrap" id="architecture">
+    <div class="section-title">Architecture Comparison</div>
+    <div class="section-subtitle-mono">Old Single Slot vs. Fleet Routing</div>
+  </div>
+
+  <div class="diagram-deck">
+    <div class="diagram-visual">
+      <img src="../before-after.svg" alt="Before/after: a single-slot browser bridge (one tab per profile) vs agent-webbridge routing N profiles × N tabs">
+    </div>
+    <div class="diagram-notes">
+      <div class="diagram-note-item">
+        <div class="diagram-note-h">The Single-Slot Limitation</div>
+        <div class="diagram-note-p">
+          Some browser bridges enforce a single connection slot and a single global "current tab", so they drive exactly one tab per profile at a time. Attempting to connect a second Chrome profile results in connection rejection.
+        </div>
+      </div>
+      <div class="diagram-note-item">
+        <div class="diagram-note-h">Simultaneous Session Isolation</div>
+        <div class="diagram-note-p">
+          We spawn one isolated background daemon per Chrome profile on deterministic hashed ports. Each Google account profile runs fully isolated with independent cookies and storage.
+        </div>
+      </div>
+      <div class="diagram-note-item">
+        <div class="diagram-note-h">Transparent Router Gateway</div>
+        <div class="diagram-note-p">
+          The proxy router serves as the central API gateway on port <code>10086</code>. It accepts standard HTTP / MCP commands, extracts the <code>"profile"</code> parameter, and forwards the payload transparently to the corresponding daemon.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section-title-wrap"><div class="section-title">What runs where</div></div>
+  <div class="card"><table class="status-table">
+    <tr><th>Part</th><th>What it is</th></tr>
+    <tr><td>Chrome extension</td><td>A Manifest V3 extension. It attaches Chrome's debugger separately to each tab it controls. Permissions: debugger, tabs, tabGroups, storage, alarms, and access to all sites so it can act where you ask. It connects only to a daemon on 127.0.0.1.</td></tr>
+    <tr><td>Per-profile daemon</td><td>A small Node.js process, one per Chrome profile, on a port derived from the profile name. Its only runtime dependency is <code>ws</code>.</td></tr>
+    <tr><td>Router</td><td>Listens on 127.0.0.1:10086, reads the <code>profile</code> field of each request and forwards it to that profile's daemon.</td></tr>
+    <tr><td>Security guard</td><td>Since 1.3.1 the router and daemons refuse requests that carry a web page Origin or a non-loopback Host header. Versions before 1.3.1 did not, so update.</td></tr>
+    <tr><td>MCP server</td><td><code>npx -y agent-webbridge mcp</code> exposes the browser tools to MCP apps over stdio.</td></tr>
+  </table></div>
+  <div class="note-box"><strong>Where does my data go?</strong> Nowhere off your computer: there is no account, no telemetry and no remote server. Your AI app may send page content to its own model provider, which is separate from WebBridge.</div>
+  <footer>
+    <div class="footer-links"><a href="../chrome-mcp-server/">Chrome MCP Server</a> <span>&middot;</span> <a href="../claude-code-browser-automation/">Claude Code</a> <span>&middot;</span> <a href="../cursor-browser-automation/">Cursor &amp; Windsurf</a> <span>&middot;</span> <a href="../multi-profile-chrome-automation/">Multi-Profile</a> <span>&middot;</span> <a href="../parallel-browser-automation/">Parallel Benchmark</a> <span>&middot;</span> <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a> <span>&middot;</span> <a href="../recipes/">Recipes</a> <span>&middot;</span> <a href="../how-it-works/">How it works</a> <span>&middot;</span> <a href="../playground/">Playground (simulation)</a> <span>&middot;</span> <a href="../ecosystem/">Ecosystem</a> <span>&middot;</span> <a href="../faq/">FAQ</a> <span>&middot;</span> <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub</a> <span>&middot;</span> <a href="https://www.npmjs.com/package/agent-webbridge">npm</a> <span>&middot;</span> <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a></div>
+    <div>Agent WebBridge is an independent open-source project (MIT). Chrome is a trademark of Google; Claude, Cursor and other names belong to their owners, with no affiliation or endorsement implied.</div>
+    <div>It automates a browser you are already signed in to. Use it only on accounts and sites you are entitled to automate, and follow each site's terms.</div>
+  </footer>
+</div>
+<script src="../assets/site.js"></script>
+
+</body>
+</html>

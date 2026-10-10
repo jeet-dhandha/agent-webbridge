@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebBridge Playground: Simulated Commands and CLI Walkthrough | WebBridge</title>
+<meta name="description" content="A simulated walkthrough of the awb CLI and the router /command request format for agent-webbridge. Nothing is sent anywhere.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/playground/">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="WebBridge Playground: Simulated Commands and CLI Walkthrough | WebBridge">
+<meta property="og:description" content="A simulated walkthrough of the awb CLI and the router /command request format for agent-webbridge. Nothing is sent anywhere.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/playground/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="last-modified" content="2026-10-10">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "WebBridge Playground: Simulated Commands and CLI Walkthrough",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/playground/"
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/home.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-left"><a href="../" style="color: var(--text-primary); text-decoration: none; font-weight: 700;">WEBBRIDGE</a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">agent-webbridge &middot; MIT &middot; runs on your computer</span></div>
+    <nav class="header-nav">
+      <a href="../what-you-can-ask/">WHAT TO ASK</a>
+      <a href="../#install">INSTALL</a>
+      <a href="../how-it-works/">HOW IT WORKS</a>
+      <a href="../recipes/">RECIPES</a>
+      <a href="../ecosystem/">ECOSYSTEM</a>
+      <a href="../faq/">FAQ</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+  <div class="card">
+    <div class="card-header-sub" style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;"><span><a href="https://jeet-dhandha.github.io/agent-webbridge/" style="color: inherit;">WebBridge</a> / Playground (simulation)</span><time datetime="2026-10-10">Updated 2026-10-10</time></div>
+    <h1 class="card-title">Playground (simulation)</h1>
+    <p class="card-desc">Step through the CLI and build an example request to see what the router expects. It is a teaching aid, not a live connection.</p>
+  </div>
+  <div class="sim-banner"><strong>This is a simulation.</strong> The commands and responses below are examples built into this page. No request is sent to any server, and nothing here is connected to your browser.</div>
+<!-- CLI WALKTHROUGH SECTION -->
+  <div class="section-title-wrap" id="install-section">
+    <div class="section-title">CLI Installation &amp; Walkthrough</div>
+    <div class="section-subtitle-mono">Interactive Setup Console</div>
+  </div>
+
+  <div class="cli-tabs">
+    <button class="cli-tab active" onclick="showCliTab('mcp')">0. MCP Server</button>
+    <button class="cli-tab" onclick="showCliTab('install')">1. Install</button>
+    <button class="cli-tab" onclick="showCliTab('profiles')">2. Profiles List</button>
+    <button class="cli-tab" onclick="showCliTab('connect')">3. Zero-Click Connect</button>
+    <button class="cli-tab" onclick="showCliTab('up')">4. Launch Fleet</button>
+    <button class="cli-tab" onclick="showCliTab('down')">5. Stop Fleet</button>
+  </div>
+
+  <div class="cli-panel">
+    <div class="cli-desc" id="cli-tab-description">
+      Run the zero-dependency stdio Model Context Protocol (MCP) server. Exposes browser navigation, snapshots, and execution to Claude Code, Cursor, and Windsurf.
+    </div>
+    <div class="cli-terminal">
+      <div class="cli-input-line" id="cli-command-line">npx agent-webbridge mcp</div>
+      <div class="cli-output-line" id="cli-output-content">
+[agent-webbridge] MCP stdio server ready (15 tools registered).
+[agent-webbridge] Connecting to router at 127.0.0.1:10086...
+✓ Connected to fleet router.
+Tools: browser_navigate, browser_snapshot, browser_click, browser_fill, browser_evaluate, browser_screenshot...
+Ready for agent commands.
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE PLAYGROUND SECTION -->
+  <div class="section-title-wrap" id="playground">
+    <div class="section-title">Command Builder &amp; Network Playground</div>
+    <div class="section-subtitle-mono">Test routing contract interactively</div>
+  </div>
+
+  <div class="grid-playground">
+    
+    <!-- PLAYGROUND CONTROL PANEL -->
+    <div class="card">
+      <div class="card-header-sub">Request Configuration</div>
+      <p class="card-desc" style="font-size: 0.9rem; margin-bottom: 1rem;">
+        Assemble a command body for the router to forward.
+      </p>
+
+      <div class="form-group">
+        <label for="play-profile">Target Profile</label>
+        <select id="play-profile" class="form-control" onchange="updatePlaygroundCode()">
+          <option value="Work">"Work" Profile</option>
+          <option value="Personal">"Personal" Profile</option>
+          <option value="Developer">"Developer" Profile</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="play-action">Action Method</label>
+        <select id="play-action" class="form-control" onchange="updatePlaygroundAction()">
+          <option value="navigate">navigate (Go to URL)</option>
+          <option value="click">click (Interact with selector)</option>
+          <option value="extract">get_page_content (Read DOM)</option>
+          <option value="tabs">list_tabs (Enumerate tabs)</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="arg-url-group">
+        <label for="play-arg-url">Target URL</label>
+        <input type="text" id="play-arg-url" class="form-control" value="https://search.google.com/search-console" oninput="updatePlaygroundCode()">
+      </div>
+
+      <div class="form-group" id="arg-selector-group" style="display: none;">
+        <label for="play-arg-selector">CSS Selector</label>
+        <input type="text" id="play-arg-selector" class="form-control" value="button.compose" oninput="updatePlaygroundCode()">
+      </div>
+
+      <div class="form-group">
+        <label for="play-session">Session Name</label>
+        <input type="text" id="play-session" class="form-control" value="audit" oninput="updatePlaygroundCode()">
+      </div>
+
+      <button class="btn btn-accent" style="margin-top: 1rem; width: 100%; justify-content: center;" onclick="runPlaygroundCommand()">
+        Transmit Command to Fleet &rarr;
+      </button>
+    </div>
+
+    <!-- PLAYGROUND CODE & RESPONSE PANE -->
+    <div style="display: flex; flex-direction: column;">
+      <div class="payload-tabs">
+        <button class="payload-tab active" id="tab-curl" onclick="setPayloadFormat('curl')">cURL Request</button>
+        <button class="payload-tab" id="tab-json" onclick="setPayloadFormat('json')">JSON Body</button>
+      </div>
+      <div class="code-container" id="playground-code-box">curl -s -X POST http://127.0.0.1:10086/command   -H 'Content-Type: application/json'   -d '{"action":"navigate","args":{"url":"https://search.google.com/search-console"},"session":"audit","profile":"Work"}'</div>
+
+      <div class="response-deck">
+        <div class="response-deck-title">
+          <span>FLEET TRANSMISSION RESPONSE</span>
+          <span class="badge-status" id="response-status-badge"><span class="response-status-dot" id="response-status-dot"></span> <span id="response-status-text">Idle</span></span>
+        </div>
+        <pre class="response-body" id="playground-response-box">Press "Transmit Command to Fleet" to simulate the network routing...</pre>
+      </div>
+    </div>
+
+  </div>
+
+  
+  <footer>
+    <div class="footer-links"><a href="../chrome-mcp-server/">Chrome MCP Server</a> <span>&middot;</span> <a href="../claude-code-browser-automation/">Claude Code</a> <span>&middot;</span> <a href="../cursor-browser-automation/">Cursor &amp; Windsurf</a> <span>&middot;</span> <a href="../multi-profile-chrome-automation/">Multi-Profile</a> <span>&middot;</span> <a href="../parallel-browser-automation/">Parallel Benchmark</a> <span>&middot;</span> <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a> <span>&middot;</span> <a href="../recipes/">Recipes</a> <span>&middot;</span> <a href="../how-it-works/">How it works</a> <span>&middot;</span> <a href="../playground/">Playground (simulation)</a> <span>&middot;</span> <a href="../ecosystem/">Ecosystem</a> <span>&middot;</span> <a href="../faq/">FAQ</a> <span>&middot;</span> <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub</a> <span>&middot;</span> <a href="https://www.npmjs.com/package/agent-webbridge">npm</a> <span>&middot;</span> <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a></div>
+    <div>Agent WebBridge is an independent open-source project (MIT). Chrome is a trademark of Google; Claude, Cursor and other names belong to their owners, with no affiliation or endorsement implied.</div>
+    <div>It automates a browser you are already signed in to. Use it only on accounts and sites you are entitled to automate, and follow each site's terms.</div>
+  </footer>
+</div>
+<script src="../assets/site.js"></script>
+<script src="../assets/playground.js"></script>
+</body>
+</html>
