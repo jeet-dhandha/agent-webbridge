@@ -65,13 +65,24 @@ try {
   const names = list.result.tools.map((t) => t.name);
   check("tools/list has browser_navigate + browser_snapshot + browser_status",
     ["browser_navigate", "browser_snapshot", "browser_status"].every((n) => names.includes(n)));
+  check("tools/list has browser_file_chooser_intercept", names.includes("browser_file_chooser_intercept"));
+  check("tools/list has 16 tools (15 browser + status)", list.result.tools.length === 16);
   check("every tool has an object inputSchema", list.result.tools.every((t) => t.inputSchema?.type === "object"));
 
   const nav = await c.rpc("tools/call", { name: "browser_navigate", arguments: { url: "https://example.com", newTab: true, profile: "Work", session: "s1", tabId: 5 } });
   check("navigate returns text content", nav.result.content[0].type === "text" && JSON.parse(nav.result.content[0].text).tabId === 7);
+  const navTool = list.result.tools.find((t) => t.name === "browser_navigate");
+  check("browser_navigate schema lists active (boolean) and group_title", navTool.inputSchema.properties.active?.type === "boolean" && !!navTool.inputSchema.properties.group_title);
   const sent = seen.at(-1);
   check("router got action/profile/session", sent.action === "navigate" && sent.profile === "Work" && sent.session === "s1");
   check("tabId forwarded as args._tabId, url as args.url", sent.args._tabId === 5 && sent.args.url === "https://example.com");
+
+  await c.rpc("tools/call", { name: "browser_navigate", arguments: { url: "https://example.com/bg", newTab: true, active: false, group_title: "G", session: "s1", tabId: 5 } });
+  check("active:false and group_title are forwarded in args", seen.at(-1).args.active === false && seen.at(-1).args.group_title === "G");
+
+  const intercept = await c.rpc("tools/call", { name: "browser_file_chooser_intercept", arguments: { enabled: true } });
+  check("file_chooser_intercept returns success", !intercept.result.isError);
+  check("file_chooser_intercept routes enabled arg", seen.at(-1).action === "file_chooser_intercept" && seen.at(-1).args.enabled === true);
 
   const dflt = await c.rpc("tools/call", { name: "browser_snapshot", arguments: {} });
   check("default session is applied", seen.at(-1).session === "mcp" && !dflt.result.isError);

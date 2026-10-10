@@ -249,9 +249,8 @@ export async function groupTitleForTab(tabId)    // best-effort tabGroups.get(ta
 ```
 import { WSClient } from "./src/ws.mjs";
 import { initDebugger, attach } from "./src/dbg.mjs";
-import { startKeepalive, beginHeartbeat, endHeartbeat } from "./src/keepalive.mjs";
-import navigate from "./src/tools/navigate.mjs";  // ...and all 13 tool modules
-// const TOOLS = { navigate, find_tab, evaluate, snapshot, click, fill, network, upload, screenshot, save_as_pdf, list_tabs, close_tab, close_session };
+import navigate from "./src/tools/navigate.mjs";  // ...and all 15 tool modules
+// const TOOLS = { navigate, find_tab, evaluate, snapshot, click, trusted_click, fill, network, upload, file_chooser_intercept, screenshot, save_as_pdf, list_tabs, close_tab, close_session };
 
 let currentTab = null;                 // last navigated/selected tabId
 const queues = new Map();              // queueKey -> tail Promise (per-tab serialization)

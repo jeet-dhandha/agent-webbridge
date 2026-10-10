@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // pack-extension.mjs — build the downloadable release zip for the agent-webbridge MV3
-// extension (attached to the GitHub Release; there is no Chrome Web Store listing).
+// extension (attached to the GitHub Release for "Load unpacked"; the Web Store build is `--store`, uploaded by hand).
 //
 // WHAT IT DOES
 //   Zips agent-webbridge-extension/ into dist/agent-webbridge-extension-<version>.zip,

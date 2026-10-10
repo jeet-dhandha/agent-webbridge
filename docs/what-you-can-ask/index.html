@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Can I Ask WebBridge To Do? Copy-Paste Requests | WebBridge</title>
+<meta name="description" content="Copy-paste requests for an AI that uses your own signed-in Chrome: read and summarize pages, compare tabs, fill forms and stop for review, upload files, use several profiles.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/what-you-can-ask/">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="What Can I Ask WebBridge To Do? Copy-Paste Requests | WebBridge">
+<meta property="og:description" content="Copy-paste requests for an AI that uses your own signed-in Chrome: read and summarize pages, compare tabs, fill forms and stop for review, upload files, use several profiles.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/what-you-can-ask/">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="last-modified" content="2026-10-10">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "WebBridge",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "What Can I Ask WebBridge To Do? Copy-Paste Requests",
+      "item": "https://jeet-dhandha.github.io/agent-webbridge/what-you-can-ask/"
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/home.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="header-left"><a href="../" style="color: var(--text-primary); text-decoration: none; font-weight: 700;">WEBBRIDGE</a>
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">agent-webbridge &middot; MIT &middot; runs on your computer</span></div>
+    <nav class="header-nav">
+      <a href="../what-you-can-ask/" style="color: var(--text-primary);">WHAT TO ASK</a>
+      <a href="../#install">INSTALL</a>
+      <a href="../how-it-works/">HOW IT WORKS</a>
+      <a href="../recipes/">RECIPES</a>
+      <a href="../ecosystem/">ECOSYSTEM</a>
+      <a href="../faq/">FAQ</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </nav>
+  </header>
+  <div class="card">
+    <div class="card-header-sub" style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;"><span><a href="https://jeet-dhandha.github.io/agent-webbridge/" style="color: inherit;">WebBridge</a> / What can I ask it to do?</span><time datetime="2026-10-10">Updated 2026-10-10</time></div>
+    <h1 class="card-title">What can I ask it to do?</h1>
+    <p class="card-desc">Copy a request, replace the &lt;placeholders&gt;, and paste it into your AI once WebBridge is set up. Each one is tagged with how much evidence we have.</p>
+  </div>
+  <div class="section-title-wrap"><div class="section-title">Read and summarize</div></div>
+<div class="ask-grid">
+<div class="ask-card"><div class="ask-tag">Basic capability</div><h3>Summarize a page</h3>
+        <pre class="prompt-text small" id="p-0">Open &lt;url&gt;, read it, and give me the 5 most important points.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-0">Copy</button></div></div>
+<div class="ask-card"><div class="ask-tag">Shown in demo 1</div><h3>Read the top stories</h3>
+        <pre class="prompt-text small" id="p-1">Open https://news.ycombinator.com, read the top 10 stories, and give me a 5-line summary.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-1">Copy</button></div></div>
+<div class="ask-card"><div class="ask-tag">Basic capability</div><h3>Pull a table out of a page</h3>
+        <pre class="prompt-text small" id="p-2">On &lt;url&gt;, read the main table and give it to me as CSV so I can paste it into a spreadsheet.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-2">Copy</button></div></div>
+</div>
+<div class="section-title-wrap"><div class="section-title">Compare across tabs</div></div>
+<div class="ask-grid">
+<div class="ask-card"><div class="ask-tag">Shown in demo 2</div><h3>Compare pages side by side</h3>
+        <pre class="prompt-text small" id="p-3">Open these 5 pages in separate tabs at the same time and tell me the main difference between them: &lt;url 1&gt; &lt;url 2&gt; &lt;url 3&gt; &lt;url 4&gt; &lt;url 5&gt;</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-3">Copy</button></div></div>
+</div>
+<div class="section-title-wrap"><div class="section-title">Use sites you are logged into</div></div>
+<div class="ask-grid">
+<div class="ask-card"><div class="ask-tag">Shown in demo 3</div><h3>Prepare something and stop for review</h3>
+        <pre class="prompt-text small" id="p-4">In my Chrome profile &quot;Work&quot;, open &lt;the site&gt;, fill in the new-item form with &lt;my details&gt;, and stop before you submit. Show me what you filled in.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-4">Copy</button></div></div>
+<div class="ask-card"><div class="ask-tag">Shown in demo 4</div><h3>Fill in a form</h3>
+        <pre class="prompt-text small" id="p-5">Fill the form at &lt;url&gt; with my name, email and message, choose the right options, and do not press submit.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-5">Copy</button></div></div>
+<div class="ask-card"><div class="ask-tag">Recipe</div><h3>Upload a file</h3>
+        <pre class="prompt-text small" id="p-6">On &lt;url&gt;, attach the file ~/Documents/&lt;file&gt;.pdf to the upload field and tell me when it is attached. Do not submit.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-6">Copy</button></div></div>
+</div>
+<div class="section-title-wrap"><div class="section-title">Several accounts</div></div>
+<div class="ask-grid">
+<div class="ask-card"><div class="ask-tag">Multi-profile guide</div><h3>Check two profiles</h3>
+        <pre class="prompt-text small" id="p-7">Open &lt;the dashboard&gt; in my &quot;Work&quot; profile and my &quot;Personal&quot; profile and tell me which one has unread alerts.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-7">Copy</button></div></div>
+</div>
+<div class="section-title-wrap"><div class="section-title">Keep a copy</div></div>
+<div class="ask-grid">
+<div class="ask-card"><div class="ask-tag">Basic capability</div><h3>Screenshot or PDF</h3>
+        <pre class="prompt-text small" id="p-8">Open &lt;url&gt;, take a screenshot and save it to ~/Desktop/page.png.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-8">Copy</button></div></div>
+<div class="ask-card"><div class="ask-tag">Basic capability</div><h3>Save as PDF</h3>
+        <pre class="prompt-text small" id="p-9">Open &lt;url&gt; and save it as a PDF in ~/Desktop.</pre>
+        <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="p-9">Copy</button></div></div>
+</div>
+  <div class="section-title-wrap"><div class="section-title">Ground rules</div></div>
+  <div class="card"><ul class="check-list">
+    <li>Replace anything in &lt;angle brackets&gt;. Keep the &ldquo;stop before you submit&rdquo; part for anything that sends, buys, posts or deletes.</li>
+    <li>The AI acts as you in your own Chrome. Watch the first few runs on a new task.</li>
+    <li>&ldquo;Shown in demo&rdquo; means we have a recorded run on the <a href="../#demos">home page</a>. &ldquo;Recipe&rdquo; means a documented procedure; &ldquo;Basic capability&rdquo; means a built-in tool (read, screenshot, PDF) without its own recording.</li>
+  </ul></div>
+  <div class="section-title-wrap"><div class="section-title">Not supported (yet)</div></div>
+  <div class="card"><ul class="check-list">
+    <li>Record my clicks and replay them: there is no recorder. Describe the task, or use a recipe.</li>
+    <li>Running on a schedule while you are away: not built in.</li>
+    <li>Anything that breaks a site's rules, such as bulk posting, fake accounts or buying limited items before other people: do not use it for that.</li>
+    <li>Chat windows that cannot run commands or connect MCP servers: they cannot set it up.</li>
+  </ul></div>
+  <div class="note-box"><strong>Need to install it first?</strong> Go to the <a href="../#install">1-minute setup prompt</a>.</div>
+  <footer>
+    <div class="footer-links"><a href="../chrome-mcp-server/">Chrome MCP Server</a> <span>&middot;</span> <a href="../claude-code-browser-automation/">Claude Code</a> <span>&middot;</span> <a href="../cursor-browser-automation/">Cursor &amp; Windsurf</a> <span>&middot;</span> <a href="../multi-profile-chrome-automation/">Multi-Profile</a> <span>&middot;</span> <a href="../parallel-browser-automation/">Parallel Benchmark</a> <span>&middot;</span> <a href="../real-chrome-vs-headless/">Real Chrome vs Headless</a> <span>&middot;</span> <a href="../recipes/">Recipes</a> <span>&middot;</span> <a href="../how-it-works/">How it works</a> <span>&middot;</span> <a href="../playground/">Playground (simulation)</a> <span>&middot;</span> <a href="../ecosystem/">Ecosystem</a> <span>&middot;</span> <a href="../faq/">FAQ</a> <span>&middot;</span> <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub</a> <span>&middot;</span> <a href="https://www.npmjs.com/package/agent-webbridge">npm</a> <span>&middot;</span> <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a></div>
+    <div>Agent WebBridge is an independent open-source project (MIT). Chrome is a trademark of Google; Claude, Cursor and other names belong to their owners, with no affiliation or endorsement implied.</div>
+    <div>It automates a browser you are already signed in to. Use it only on accounts and sites you are entitled to automate, and follow each site's terms.</div>
+  </footer>
+</div>
+<script src="../assets/site.js"></script>
+
+</body>
+</html>

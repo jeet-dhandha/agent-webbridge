@@ -8,6 +8,7 @@
 import { WSClient } from "./src/ws.mjs";
 import { initDebugger, attach } from "./src/dbg.mjs";
 import { startKeepalive, beginHeartbeat, endHeartbeat } from "./src/keepalive.mjs";
+import { applyConnectUrl } from "./src/connect_url.mjs";
 
 import navigate from "./src/tools/navigate.mjs";
 import find_tab from "./src/tools/find_tab.mjs";
@@ -129,7 +130,7 @@ function main() {
 
   startKeepalive(() => ws.reconnectIfNeeded());
 
-  chrome.runtime.onMessage.addListener((m, _sender, reply) => {
+  chrome.runtime.onMessage.addListener((m, sender, reply) => {
     const type = m && m.type;
     if (type === "GET_STATUS") {
       // GET_STATUS is also the service-worker wake trigger the fleet relies on (popup.js
@@ -142,6 +143,18 @@ function main() {
     } else if (type === "CONNECT") {
       ws.reconnectIfNeeded();
       reply({ ok: true });
+    } else if (type === "SET_URL") {
+      // Zero-restart connect (see popup.js applyConnectHint): the decision lives in connect_url.mjs
+      // (own popup page only, ws://127.0.0.1:<port>/ws only) so it can be tested without Chrome.
+      applyConnectUrl({
+        url: m && m.url,
+        sender,
+        extensionId: chrome.runtime.id,
+        popupUrl: chrome.runtime.getURL("popup.html"),
+        saveLocalUrl: (v) => chrome.storage.local.set({ local_url: v }),
+        connect: (u) => ws.connect(u),
+        closeTab: (id) => chrome.tabs.remove(id),
+      }).then(reply);
     } else if (type === "DISCONNECT") {
       ws.disconnect();
       reply({ ok: true });

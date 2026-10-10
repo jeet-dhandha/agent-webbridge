@@ -65,7 +65,7 @@ Everything runs locally on `127.0.0.1`. No external relay, no accounts, and buil
 | **Real Logged-in Sessions** | ❌ Requires re-login | ❌ Isolated remote box | ✅ Yes | ✅ **Yes (Full 2FA & Cookies)** |
 | **Multi-Profile Concurrency** | ❌ Complex setup | ❌ Costly | ❌ 1 profile | ✅ **Unlimited Profiles (N×M)** |
 | **Per-Tab Parallelism** | ✅ Yes | ⚠️ Metered/Throttled | ❌ 1 Tab at a time | ✅ **True Parallel CDP (Map)** |
-| **Bot Detection Bypass** | ❌ Frequently flagged | ⚠️ Varies | ✅ Authentic Chrome | ✅ **Authentic Chrome** |
+| **Browser identity** | ❌ Often challenged | ⚠️ Varies | ✅ Your own Chrome profile | ✅ **Your own Chrome profile** |
 | **MCP Integration** | ⚠️ Needs wrapper | ⚠️ Custom REST | ⚠️ Experimental | ✅ **Zero-dep stdio & HTTP MCP** |
 | **Cost & Privacy** | Free / Local | $0.05–$0.20 / min | Free / Closed | **100% Free, MIT, 127.0.0.1** |
 

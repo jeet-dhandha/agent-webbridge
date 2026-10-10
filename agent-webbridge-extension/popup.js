@@ -43,4 +43,19 @@ disconnectBtn.addEventListener("click", () => {
   });
 });
 
+// Zero-restart connect: `awb connect` / `awb up` open popup.html#connect=<ws url> in the target
+// profile. Hand the URL to the background worker, which validates it (loopback only), stores it
+// and connects, so Chrome never has to be closed to edit the extension's storage on disk.
+(function applyConnectHint() {
+  const m = /^#connect=(.+)$/.exec(location.hash);
+  if (!m) return;
+  let url;
+  try {
+    url = decodeURIComponent(m[1]);
+  } catch {
+    return;
+  }
+  chrome.runtime.sendMessage({ type: "SET_URL", url }, () => void chrome.runtime.lastError);
+})();
+
 refresh();

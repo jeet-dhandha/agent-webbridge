@@ -51,9 +51,10 @@ export class WebBridgeClient {
     return data.data;
   }
 
-  async navigate(url, { newTab = false, groupTitle = null } = {}) {
+  async navigate(url, { newTab = false, groupTitle = null, active = null } = {}) {
     const args = { url, newTab };
     if (groupTitle) args.group_title = groupTitle;
+    if (typeof active === "boolean") args.active = active; // false = open in the background
     return await this.command("navigate", args);
   }
 

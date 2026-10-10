@@ -39,7 +39,7 @@ Your agent now has `browser_navigate`, `browser_snapshot`, `browser_click`, `bro
 |---|---|---|---|
 | Cost | usage-based | free | **free, MIT** |
 | Your logins, passkeys, 2FA | re-auth or upload cookies | re-login; 2FA breaks | **already signed in** |
-| Bot detection (Cloudflare, Datadome) | flagged cloud IPs | often blocked | **it's your real browser** |
+| Browser identity | cloud and datacenter IPs are often challenged | headless browsers are often challenged | **your own Chrome profile (sites can still limit automation)** |
 | Where your data goes | a third-party server | local | **local only, `127.0.0.1`** |
 | Several accounts at once | separate sessions to manage | manual orchestration | **one profile per account, parallel tabs** |
 
@@ -61,7 +61,7 @@ Timings come from one MacBook on home broadband; yours will differ.
 ## Overview
 
 - **Drive your real browser** — your actual Chrome, your actual login sessions. No headless re-login, no scraping around auth.
-- **Run tabs in parallel** — the extension attaches `chrome.debugger` per tab, so N tabs in one profile run concurrently. 10 tabs finish as fast as 1 (~2 s, flat).
+- **Run tabs in parallel** — the extension attaches `chrome.debugger` per tab, so N tabs in one profile run concurrently. In our benchmark, 5 tabs took 3.5 s in parallel vs 9.3 s one at a time (one MacBook; yours will differ).
 - **Span multiple profiles** — one daemon per profile. Total concurrency = **profiles × tabs**, all from one endpoint.
 - **Stay private** — own daemon, own MV3 extension, no closed-source dependency, no account. Everything is local.
 
@@ -91,7 +91,7 @@ awb down                        # stop the fleet when done
 
 Every call is a `POST /command` on `127.0.0.1:10086`. Wrap payloads in single quotes (`'...'`) to prevent shell quote-escaping issues. `"session"` groups a task's tabs into one Chrome tab group; `"profile"` picks which Chrome profile to drive. Pass `{"action":"screenshot","args":{"path":"/path/to/img.png"}}` to save screenshots directly to disk.
 
-## Tools
+## Tools (15 Native Tools + Status)
 
 | Tool | Does |
 |---|---|
@@ -99,16 +99,41 @@ Every call is a `POST /command` on `127.0.0.1:10086`. Wrap payloads in single qu
 | `find_tab` | Locate a tab by URL / title |
 | `evaluate` | Run JavaScript in the page, return the result |
 | `snapshot` | Accessibility tree with stable `@e` element refs |
-| `click` | Click an element by `@e` ref |
+| `click` | Click an element by `@e` ref (synthetic DOM click) |
 | `trusted_click` | Real mouse click (CDP, `isTrusted`) for pages that ignore `click` |
-| `fill` | Set native inputs **and** `contenteditable` fields |
-| `upload` | Upload a file to a file input |
-| `screenshot` | Capture a page screenshot |
+| `fill` | Set native inputs **and** `contenteditable` rich text fields |
+| `upload` | Programmatically assign files to `<input type="file">` |
+| `file_chooser_intercept` | Suppress native OS file picker dialogs (Finder/Explorer) during programmatic upload |
+| `screenshot` | Capture full-page or element screenshot directly to disk |
 | `save_as_pdf` | Save the page as a PDF |
-| `network` | Capture network requests |
-| `list_tabs` | List the session's tabs |
+| `network` | Capture network requests (`start`, `stop`, `list`, `detail`) |
+| `list_tabs` | List open tabs with IDs and tab group info |
 | `close_tab` | Close a tab |
-| `close_session` | Close a session and its tab group |
+| `close_session` | Close a session and its entire tab group |
+
+## Programmatic SDKs (Node.js & Python)
+
+### Node.js ESM SDK
+
+```javascript
+import { WebBridgeClient } from "agent-webbridge";
+
+const client = new WebBridgeClient({ profile: "Work", session: "my-task" });
+await client.navigate("https://example.com");
+const title = await client.evaluate("document.title");
+console.log("Title:", title);
+```
+
+### Python 3 SDK (Zero Dependencies)
+
+```python
+from scripts.awb_client import WebBridgeClient
+
+client = WebBridgeClient(profile="Work", session="my-task")
+client.navigate("https://example.com")
+title = client.evaluate("document.title")
+print("Title:", title)
+```
 
 ## How it works
 
@@ -135,7 +160,7 @@ The router proxies each command to the per-profile daemon on its deterministic h
 | `awb setup <profile…>` | One-time install: walk through "Load unpacked", connect, bring the fleet up |
 | `awb up <profile…>` | Start the named profiles' daemons + router, open windows, connect |
 | `awb down` | Stop the router + fleet |
-| `awb connect <profile…>` | Point each profile's extension at its daemon |
+| `awb connect <profile…> [--no-restart]` | Point each profile's extension at its daemon. Chrome stays open when the extension is current; `--no-restart` never closes Chrome (fails instead) |
 | `awb check [profile…] [--json]` | Read-only readiness probe (folder? dev-mode? loaded? connected?) — what an agent polls during install |
 | `awb status` | Per-profile daemon + extension-connection status |
 | `awb doctor` | Diagnose the environment (Chrome, profiles, daemon, extension) |
@@ -153,7 +178,7 @@ Ship it as a [Claude Code skill / plugin](.claude-plugin/) — the bundled `agen
 Websites update their markup and deploy anti-bot traps all the time. Rather than forcing your agent to guess selectors or fail on edge cases, browse community-maintained, verified playbooks in [**awb-recipes**](https://github.com/jeet-dhandha/awb-recipes).
 
 - `github-gist-create`: Create secret or public GitHub Gists via browser UI with active session.
-- `google-search-results`: Organic SERP extraction bypassing cloud-IP bot blocks.
+- `google-search-results`: Organic SERP extraction from your own signed-in browser.
 - `hn-reply-box`: Interact with Hacker News threads using authentic user cookies.
 - `linkedin-feed-posts`: Extract authentic feed updates without session hijacking.
 - `npm-most-depended`: Extract package download metrics and dependency hierarchies.
@@ -163,9 +188,9 @@ To contribute, claim an open issue labelled [`good first recipe`](https://github
 
 ## Ecosystem & listings
 
-- **Official MCP Registry**: Registered as `io.github.jeet-dhandha/agent-webbridge`
-- **Awesome MCP Servers**: Featured on [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)
-- **Awesome Claude Skills**: Featured in [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills) and [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)
+- **Official MCP Registry**: Registered as `io.github.jeet-dhandha/agent-webbridge` (the registry currently shows 1.3.1)
+- **Awesome MCP Servers**: pull request open on [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) (waiting on a Glama listing)
+- **Awesome Claude Skills**: pull requests open on [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills), [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills) and [travisvn/awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills)
 - **Skills CLI**: Installable via `npx skills add jeet-dhandha/agent-webbridge`
 - **Chrome Web Store**: Published extension [Agent WebBridge](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
 - **Website & Interactive Demos**: [jeet-dhandha.github.io/agent-webbridge](https://jeet-dhandha.github.io/agent-webbridge/)

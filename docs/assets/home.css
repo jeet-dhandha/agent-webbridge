@@ -1,0 +1,38 @@
+/* Components for the slim home page and subpages (colors come from site.css variables) */
+.hero-sub { font-size: 1.1rem; color: var(--text-secondary); max-width: 52rem; margin-bottom: 1.25rem; }
+.prompt-box { position: relative; background: #ffffff; border: 1px solid var(--border-accent); box-shadow: var(--shadow-brutal); padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.prompt-text { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word; color: var(--text-primary); margin: 0; }
+.prompt-text.small { background: var(--bg-code); padding: 0.75rem; font-size: 0.76rem; border: 1px solid var(--border-color); }
+.copy-btn { align-self: flex-start; }
+.two-col > *, .ask-grid > *, .link-grid > *, .card > * { min-width: 0; }
+.code-snippet, .prompt-text { max-width: 100%; }
+img { max-width: 100%; height: auto; }
+.copy-btn.done { background: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+.two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; align-items: start; }
+.note-box { border-left: 4px solid var(--accent-amber); background: #fffbeb; padding: 0.85rem 1rem; font-size: 0.9rem; color: var(--text-secondary); }
+.note-box strong { color: var(--text-primary); }
+.check-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.95rem; color: var(--text-secondary); }
+.check-list li::before { content: "\2713  "; color: var(--accent-green); font-weight: 700; }
+.ask-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.ask-card { background: #ffffff; border: 1px solid var(--border-color); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; box-shadow: var(--shadow-brutal); }
+.ask-card h3 { font-size: 1.05rem; }
+.ask-tag { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-green); font-weight: 700; }
+.ask-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: auto; }
+.ask-more { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--accent-blue); text-decoration: none; }
+.link-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.link-grid a { display: block; background: var(--bg-panel); border: 1px solid var(--border-color); padding: 0.9rem 1rem; text-decoration: none; color: var(--text-primary); }
+.link-grid a:hover { border-color: var(--border-accent); }
+.link-grid strong { display: block; font-size: 0.98rem; }
+.link-grid span { font-size: 0.82rem; color: var(--text-secondary); }
+.faq-d { background: #ffffff; border: 1px solid var(--border-color); padding: 0.85rem 1rem; margin-bottom: 0.6rem; }
+.faq-d summary { cursor: pointer; font-weight: 700; }
+.faq-d p { margin-top: 0.6rem; color: var(--text-secondary); font-size: 0.95rem; }
+.status-table { width: 100%; border-collapse: collapse; background: #ffffff; font-size: 0.9rem; }
+.status-table th, .status-table td { border: 1px solid var(--border-color); padding: 0.6rem 0.75rem; text-align: left; vertical-align: top; }
+.status-table th { background: var(--bg-code); font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.pill { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.45rem; border: 1px solid var(--border-accent); white-space: nowrap; }
+.pill.ok { background: #dcfce7; } .pill.wait { background: #fef3c7; }
+.sim-banner { border: 2px dashed var(--accent-amber); background: #fffbeb; padding: 0.85rem 1rem; font-size: 0.9rem; }
+@media (max-width: 900px) { .two-col, .ask-grid, .link-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .status-table, .status-table tbody, .status-table tr, .status-table td { display: block; width: 100%; } .status-table tr:first-child { display: none; } .status-table tr { border-bottom: 2px solid var(--border-accent); } .status-table td { border: 0; border-top: 1px solid var(--border-color); padding: 0.45rem 0.75rem; } .status-table tr td:first-child { border-top: 0; font-weight: 700; } .footer-links span { display: none; } .footer-links { gap: 0.6rem 1.1rem; } }
+@media (max-width: 600px) { body { padding: 0.75rem; } .card { padding: 1.1rem; } .prompt-text { font-size: 0.74rem; } .header-nav { flex-wrap: wrap; gap: 0.6rem 1rem; } .btn { white-space: normal; } }

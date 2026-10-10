@@ -32,7 +32,7 @@ It pairs with the open-source `agent-webbridge` stdio Model Context Protocol (MC
 Every connection stays on your computer. The extension never contacts an external host — its only network destination is 127.0.0.1.
 
 Core Capabilities for AI Agents:
-• Real Browser Sessions: Drive your actual Chrome with existing cookies, active logins, and 2FA. No headless re-login walls or bot detection.
+• Real Browser Sessions: Drive your actual Chrome with existing cookies, active logins, and 2FA. No headless re-login walls.
 • True Parallelism: DevTools debugger attaches per tab in an internal Map, allowing concurrent multi-tab scraping and evaluation (~3.5s for 5 tabs vs 9.3s serial).
 • Multi-Profile Routing: Automate multiple distinct Chrome profiles (Work, Personal, Developer) simultaneously behind loopback router 127.0.0.1:10086.
 • Compact Element References: Extract LLM-friendly accessibility-tree snapshots with compact @e refs rather than bloated raw HTML.

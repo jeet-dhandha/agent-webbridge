@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>High-Throughput Parallel Fleet Scraping | WebBridge Recipes</title>
+<meta name="description" content="Production recipe for AI agents performing high-throughput web harvesting using WebBridge: two-dimensional fan-out across N profiles and M parallel tabs with resumable state logging.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/recipes/parallel-fleet-scraping.html">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="parallel web scraping, multi profile chrome automation, ai agent web scraper, cdp parallel tabs, high throughput browser automation">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="High-Throughput Parallel Fleet Scraping | WebBridge Recipes">
+<meta property="og:description" content="Production recipe for AI agents performing high-throughput web harvesting using WebBridge: two-dimensional fan-out across N profiles and M parallel tabs with resumable state logging.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/recipes/parallel-fleet-scraping.html">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="High-Throughput Parallel Fleet Scraping | WebBridge Recipes">
+<meta name="twitter:description" content="Production recipe for AI agents performing high-throughput web harvesting using WebBridge: two-dimensional fan-out across N profiles and M parallel tabs with resumable state logging.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "High-Throughput Parallel Fleet Scraping with WebBridge",
+  "description": "Production architecture for fanning out web automation workloads across multiple Chrome profiles and concurrent DevTools tabs.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/recipes/parallel-fleet-scraping.html",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": { "@type": "Person", "name": "jeet-dhandha" },
+  "publisher": { "@type": "Organization", "name": "WebBridge", "url": "https://jeet-dhandha.github.io/agent-webbridge/" },
+  "keywords": ["parallel browser scraping", "multi profile automation", "parallel tabs cdp", "ai web harvesting"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "WebBridge", "item": "https://jeet-dhandha.github.io/agent-webbridge/" },
+    { "@type": "ListItem", "position": 2, "name": "Recipes", "item": "https://jeet-dhandha.github.io/agent-webbridge/#recipes" },
+    { "@type": "ListItem", "position": 3, "name": "Parallel Scraping", "item": "https://jeet-dhandha.github.io/agent-webbridge/recipes/parallel-fleet-scraping.html" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .logo { font-weight: 700; color: var(--text-primary); text-decoration: none; }
+  .nav-links a { color: var(--text-secondary); text-decoration: none; margin-left: 1rem; }
+  .nav-links a:hover { color: var(--text-primary); }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    background-color: var(--bg-panel);
+    border: 2px solid var(--border-accent);
+    box-shadow: var(--shadow-brutal);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  h1 { font-size: 2rem; font-weight: 900; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin-top: 1.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.35rem; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1rem; }
+  p { color: var(--text-secondary); font-size: 0.95rem; }
+
+  .tldr-box {
+    background-color: #ecfdf5;
+    border-left: 4px solid var(--accent-green);
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #065f46;
+  }
+
+  pre {
+    background-color: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  code {
+    background-color: var(--bg-code);
+    padding: 0.15rem 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    border: 1px solid var(--border-color);
+  }
+
+  ul, ol { margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+  li { margin-bottom: 0.5rem; }
+
+  footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <a href="../" class="logo">AGENT-WEBBRIDGE</a>
+    <div class="nav-links">
+      <a href="../#tools">TOOLS</a>
+      <a href="../#recipes">RECIPES</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </div>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="../#recipes">Recipes</a>
+    <span>/</span>
+    <span>Parallel Fleet Scraping</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">PRODUCTION RECIPE &middot; 2D FAN-OUT &amp; RESUMABLE PIPELINES</div>
+    <h1>High-Throughput Parallel Fleet Scraping</h1>
+    <p>How AI agents scale data harvesting using two-dimensional parallelism: spreading workloads across N Chrome profiles and M concurrent tabs with fault-tolerant state persistence.</p>
+
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      WebBridge provides two dimensions of concurrency: <strong>cross-profile</strong> (independent browser instances with their own cookies and storage) &times; <strong>per-tab</strong> (each tab attached to its own CDP debugger session). For a worklist of 1,000 URLs, split items across 4 profiles &times; 4 tabs each (16 concurrent browser operations) and stream output to a resumable <code>.jsonl</code> ledger.
+    </div>
+
+    <!-- THE ARCHITECTURE -->
+    <h2>1. The Two-Dimensional Fan-Out Architecture</h2>
+    <p>Standard browser automations lock execution to a single active tab or single profile. In WebBridge, every tab maintains an independent CDP connection through the MV3 extension:</p>
+
+    <pre><code>Fleet Concurrency = (N Profiles) &times; (M Tabs per Profile)
+
+Example Configuration:
+  • Profile 1 ("Work"):     Tab 1 (s1) ║ Tab 2 (s1) ║ Tab 3 (s1) ║ Tab 4 (s1)
+  • Profile 2 ("Personal"): Tab 1 (s2) ║ Tab 2 (s2) ║ Tab 3 (s2) ║ Tab 4 (s2)
+  • Profile 3 ("Research"): Tab 1 (s3) ║ Tab 2 (s3) ║ Tab 3 (s3) ║ Tab 4 (s3)
+  Total Concurrency: 12 live pages evaluating in parallel</code></pre>
+
+    <!-- RESUMABLE STATE PATTERN -->
+    <h2>2. The Resumable .jsonl Ledger Pattern</h2>
+    <p>When running large scraping jobs, never buffer results in memory. Append output incrementally to a JSON Lines (<code>.jsonl</code>) file after every page evaluation. If the process is paused or aborted, resume directly from the remaining items:</p>
+
+    <pre><code>import fs from 'node:fs';
+import { WebBridgeClient } from 'agent-webbridge';
+
+// Read previously processed URLs from disk
+function loadDoneUrls(logFile) {
+  if (!fs.existsSync(logFile)) return new Set();
+  const lines = fs.readFileSync(logFile, 'utf8').trim().split('\n');
+  return new Set(lines.map(line => {
+    try { return JSON.parse(line).url; } catch { return null; }
+  }).filter(Boolean));
+}
+
+// Write result incrementally
+function appendResult(logFile, data) {
+  fs.appendFileSync(logFile, JSON.stringify(data) + '\n');
+}</code></pre>
+
+    <!-- FULL PARALLEL PIPELINE -->
+    <h2>3. Production Implementation (Node.js)</h2>
+    <pre><code>import { WebBridgeClient } from "agent-webbridge";
+
+const TARGET_URLS = [
+  "https://news.ycombinator.com/item?id=39000001",
+  "https://news.ycombinator.com/item?id=39000002",
+  "https://news.ycombinator.com/item?id=39000003",
+  "https://news.ycombinator.com/item?id=39000004",
+];
+
+async function harvestUrl(client, url) {
+  // Open tab specifically inside this session
+  const nav = await client.navigate(url, { newTab: true });
+  
+  // Extract data using in-page evaluate
+  const result = await client.evaluate(`(() => {
+    const title = document.querySelector('.titleline a')?.innerText || '';
+    const score = document.querySelector('.score')?.innerText || '0';
+    return { title, score };
+  })()`);
+
+  // Close tab immediately after extraction to keep memory clean
+  await client.closeTab();
+
+  return { url, ...result };
+}
+
+async function runFleet() {
+  const client = new WebBridgeClient({ profile: "Work", session: "harvest-job" });
+
+  // Concurrently process in batches of 4
+  const CONCURRENCY = 4;
+  for (let i = 0; i < TARGET_URLS.length; i += CONCURRENCY) {
+    const chunk = TARGET_URLS.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(chunk.map(url => harvestUrl(client, url)));
+    console.log(`Processed batch of ${results.length} items`);
+  }
+
+  // Cleanup tab group
+  await client.closeSession();
+}
+
+runFleet().catch(console.error);</code></pre>
+
+    <!-- RATE LIMITING CAVEAT -->
+    <h2>4. Defensive Egress IP Pacing</h2>
+    <p>Because all local Chrome profiles share the machine's egress IP address:</p>
+    <ul>
+      <li><strong>Distinct Domains:</strong> Fan-out delivers maximum throughput when scraping across different platforms or separate domains.</li>
+      <li><strong>Single Domain:</strong> When targeting a single rate-limited host (e.g., Google or LinkedIn), keep concurrency to 2–3 tabs and insert random jitters (500ms–1500ms) to avoid triggering IP-level CAPTCHA challenges.</li>
+    </ul>
+
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="./rich-text-editors.html">Rich-Text Editors</a> &middot;
+      <a href="./in-page-api-harvesting.html">In-Page API</a> &middot;
+      <a href="./file-uploads.html">File Uploads</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

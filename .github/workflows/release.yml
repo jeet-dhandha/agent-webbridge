@@ -2,7 +2,7 @@ name: release
 
 # Cuts a release when you push a version tag (e.g. `git tag v1.0.0 && git push --tags`),
 # or on manual dispatch. It gates on the browser-free daemon contract test, builds the
-# downloadable extension zip (for "Load unpacked" — there is no Chrome Web Store listing),
+# downloadable extension zip (for "Load unpacked"; the Chrome Web Store build is uploaded separately by hand),
 # creates a GitHub Release with that zip + INSTALL.md attached, and (if an NPM_TOKEN secret
 # is configured) publishes the npm package.
 on:
@@ -32,8 +32,8 @@ jobs:
       - name: Install deps
         run: npm install --no-audit --no-fund
 
-      - name: Daemon contract test (browser-free gate)
-        run: node test/contract.mjs
+      - name: Full test suite (browser-free gates)
+        run: npm test
 
       - name: Build extension zip (for Load unpacked)
         run: node scripts/pack-extension.mjs
@@ -54,3 +54,22 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public
+
+      - name: Publish to AUR (only if AUR_SSH_PRIVATE_KEY is set)
+        if: ${{ env.AUR_SSH_PRIVATE_KEY != '' }}
+        env:
+          AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AUR_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          ssh-keyscan -t ed25519,rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git clone ssh://aur@aur.archlinux.org/nodejs-agent-webbridge.git /tmp/aur-repo
+          cp packaging/aur/PKGBUILD packaging/aur/.SRCINFO /tmp/aur-repo/
+          cd /tmp/aur-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          VERSION="$(node -p "require('$GITHUB_WORKSPACE/package.json').version")"
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to v${VERSION}" || true
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/aur" git push origin master
