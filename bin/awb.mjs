@@ -159,8 +159,25 @@ async function cmdUp(args) {
   let targets;
   if (args.includes("--all-ext")) {
     targets = listProfiles().filter((p) => p.hasExtension);
+    if (!targets.length) {
+      const all = listProfiles();
+      const def = all.find((p) => p.isLastUsed) ?? all[0];
+      if (def) targets = [def];
+    }
   } else {
-    targets = args.filter((a) => !a.startsWith("--")).map((q) => resolveProfile(q));
+    const rawTargets = args.filter((a) => !a.startsWith("--"));
+    if (rawTargets.length) {
+      targets = rawTargets.map((q) => resolveProfile(q));
+    } else {
+      const withExt = listProfiles().filter((p) => p.hasExtension);
+      if (withExt.length) {
+        targets = withExt;
+      } else {
+        const all = listProfiles();
+        const def = all.find((p) => p.isLastUsed) ?? all[0];
+        targets = def ? [def] : [];
+      }
+    }
   }
   if (!targets.length) {
     console.error("awb up: name at least one profile, or use --all-ext");

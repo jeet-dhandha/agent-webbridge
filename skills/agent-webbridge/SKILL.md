@@ -177,7 +177,7 @@ fill N forms), drive it as a **fleet fan-out**:
 
 ## Tools
 
-13 tools, full parity, all verified live in a real browser:
+15 tools, full parity, all verified live in a real browser:
 
 | Tool | Args | Returns | Note |
 |------|------|---------|------|
@@ -191,6 +191,7 @@ fill N forms), drive it as a **fleet fan-out**:
 | `screenshot` | `format`(png\|jpeg), `quality`(0-100), optional `selector` (@e/CSS), optional `path` | `{format, path, sizeBytes, mimeType}` | Returns a file path, not base64 — see [Screenshots](#screenshots) |
 | `network` | `cmd`(start\|stop\|list\|detail), `filter`, `requestId` | request/response data | Capture requests/responses |
 | `upload` | `selector`, `files`(string[]) | `{success, fileCount}` | |
+| `file_chooser_intercept` | `enabled`(bool) | `{success, enabled}` | Toggle interception of native OS file chooser dialogs to suppress Finder/Explorer popups |
 | `save_as_pdf` | `paper_format`, `landscape`, `scale`, `print_background`, optional `path` | `{path, sizeBytes, mimeType, pageTitle}` | Render current page → PDF, returns a file path — see [Save as PDF](#save-the-current-page-as-pdf) |
 | `list_tabs` | — | `{success, tabs:[{tabId, url, title, active, groupTitle}]}` | Inspect tabs in the current session |
 | `close_tab` | — | `{success, closed: bool}` | Close the current tab in the session |

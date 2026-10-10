@@ -7,12 +7,22 @@
 // machine. stdout carries protocol messages only; logs go to stderr.
 
 import readline from "node:readline";
+import { spawn } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { ROUTER_PORT } from "./profiles.mjs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const AWB_BIN = path.join(__dirname, "..", "bin", "awb.mjs");
 
 const ROUTER = process.env.AWB_ROUTER_URL || `http://127.0.0.1:${process.env.AWB_ROUTER_PORT || ROUTER_PORT}`;
 const DEFAULT_SESSION = process.env.AWB_MCP_SESSION || "mcp";
 const PROTOCOL = "2024-11-05";
-const VERSION = "1.3.0";
+const VERSION = "1.3.3";
+const AUTO_UP_ALLOWED =
+  process.argv.includes("--auto-up") ||
+  process.env.AWB_MCP_AUTO_UP === "1" ||
+  (!process.env.AWB_ROUTER_URL && process.env.AWB_MCP_AUTO_UP !== "0");
 
 const common = {
   profile: { type: "string", description: "Chrome profile name, email or directory (e.g. \"Work\"). Omit to use the default profile." },
@@ -68,6 +78,9 @@ const TOOLS = [
     selector: { type: "string" },
     files: { type: "array", items: { type: "string" } },
   }, ["selector", "files"]),
+  tool("file_chooser_intercept", "Toggle interception of native OS file chooser dialogs. Suppresses Finder/Explorer dialogs during programmatic uploads.", {
+    enabled: { type: "boolean", description: "true to intercept and suppress native dialogs, false to restore normal behavior." },
+  }, ["enabled"]),
   tool("network", "Capture network requests: cmd = start | stop | list | detail.", {
     cmd: { type: "string", enum: ["start", "stop", "list", "detail"] },
     filter: { type: "string" },
@@ -89,12 +102,69 @@ const byName = new Map(TOOLS.map((t) => [t.def.name, t]));
 
 class RouterDown extends Error {}
 
-async function callRouter(path, init) {
+let autoUpPromise = null;
+
+async function tryAutoUp(profile) {
+  if (!AUTO_UP_ALLOWED) return false;
+  if (autoUpPromise) return autoUpPromise;
+
+  autoUpPromise = (async () => {
+    try {
+      console.error("[awb-mcp] Router is down. Attempting auto-start...");
+      const args = ["up"];
+      if (profile) args.push(profile);
+      else args.push("--all-ext");
+      args.push("--no-open");
+
+      const child = spawn(process.execPath, [AWB_BIN, ...args], {
+        detached: true,
+        stdio: "ignore",
+      });
+      child.unref();
+
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 250));
+        try {
+          const res = await fetch(`${ROUTER}/status`);
+          if (res.ok) {
+            console.error("[awb-mcp] Router successfully auto-started.");
+            return true;
+          }
+        } catch {}
+      }
+      console.error("[awb-mcp] Auto-start timed out after 5s.");
+      return false;
+    } catch (e) {
+      console.error("[awb-mcp] Auto-start failed:", e.message);
+      return false;
+    } finally {
+      setTimeout(() => { autoUpPromise = null; }, 5000);
+    }
+  })();
+
+  return autoUpPromise;
+}
+
+async function callRouter(path, init, targetProfile) {
   let r;
   try {
     r = await fetch(`${ROUTER}${path}`, init);
   } catch (e) {
-    throw new RouterDown(e.message);
+    if (AUTO_UP_ALLOWED) {
+      const up = await tryAutoUp(targetProfile);
+      if (up) {
+        try {
+          r = await fetch(`${ROUTER}${path}`, init);
+        } catch (err) {
+          throw new RouterDown(err.message);
+        }
+      } else {
+        throw new RouterDown(e.message);
+      }
+    } else {
+      throw new RouterDown(e.message);
+    }
   }
   const text = await r.text();
   let json;
@@ -112,7 +182,7 @@ const NOT_RUNNING =
 
 async function runTool(name, args = {}) {
   if (name === "browser_status") {
-    const { json } = await callRouter("/status");
+    const { json } = await callRouter("/status", undefined, args?.profile);
     return json;
   }
   const t = byName.get(name);
@@ -125,7 +195,7 @@ async function runTool(name, args = {}) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+  }, profile);
   if (!ok || json?.ok === false || json?.error) {
     const err = new Error(typeof json?.error === "string" ? json.error : JSON.stringify(json));
     err.payload = json;

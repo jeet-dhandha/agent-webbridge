@@ -1,0 +1,19 @@
+# Maintainer: Jeet Dhandha <https://github.com/jeet-dhandha/agent-webbridge>
+pkgname=nodejs-agent-webbridge
+_pkgname=agent-webbridge
+pkgver=1.3.3
+pkgrel=1
+pkgdesc="Local Chrome browser automation MCP server with multi-profile and parallel tabs"
+arch=('any')
+url="https://jeet-dhandha.github.io/agent-webbridge/"
+license=('MIT')
+depends=('nodejs>=18' 'google-chrome')
+makedepends=('npm')
+source=("https://registry.npmjs.org/$_pkgname/-/$_pkgname-$pkgver.tgz")
+sha256sums=('SKIP')
+
+package() {
+  npm install -g --prefix "$pkgdir/usr" "$srcdir/$_pkgname-$pkgver.tgz"
+  find "$pkgdir" -name package.json -exec sed -i '/"_where":/d' {} +
+  install -Dm644 "$pkgdir/usr/lib/node_modules/$_pkgname/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

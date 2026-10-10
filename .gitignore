@@ -1,6 +1,8 @@
 node_modules/
 *.log
 .DS_Store
+__pycache__/
+*.pyc
 
 # Chrome for Testing — downloaded locally for the live test harness (~500MB), never committed
 chrome/

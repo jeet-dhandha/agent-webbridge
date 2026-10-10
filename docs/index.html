@@ -39,7 +39,7 @@
   "alternateName": ["WebBridge", "Agent WebBridge", "Open WebBridge Alternative", "Kimi WebBridge Alternative", "WebBridge MCP"],
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "macOS, Windows, Linux",
-  "softwareVersion": "1.3.2",
+  "softwareVersion": "1.3.3",
   "datePublished": "2026-03-01",
   "dateModified": "2026-10-10",
   "releaseNotes": "https://github.com/jeet-dhandha/agent-webbridge/releases",
@@ -1113,7 +1113,7 @@
   <!-- TOP DECK: SYSTEM METRICS AND ROUTER STATS -->
   <header>
     <div class="header-left">
-      <span>AWB-CONTROL v1.3.2</span>
+      <span>AWB-CONTROL v1.3.3</span>
       <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">(Updated Oct 2026)</span>
       <span class="status-indicator">
         <span class="status-pulse"></span>
@@ -1517,7 +1517,7 @@
     <div class="cli-terminal">
       <div class="cli-input-line" id="cli-command-line">npx agent-webbridge mcp</div>
       <div class="cli-output-line" id="cli-output-content">
-[agent-webbridge] MCP stdio server ready (13 tools registered).
+[agent-webbridge] MCP stdio server ready (15 tools registered).
 [agent-webbridge] Connecting to router at 127.0.0.1:10086...
 ✓ Connected to fleet router.
 Tools: browser_navigate, browser_snapshot, browser_click, browser_fill, browser_evaluate, browser_screenshot...
@@ -1812,15 +1812,21 @@ Ready for agent commands.
       <span>&middot;</span>
       <a href="./real-chrome-vs-headless/">Real Chrome vs Headless</a>
       <span>&middot;</span>
+      <a href="./recipes/">Recipes Hub</a>
+      <span>&middot;</span>
       <a href="./recipes/rich-text-editors.html">Rich-Text Editors</a>
       <span>&middot;</span>
       <a href="./recipes/in-page-api-harvesting.html">In-Page API</a>
+      <span>&middot;</span>
+      <a href="./recipes/file-uploads.html">File Uploads</a>
+      <span>&middot;</span>
+      <a href="./recipes/parallel-fleet-scraping.html">Parallel Scraping</a>
       <span>&middot;</span>
       <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub Repo</a>
       <span>&middot;</span>
       <a href="https://github.com/jeet-dhandha/awb-recipes">awb-recipes</a>
       <span>&middot;</span>
-      <a href="https://www.npmjs.com/package/agent-webbridge">npm Package (v1.3.2)</a>
+      <a href="https://www.npmjs.com/package/agent-webbridge">npm Package (v1.3.3)</a>
       <span>&middot;</span>
       <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a>
       <span>&middot;</span>
@@ -1903,7 +1909,7 @@ Ready for agent commands.
     mcp: {
       desc: 'Run the zero-dependency stdio Model Context Protocol (MCP) server. Exposes browser navigation, snapshots, evaluate, and inputs to Claude Code, Cursor, and Windsurf.',
       cmd: 'npx agent-webbridge mcp',
-      out: `[agent-webbridge] MCP stdio server ready (13 tools registered).
+      out: `[agent-webbridge] MCP stdio server ready (15 tools registered).
 [agent-webbridge] Connecting to router at 127.0.0.1:10086...
 ✓ Connected to fleet router.
 Tools: browser_navigate, browser_snapshot, browser_click, browser_fill, browser_evaluate, browser_screenshot...

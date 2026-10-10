@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Automating File Uploads &amp; Dialog Interception | WebBridge Recipes</title>
+<meta name="description" content="Production recipe for AI agents automating file uploads and suppressing native OS file pickers (Finder/Explorer) via file_chooser_intercept, trusted_click, and upload.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/recipes/file-uploads.html">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="file upload browser automation, file_chooser_intercept, cdp setFileInputFiles, suppress native file picker, ai agent file upload">
+<meta name="date" content="2026-10-10">
+<meta name="last-modified" content="2026-10-10">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="Automating File Uploads &amp; Dialog Interception | WebBridge Recipes">
+<meta property="og:description" content="Production recipe for AI agents automating file uploads and suppressing native OS file pickers (Finder/Explorer) via file_chooser_intercept, trusted_click, and upload.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/recipes/file-uploads.html">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Automating File Uploads &amp; Dialog Interception | WebBridge Recipes">
+<meta name="twitter:description" content="Production recipe for AI agents automating file uploads and suppressing native OS file pickers (Finder/Explorer) via file_chooser_intercept, trusted_click, and upload.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Structured data: TechArticle -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Automating File Uploads and Suppressing OS Dialogs with WebBridge",
+  "description": "Step-by-step browser automation recipe for intercepting native OS file chooser dialogs and programmatically attaching files across complex web applications.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/recipes/file-uploads.html",
+  "datePublished": "2026-10-10T12:00:00Z",
+  "dateModified": "2026-10-10T12:00:00Z",
+  "author": { "@type": "Person", "name": "jeet-dhandha" },
+  "publisher": { "@type": "Organization", "name": "WebBridge", "url": "https://jeet-dhandha.github.io/agent-webbridge/" },
+  "keywords": ["file upload automation", "file_chooser_intercept", "chrome cdp file upload", "ai agent file upload"]
+}
+</script>
+
+<!-- Structured data: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "WebBridge", "item": "https://jeet-dhandha.github.io/agent-webbridge/" },
+    { "@type": "ListItem", "position": 2, "name": "Recipes", "item": "https://jeet-dhandha.github.io/agent-webbridge/#recipes" },
+    { "@type": "ListItem", "position": 3, "name": "File Uploads", "item": "https://jeet-dhandha.github.io/agent-webbridge/recipes/file-uploads.html" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .logo { font-weight: 700; color: var(--text-primary); text-decoration: none; }
+  .nav-links a { color: var(--text-secondary); text-decoration: none; margin-left: 1rem; }
+  .nav-links a:hover { color: var(--text-primary); }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    background-color: var(--bg-panel);
+    border: 2px solid var(--border-accent);
+    box-shadow: var(--shadow-brutal);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent-blue);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  h1 { font-size: 2rem; font-weight: 900; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin-top: 1.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.35rem; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1rem; }
+  p { color: var(--text-secondary); font-size: 0.95rem; }
+
+  .tldr-box {
+    background-color: #fef3c7;
+    border-left: 4px solid var(--accent-amber);
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #92400e;
+  }
+
+  pre {
+    background-color: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  code {
+    background-color: var(--bg-code);
+    padding: 0.15rem 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    border: 1px solid var(--border-color);
+  }
+
+  ul, ol { margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+  li { margin-bottom: 0.5rem; }
+
+  footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <a href="../" class="logo">AGENT-WEBBRIDGE</a>
+    <div class="nav-links">
+      <a href="../#tools">TOOLS</a>
+      <a href="../#recipes">RECIPES</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </div>
+  </header>
+
+  <!-- BREADCRUMBS -->
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="../#recipes">Recipes</a>
+    <span>/</span>
+    <span>File Uploads</span>
+  </div>
+
+  <!-- HERO CARD -->
+  <article class="card">
+    <div class="card-header-sub">PRODUCTION RECIPE &middot; FILE DIALOG INTERCEPTION &amp; CDP UPLOADS</div>
+    <h1>Automating File Uploads &amp; Suppressing OS Dialogs</h1>
+    <p>How AI agents automate drag-and-drop zones, suppress native Finder/Explorer file pickers, and programmatically assign files across complex modern web apps.</p>
+
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      Clicking an <code>&lt;input type="file"&gt;</code> or a custom media upload button usually pops an OS modal dialog (Finder on macOS, Explorer on Windows) that freezes headless automation. WebBridge solves this with <code>file_chooser_intercept</code>: turning interception ON suppresses the native OS dialog and redirects the browser's file requirement into CDP's <code>DOM.setFileInputFiles</code> via the <code>upload</code> tool.
+    </div>
+
+    <!-- THE PROBLEM -->
+    <h2>1. The Problem: Native OS Dialog Freezes</h2>
+    <p>On modern applications like LinkedIn, Google Flow, Twitter, or Discord, opening a file upload UI programmatically often triggers the browser to prompt the operating system for a file picker window. Because Chrome DevTools Protocol cannot dismiss or click inside native OS windows, standard automation scripts hang indefinitely waiting for manual user interaction.</p>
+
+    <!-- THE THREE-STEP FORMULA -->
+    <h2>2. The 3-Step Upload Protocol</h2>
+    <p>WebBridge provides a foolproof sequence to attach files without triggering native popups:</p>
+    <ol>
+      <li><strong>Enable Interception:</strong> Call <code>file_chooser_intercept(enabled: true)</code>. Any native dialog trigger is now suppressed at the CDP Page domain level.</li>
+      <li><strong>Trigger UI:</strong> Use <code>trusted_click</code> or <code>click</code> to open the media widget or mount the hidden file input.</li>
+      <li><strong>Assign Files:</strong> Use the <code>upload</code> tool to supply absolute file paths to the targeted input.</li>
+      <li><strong>Restore Normalcy:</strong> Call <code>file_chooser_intercept(enabled: false)</code> to restore standard browser behavior.</li>
+    </ol>
+
+    <!-- CODE SAMPLES -->
+    <h2>3. Code Examples</h2>
+
+    <h3>Node.js ESM (WebBridgeClient):</h3>
+    <pre><code>import { WebBridgeClient } from "agent-webbridge";
+
+const client = new WebBridgeClient({ profile: "Work", session: "upload-task" });
+
+// 1. Enable dialog interception
+await client.fileChooserIntercept(true);
+
+// 2. Open upload widget (e.g. LinkedIn or Flow)
+await client.trustedClick('button[aria-label="Add media"]');
+
+// 3. Programmatically inject the file
+await client.upload('input[type="file"]', ['/Users/alex/Documents/deck.pdf']);
+
+// 4. Restore normal dialog behavior
+await client.fileChooserIntercept(false);</code></pre>
+
+    <h3>Python 3 (Standalone SDK):</h3>
+    <pre><code>from scripts.awb_client import WebBridgeClient
+
+client = WebBridgeClient(profile="Work", session="upload-task")
+
+# 1. Suppress native OS file picker
+client.file_chooser_intercept(enabled=True)
+
+# 2. Click upload trigger
+client.trusted_click(selector="div.upload-dropzone")
+
+# 3. Assign files programmatically
+client.upload(selector="input[type='file']", files=["/tmp/chart.png"])
+
+# 4. Turn off interception
+client.file_chooser_intercept(enabled=False)</code></pre>
+
+    <h3>Single-line cURL / Agent Bash:</h3>
+    <pre><code>cmd(){ curl -s -m 60 -X POST http://127.0.0.1:10086/command -H 'Content-Type: application/json' -d "$1"; echo; }
+
+# Intercept ON
+cmd '{"action":"file_chooser_intercept","args":{"enabled":true},"session":"s1","profile":"Work"}'
+
+# Upload file
+cmd '{"action":"upload","args":{"selector":"input[type=file]","files":["/tmp/preview.png"]},"session":"s1","profile":"Work"}'
+
+# Intercept OFF
+cmd '{"action":"file_chooser_intercept","args":{"enabled":false},"session":"s1","profile":"Work"}'</code></pre>
+
+    <!-- REAL-WORLD SITES -->
+    <h2>4. Real-World Battle-Tested Targets</h2>
+    <ul>
+      <li><strong>LinkedIn Post Editor:</strong> When clicking "Add media", LinkedIn mounts an invisible <code>&lt;input type="file"&gt;</code> and immediately calls <code>.click()</code> on it. With <code>file_chooser_intercept</code> active, the Finder window never appears, and <code>upload</code> binds the image immediately.</li>
+      <li><strong>Google Flow ("Nano Banana"):</strong> Reference image attachments use custom canvas drop zones. Intercepting the picker allows attaching high-resolution reference images without OS interrupts.</li>
+      <li><strong>GitHub Gist &amp; Issue Attachments:</strong> Attach diagnostic zip files or logs directly into issue comment drag-zones.</li>
+    </ul>
+
+  </article>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="../chrome-mcp-server/">Chrome MCP Server</a> &middot;
+      <a href="../claude-code-browser-automation/">Claude Code Guide</a> &middot;
+      <a href="./rich-text-editors.html">Rich-Text Editors</a> &middot;
+      <a href="./in-page-api-harvesting.html">In-Page API</a> &middot;
+      <a href="./parallel-fleet-scraping.html">Parallel Scraping</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

@@ -55,15 +55,15 @@ fan-out helps when visiting many distinct sites but not when hammering a single 
 | `agent-webbridge-extension/` | **Our clean-room MV3 extension** (stable id `ifodkkbkmngjlkhiphcjmbceeolhpfeo`). `manifest.json`, `background.js`, `popup.{html,js}`, `icon/`, `src/`. Permissions: `debugger`, `tabs`, `tabGroups`, `storage`, `alarms`; host_permissions `["<all_urls>"]`. Connects **only** to a daemon on `127.0.0.1`. |
 | `test/contract.mjs` | Browser-free daemon contract test (see below). |
 | `scratch/live_m1.mjs` | M1 live gate: per-tab parallelism, in isolated Chrome for Testing. |
-| `scratch/live_m2.mjs` | M2 live gate: all 13 tools verified, in isolated Chrome for Testing. |
+| `scratch/live_m2.mjs` | M2 live gate: all tools verified, in isolated Chrome for Testing. |
 | `BUILD_SPEC.md` | The authoritative command/envelope contract the daemon implements. |
 | `README.md` / `SKILL.md` | End-user usage and the Claude Code skill. |
 
-## The 13 tools (full parity, all verified live)
+## The 15 tools (full parity, all verified live)
 
 `navigate`, `find_tab`, `evaluate`, `snapshot` (accessibility tree with stable `@e` refs),
 `click`, `trusted_click` (real CDP mouse input, `isTrusted`), `fill` (native inputs **and** contenteditable), `network` (request capture), `upload`,
-`screenshot`, `save_as_pdf`, `list_tabs`, `close_tab`, `close_session`.
+`file_chooser_intercept` (native OS dialog suppression), `screenshot`, `save_as_pdf`, `list_tabs`, `close_tab`, `close_session`.
 
 ### Driving the daemon from an agent (`cmd` helper pattern)
 
@@ -93,10 +93,10 @@ npm install                       # only dep: ws
 node bin/awb.mjs profiles         # `awb <cmd>` == `node bin/awb.mjs <cmd>`
 ```
 
-The Chrome extension installs via Chrome's **"Load unpacked"** of `agent-webbridge-extension/`
-(there is no Chrome Web Store listing). `awb setup <profile…>` walks a user — or an agent
-polling `awb check --json` — through it: it prints the exact folder, opens `chrome://extensions`,
-waits for Developer-mode + Load-unpacked, then connects + brings the fleet up.
+The Chrome extension installs via the official Chrome Web Store (`awb setup <profile…>`),
+or via Chrome's **"Load unpacked"** for local development (`awb install-dev <profile…>`).
+`awb setup` walks a user — or an agent polling `awb check --json` — through one-click
+activation, then connects + brings the fleet up.
 
 ## Tests
 

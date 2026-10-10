@@ -4,6 +4,7 @@
 [![npm](https://img.shields.io/npm/v/agent-webbridge)](https://www.npmjs.com/package/agent-webbridge)
 [![Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Agent%20WebBridge-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl)
 [![Glama](https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge/badges/score.svg)](https://glama.ai/mcp/servers/jeet-dhandha/agent-webbridge)
+[![Packaging status](https://repology.org/badge/tiny-repos/agent-webbridge.svg)](https://repology.org/project/agent-webbridge/versions)
 [![license](https://img.shields.io/npm/l/agent-webbridge)](LICENSE)
 [![node](https://img.shields.io/node/v/agent-webbridge)](https://nodejs.org)
 
@@ -91,7 +92,7 @@ awb down                        # stop the fleet when done
 
 Every call is a `POST /command` on `127.0.0.1:10086`. Wrap payloads in single quotes (`'...'`) to prevent shell quote-escaping issues. `"session"` groups a task's tabs into one Chrome tab group; `"profile"` picks which Chrome profile to drive. Pass `{"action":"screenshot","args":{"path":"/path/to/img.png"}}` to save screenshots directly to disk.
 
-## Tools
+## Tools (15 Native Tools + Status)
 
 | Tool | Does |
 |---|---|
@@ -99,16 +100,41 @@ Every call is a `POST /command` on `127.0.0.1:10086`. Wrap payloads in single qu
 | `find_tab` | Locate a tab by URL / title |
 | `evaluate` | Run JavaScript in the page, return the result |
 | `snapshot` | Accessibility tree with stable `@e` element refs |
-| `click` | Click an element by `@e` ref |
+| `click` | Click an element by `@e` ref (synthetic DOM click) |
 | `trusted_click` | Real mouse click (CDP, `isTrusted`) for pages that ignore `click` |
-| `fill` | Set native inputs **and** `contenteditable` fields |
-| `upload` | Upload a file to a file input |
-| `screenshot` | Capture a page screenshot |
+| `fill` | Set native inputs **and** `contenteditable` rich text fields |
+| `upload` | Programmatically assign files to `<input type="file">` |
+| `file_chooser_intercept` | Suppress native OS file picker dialogs (Finder/Explorer) during programmatic upload |
+| `screenshot` | Capture full-page or element screenshot directly to disk |
 | `save_as_pdf` | Save the page as a PDF |
-| `network` | Capture network requests |
-| `list_tabs` | List the session's tabs |
+| `network` | Capture network requests (`start`, `stop`, `list`, `detail`) |
+| `list_tabs` | List open tabs with IDs and tab group info |
 | `close_tab` | Close a tab |
-| `close_session` | Close a session and its tab group |
+| `close_session` | Close a session and its entire tab group |
+
+## Programmatic SDKs (Node.js & Python)
+
+### Node.js ESM SDK
+
+```javascript
+import { WebBridgeClient } from "agent-webbridge";
+
+const client = new WebBridgeClient({ profile: "Work", session: "my-task" });
+await client.navigate("https://example.com");
+const title = await client.evaluate("document.title");
+console.log("Title:", title);
+```
+
+### Python 3 SDK (Zero Dependencies)
+
+```python
+from scripts.awb_client import WebBridgeClient
+
+client = WebBridgeClient(profile="Work", session="my-task")
+client.navigate("https://example.com")
+title = client.evaluate("document.title")
+print("Title:", title)
+```
 
 ## How it works
 

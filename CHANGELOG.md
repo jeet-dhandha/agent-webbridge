@@ -3,6 +3,17 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.3] — 2026-10-10
+
+**First-class programmatic SDKs, MCP tool parity, and zero-friction ergonomics.**
+
+- Added first-class programmatic client SDK for Node.js (`src/client.mjs`, exported via `agent-webbridge` and `agent-webbridge/client`) with automatic tab tracking and tab pinning.
+- Added standalone zero-dependency Python 3 client (`scripts/awb_client.py`).
+- Added `browser_file_chooser_intercept` to MCP server for full 15-tool parity (suppressing native OS file pickers during programmatic uploads).
+- Zero-friction MCP auto-start: when the router is down, MCP automatically starts the router and fleet in the background with `--auto-up`.
+- Updated all tool counts and documentation to accurately reflect all 15 native tools across README, AGENTS, BUILD_SPEC, and skills.
+- Added packaging derivations for Arch Linux User Repository (AUR) and Nixpkgs.
+
 ## [1.3.2] — 2026-10-10
 
 **Documentation, SEO metadata, and ecosystem synchronization.**
