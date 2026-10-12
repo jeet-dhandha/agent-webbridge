@@ -129,9 +129,9 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css">
-<link rel="stylesheet" href="assets/home.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"></noscript>
+<!--css:start--><style>:root{--bg-base:#e5e5e1;--bg-panel:#f2f2ee;--bg-code:#eaeaeb;--text-primary:#121212;--text-secondary:#4a4a46;--text-muted:#585853;--border-color:#b5b5b0;--border-accent:#121212;--accent-green:#00704a;--accent-blue:#1d4ed8;--accent-amber:#d97706;--accent-amber-text:#92400e;--font-sans:"Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;--font-mono:"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;--shadow-brutal:3px 3px 0px var(--border-accent)}*{box-sizing:border-box;margin:0;padding:0}body{background-color:var(--bg-base);color:var(--text-primary);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;padding:1.5rem;font-size:15px;line-height:1.5}.container{flex-direction:column;gap:1.75rem;max-width:76rem;margin:0 auto;display:flex}header{border:1px solid var(--border-color);background-color:var(--bg-panel);font-family:var(--font-mono);letter-spacing:.05em;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.75rem;padding:.75rem 1.25rem;font-size:.8rem;display:flex}.header-left{align-items:center;gap:.75rem;font-weight:700;display:flex}.header-nav{flex-wrap:wrap;align-items:center;gap:1.25rem;font-size:.75rem;display:flex}.header-nav a{color:var(--text-secondary);font-weight:700;text-decoration:none;transition:color .15s}.header-nav a:hover{color:var(--text-primary);text-decoration:underline}.card{border:1px solid var(--border-color);background-color:var(--bg-panel);flex-direction:column;padding:1.75rem;display:flex;position:relative}.card-header-sub{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);justify-content:space-between;align-items:center;margin-bottom:.5rem;font-size:.75rem;display:flex}.card-header-sub:after{content:"";border-bottom:1px dotted var(--border-color);flex-grow:1;margin-left:1rem}.card-title{letter-spacing:-.02em;margin-bottom:1rem;font-size:2.1rem;font-weight:800;line-height:1.15}.card-desc{color:var(--text-secondary);margin-bottom:1.5rem;font-size:1.05rem}.actions-row{flex-wrap:wrap;gap:.75rem;margin-bottom:2rem;display:flex}.btn{font-family:var(--font-mono);color:var(--text-primary);border:1px solid var(--border-accent);cursor:pointer;background-color:#0000;align-items:center;gap:.5rem;padding:.6rem 1.2rem;font-size:.85rem;font-weight:700;text-decoration:none;transition:all .15s;display:inline-flex}.btn:hover{background-color:var(--text-primary);color:var(--bg-panel);box-shadow:var(--shadow-brutal);transform:translate(-1px,-1px)}.btn:active{box-shadow:none;transform:translate(1px,1px)}.btn-accent{background-color:var(--text-primary);color:var(--bg-panel)}.btn-accent:hover{color:var(--text-primary);background-color:#0000}.section-title-wrap{border-bottom:2px solid var(--border-accent);flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:.5rem;margin-top:1rem;padding-bottom:.5rem;display:flex}.section-title{letter-spacing:-.01em;font-size:1.4rem;font-weight:800}.section-subtitle-mono{font-family:var(--font-mono);color:var(--text-muted);font-size:.75rem}.demos-grid{grid-template-columns:repeat(2,1fr);gap:1.5rem;display:grid}@media (width<=860px){.demos-grid{grid-template-columns:1fr}}.demo-card{border:1px solid var(--border-color);box-shadow:var(--shadow-brutal);background-color:#fff;flex-direction:column;gap:.75rem;padding:1.25rem;display:flex}.demo-card-header{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;display:flex}.demo-card-title{color:var(--text-primary);font-size:1.05rem;font-weight:700}.demo-badge{font-family:var(--font-mono);border:1px solid var(--border-color);background:var(--bg-panel);color:var(--accent-blue);padding:.2rem .5rem;font-size:.72rem;font-weight:700}.demo-badge.perf{color:var(--accent-green)}.demo-badge.auth{color:var(--accent-amber-text)}.demo-img-box{border:1px solid var(--border-color);aspect-ratio:16/9;background:#000;border-radius:4px;justify-content:center;align-items:center;display:flex;overflow:hidden}.demo-img-box img{object-fit:cover;width:100%;height:100%;display:block}.demo-caption{font-family:var(--font-mono);color:var(--text-secondary);font-size:.75rem;line-height:1.45}.code-snippet{background-color:var(--text-primary);color:#e5e5e1;font-family:var(--font-mono);white-space:pre;border-radius:4px;padding:1rem;font-size:.8rem;line-height:1.5;overflow-x:auto}footer{border:1px solid var(--border-color);background-color:var(--bg-panel);text-align:center;font-family:var(--font-mono);color:var(--text-muted);flex-direction:column;justify-content:center;align-items:center;gap:.75rem;padding:1.5rem;font-size:.75rem;display:flex}.footer-links{flex-wrap:wrap;justify-content:center;gap:1.5rem;font-weight:700;display:flex}.footer-links a{color:var(--text-primary);text-decoration:none}.footer-links a:hover{text-decoration:underline}.hero-sub{color:var(--text-secondary);max-width:52rem;margin-bottom:1.25rem;font-size:1.1rem}.prompt-box{border:1px solid var(--border-accent);box-shadow:var(--shadow-brutal);background:#fff;flex-direction:column;gap:.75rem;padding:1rem;display:flex;position:relative}.prompt-text{font-family:var(--font-mono);white-space:pre-wrap;word-break:break-word;color:var(--text-primary);margin:0;font-size:.8rem;line-height:1.55}.prompt-text.small{background:var(--bg-code);border:1px solid var(--border-color);padding:.75rem;font-size:.76rem}.copy-btn{align-self:flex-start}.two-col>*,.ask-grid>*,.link-grid>*,.card>*{min-width:0}.code-snippet,.prompt-text{max-width:100%}img{max-width:100%;height:auto}.copy-btn.done{background:var(--accent-green);border-color:var(--accent-green);color:#fff}.two-col{grid-template-columns:1.4fr 1fr;align-items:start;gap:1.5rem;display:grid}.note-box{border-left:4px solid var(--accent-amber);color:var(--text-secondary);background:#fffbeb;padding:.85rem 1rem;font-size:.9rem}.note-box strong{color:var(--text-primary)}.check-list{color:var(--text-secondary);flex-direction:column;gap:.5rem;font-size:.95rem;list-style:none;display:flex}.check-list li:before{content:"✓ ";color:var(--accent-green);font-weight:700}.ask-grid{grid-template-columns:repeat(3,1fr);gap:1.25rem;display:grid}.ask-card{border:1px solid var(--border-color);box-shadow:var(--shadow-brutal);background:#fff;flex-direction:column;gap:.6rem;padding:1.1rem;display:flex}.ask-card h3{font-size:1.05rem}.ask-tag{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--accent-green);font-size:.68rem;font-weight:700}.ask-actions{justify-content:space-between;align-items:center;gap:.5rem;margin-top:auto;display:flex}.ask-more{font-family:var(--font-mono);color:var(--accent-blue);font-size:.78rem;font-weight:700;text-decoration:none}.link-grid{grid-template-columns:repeat(3,1fr);gap:1rem;display:grid}.link-grid a{background:var(--bg-panel);border:1px solid var(--border-color);color:var(--text-primary);padding:.9rem 1rem;text-decoration:none;display:block}.link-grid a:hover{border-color:var(--border-accent)}.link-grid strong{font-size:.98rem;display:block}.link-grid span{color:var(--text-secondary);font-size:.82rem}.faq-d{border:1px solid var(--border-color);background:#fff;margin-bottom:.6rem;padding:.85rem 1rem}.faq-d summary{cursor:pointer;font-weight:700}.faq-d p{color:var(--text-secondary);margin-top:.6rem;font-size:.95rem}@media (width<=900px){.two-col,.ask-grid,.link-grid{grid-template-columns:minmax(0,1fr)}}@media (width<=600px){.footer-links span{display:none}.footer-links{gap:.6rem 1.1rem}body{padding:.75rem}.card{padding:1.1rem}.prompt-text{font-size:.74rem}.header-nav{flex-wrap:wrap;gap:.6rem 1rem}.btn{white-space:normal}}</style><!--css:end-->
 </head>
 
 <body>
@@ -151,6 +151,7 @@
     </nav>
   </header>
 
+  <main id="main">
   <div class="card">
     <div class="card-header-sub" style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;"><span>Open source &middot; MIT &middot; no account &middot; no telemetry</span><time datetime="2026-10-10">Updated 2026-10-10</time></div>
     <h1 class="card-title">WebBridge &mdash; let your AI use your own signed-in Chrome</h1>
@@ -201,50 +202,50 @@ claude mcp add chrome -- npx -y agent-webbridge mcp</div>
     </div>
   </div>
 
-  <div class="section-title-wrap" id="ask"><div class="section-title">What can I ask it to do?</div><div class="section-subtitle-mono"><a href="what-you-can-ask/">See all examples &rarr;</a></div></div>
+  <div class="section-title-wrap" id="ask"><h2 class="section-title">What can I ask it to do?</h2><div class="section-subtitle-mono"><a href="what-you-can-ask/">See all examples &rarr;</a></div></div>
   <div class="ask-grid">
 <div class="ask-card">
       <div class="ask-tag">Shown in demo 1</div>
       <h3>Read a page and summarize it</h3>
       <pre class="prompt-text small" id="ask-0">Open https://news.ycombinator.com, read the top 10 stories, and give me a 5-line summary.</pre>
-      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-0">Copy</button><a class="ask-more" href="#demos">See how &rarr;</a></div>
+      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-0">Copy</button><a class="ask-more" aria-label="See how: Read a page and summarize it" href="#demos">See how &rarr;</a></div>
     </div>
 <div class="ask-card">
       <div class="ask-tag">Shown in demo 2</div>
       <h3>Compare several pages at once</h3>
       <pre class="prompt-text small" id="ask-1">Open these 5 pages in separate tabs at the same time and tell me the main difference between them: &lt;url 1&gt; &lt;url 2&gt; &lt;url 3&gt; &lt;url 4&gt; &lt;url 5&gt;</pre>
-      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-1">Copy</button><a class="ask-more" href="parallel-browser-automation/">See how &rarr;</a></div>
+      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-1">Copy</button><a class="ask-more" aria-label="See how: Compare several pages at once" href="parallel-browser-automation/">See how &rarr;</a></div>
     </div>
 <div class="ask-card">
       <div class="ask-tag">Shown in demo 3</div>
       <h3>Work inside a site you are logged into</h3>
       <pre class="prompt-text small" id="ask-2">In my Chrome profile &quot;Work&quot;, open &lt;the site&gt;, fill in the new-item form with &lt;my details&gt;, and stop before you submit. Show me what you filled in.</pre>
-      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-2">Copy</button><a class="ask-more" href="claude-code-browser-automation/">See how &rarr;</a></div>
+      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-2">Copy</button><a class="ask-more" aria-label="See how: Work inside a site you are logged into" href="claude-code-browser-automation/">See how &rarr;</a></div>
     </div>
 <div class="ask-card">
       <div class="ask-tag">Shown in demo 4</div>
       <h3>Fill in a form</h3>
       <pre class="prompt-text small" id="ask-3">Fill the form at &lt;url&gt; with my name, email and message, choose the right options, and do not press submit.</pre>
-      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-3">Copy</button><a class="ask-more" href="#demos">See how &rarr;</a></div>
+      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-3">Copy</button><a class="ask-more" aria-label="See how: Fill in a form" href="#demos">See how &rarr;</a></div>
     </div>
 <div class="ask-card">
       <div class="ask-tag">Recipe</div>
       <h3>Upload a file</h3>
       <pre class="prompt-text small" id="ask-4">On &lt;url&gt;, attach the file ~/Documents/&lt;file&gt;.pdf to the upload field and tell me when it is attached. Do not submit.</pre>
-      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-4">Copy</button><a class="ask-more" href="recipes/file-uploads.html">See how &rarr;</a></div>
+      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-4">Copy</button><a class="ask-more" aria-label="See how: Upload a file" href="recipes/file-uploads.html">See how &rarr;</a></div>
     </div>
 <div class="ask-card">
       <div class="ask-tag">Multi-profile guide</div>
       <h3>Use more than one Chrome profile</h3>
       <pre class="prompt-text small" id="ask-5">Open &lt;the dashboard&gt; in my &quot;Work&quot; profile and my &quot;Personal&quot; profile and tell me which one has unread alerts.</pre>
-      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-5">Copy</button><a class="ask-more" href="multi-profile-chrome-automation/">See how &rarr;</a></div>
+      <div class="ask-actions"><button class="btn copy-btn" type="button" data-copy-target="ask-5">Copy</button><a class="ask-more" aria-label="See how: Use more than one Chrome profile" href="multi-profile-chrome-automation/">See how &rarr;</a></div>
     </div>
   </div>
   <div class="note-box"><strong>You stay in charge.</strong> The AI acts as you in your own browser. Ask it to stop before anything is submitted or published, and review what it did.</div>
 
 <!-- REAL-RUN DEMOS SECTION -->
   <div class="section-title-wrap" id="demos">
-    <div class="section-title">Execution Demonstration (Real Runs)</div>
+    <h2 class="section-title">Execution Demonstration (Real Runs)</h2>
     <div class="section-subtitle-mono">Recorded from live MCP runs driving authentic Chrome</div>
   </div>
 
@@ -311,7 +312,7 @@ claude mcp add chrome -- npx -y agent-webbridge mcp</div>
   </div>
 
   
-  <div class="section-title-wrap"><div class="section-title">Honest limits</div></div>
+  <div class="section-title-wrap"><h2 class="section-title">Honest limits</h2></div>
   <div class="card"><ul class="check-list" style="--x: 0;">
     <li>It automates a browser you are already signed in to. Sites can still detect or limit automation, and you must follow their terms.</li>
     <li>Timings are from one MacBook on home broadband; yours will differ.</li>
@@ -319,7 +320,7 @@ claude mcp add chrome -- npx -y agent-webbridge mcp</div>
     <li>No record-and-replay yet: you describe the task, and community recipes hold tested steps for specific sites.</li>
   </ul></div>
 
-  <div class="section-title-wrap"><div class="section-title">Learn more</div></div>
+  <div class="section-title-wrap"><h2 class="section-title">Learn more</h2></div>
   <div class="link-grid">
     <a href="what-you-can-ask/"><strong>What you can ask</strong><span>Copy-paste requests, grouped by job</span></a>
     <a href="how-it-works/"><strong>How it works</strong><span>Router, per-profile daemons, per-tab control, security guard</span></a>
@@ -335,7 +336,7 @@ claude mcp add chrome -- npx -y agent-webbridge mcp</div>
     <a href="faq/"><strong>All questions</strong><span>The full FAQ</span></a>
   </div>
 
-  <div class="section-title-wrap" id="faq"><div class="section-title">Quick answers</div><div class="section-subtitle-mono"><a href="faq/">All questions &rarr;</a></div></div>
+  <div class="section-title-wrap" id="faq"><h2 class="section-title">Quick answers</h2><div class="section-subtitle-mono"><a href="faq/">All questions &rarr;</a></div></div>
   <div>
 <details class="faq-d"><summary>What is WebBridge (agent-webbridge)?</summary><p>WebBridge, published as agent-webbridge, is an open-source (MIT) browser-automation MCP server and Chrome extension. It lets AI agents such as Claude Code or Cursor use your own signed-in Chrome profiles, with several tabs and profiles running at the same time. Everything runs on your computer (127.0.0.1).</p></details>
 <details class="faq-d"><summary>Do I need to know how to code?</summary><p>Not to install it. Paste the setup prompt into an AI assistant that can run terminal commands, such as Claude Code or Cursor. You need Google Chrome and Node.js 18 or newer, and you click &quot;Add to Chrome&quot; yourself. A plain chat window that cannot run commands or connect MCP servers cannot set it up.</p></details>
@@ -346,12 +347,14 @@ claude mcp add chrome -- npx -y agent-webbridge mcp</div>
 <details class="faq-d"><summary>Does it record my clicks and replay them?</summary><p>No, there is no recorder yet. You describe the task to your AI, and community recipes (awb-recipes) capture tested steps for specific sites.</p></details>
   </div>
 
+  </main>
+
   <footer>
     <div class="footer-links"><a href="chrome-mcp-server/">Chrome MCP Server</a> <span>&middot;</span> <a href="claude-code-browser-automation/">Claude Code</a> <span>&middot;</span> <a href="cursor-browser-automation/">Cursor &amp; Windsurf</a> <span>&middot;</span> <a href="multi-profile-chrome-automation/">Multi-Profile</a> <span>&middot;</span> <a href="parallel-browser-automation/">Parallel Benchmark</a> <span>&middot;</span> <a href="real-chrome-vs-headless/">Real Chrome vs Headless</a> <span>&middot;</span> <a href="recipes/">Recipes</a> <span>&middot;</span> <a href="how-it-works/">How it works</a> <span>&middot;</span> <a href="playground/">Playground (simulation)</a> <span>&middot;</span> <a href="ecosystem/">Ecosystem</a> <span>&middot;</span> <a href="faq/">FAQ</a> <span>&middot;</span> <a href="https://github.com/jeet-dhandha/agent-webbridge">GitHub</a> <span>&middot;</span> <a href="https://www.npmjs.com/package/agent-webbridge">npm</a> <span>&middot;</span> <a href="https://chromewebstore.google.com/detail/agent-webbridge/kgnhhbkooeplfdkfnicgekdmegckcnpl">Chrome Web Store</a></div>
     <div>Agent WebBridge is an independent open-source project (MIT). Chrome is a trademark of Google; Claude, Cursor and other names belong to their owners, with no affiliation or endorsement implied.</div>
     <div>It automates a browser you are already signed in to. Use it only on accounts and sites you are entitled to automate, and follow each site's terms.</div>
   </footer>
 </div>
-<script src="assets/site.js"></script>
+<script src="assets/site.js" defer></script>
 </body>
 </html>

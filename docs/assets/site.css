@@ -4,12 +4,13 @@
     --bg-code: #eaeaeb;
     --text-primary: #121212;
     --text-secondary: #4a4a46;
-    --text-muted: #787873;
+    --text-muted: #585853;
     --border-color: #b5b5b0;
     --border-accent: #121212;
-    --accent-green: #00875a;
+    --accent-green: #00704a;
     --accent-blue: #1d4ed8;
     --accent-amber: #d97706;
+    --accent-amber-text: #92400e;
     --accent-red: #b91c1c;
     --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -339,7 +340,7 @@
   }
 
   .log-msg.system {
-    color: var(--accent-amber);
+    color: var(--accent-amber-text);
     font-weight: 700;
   }
 
@@ -419,7 +420,7 @@
   }
 
   .demo-badge.auth {
-    color: var(--accent-amber);
+    color: var(--accent-amber-text);
   }
 
   .demo-img-box {
@@ -822,7 +823,7 @@
   }
 
   .response-status-dot.loading {
-    background-color: var(--accent-amber);
+    background-color: var(--accent-amber-text);
     animation: pulse 1s infinite;
   }
 
