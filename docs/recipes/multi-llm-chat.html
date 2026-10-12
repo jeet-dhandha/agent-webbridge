@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Chat With Many AI Models at Once | WebBridge Recipes</title>
+<meta name="description" content="Log in once to ChatGPT, Claude, Gemini, Qwen, DeepSeek, Duck.ai and more in your real Chrome, then reuse one local script to send the same prompt to all of them in parallel. No API keys, no extra cost beyond your own free tiers.">
+<link rel="canonical" href="https://jeet-dhandha.github.io/agent-webbridge/recipes/multi-llm-chat.html">
+<meta name="robots" content="index,follow">
+<meta name="keywords" content="chat with multiple ai models, chatgpt claude gemini qwen at once, compare llm answers free, browser automation chat, no api key llm, agent webbridge recipe">
+<meta name="date" content="2026-10-12">
+<meta name="last-modified" content="2026-10-12">
+
+<!-- Open Graph -->
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="WebBridge">
+<meta property="og:title" content="Chat With Many AI Models at Once | WebBridge Recipes">
+<meta property="og:description" content="One reusable local script asks ChatGPT, Claude, Gemini, Qwen, DeepSeek, Duck.ai and more the same question in parallel, using the logins already in your Chrome.">
+<meta property="og:url" content="https://jeet-dhandha.github.io/agent-webbridge/recipes/multi-llm-chat.html">
+<meta property="og:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chat With Many AI Models at Once | WebBridge Recipes">
+<meta name="twitter:description" content="One reusable local script asks ChatGPT, Claude, Gemini, Qwen, DeepSeek, Duck.ai and more the same question in parallel.">
+<meta property="twitter:image" content="https://opengraph.githubassets.com/1/jeet-dhandha/agent-webbridge">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Chat With Many AI Models at Once Using Your Own Logins",
+  "description": "Log in once to several chat UIs in real Chrome, then reuse one local, self-adapting script to ask them all the same question in parallel through Agent WebBridge.",
+  "url": "https://jeet-dhandha.github.io/agent-webbridge/recipes/multi-llm-chat.html",
+  "datePublished": "2026-10-12T12:00:00Z",
+  "dateModified": "2026-10-12T12:00:00Z",
+  "author": { "@type": "Person", "name": "jeet-dhandha" },
+  "publisher": { "@type": "Organization", "name": "WebBridge", "url": "https://jeet-dhandha.github.io/agent-webbridge/" },
+  "keywords": ["multi llm chat automation", "compare chatgpt claude gemini", "browser automation no api key", "agent webbridge recipe"]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "WebBridge", "item": "https://jeet-dhandha.github.io/agent-webbridge/" },
+    { "@type": "ListItem", "position": 2, "name": "Recipes", "item": "https://jeet-dhandha.github.io/agent-webbridge/recipes/" },
+    { "@type": "ListItem", "position": 3, "name": "Multi-LLM Chat", "item": "https://jeet-dhandha.github.io/agent-webbridge/recipes/multi-llm-chat.html" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-base: #e5e5e1;
+    --bg-panel: #f2f2ee;
+    --bg-code: #eaeaeb;
+    --text-primary: #121212;
+    --text-secondary: #4a4a46;
+    --text-muted: #787873;
+    --border-color: #b5b5b0;
+    --border-accent: #121212;
+    --accent-green: #00875a;
+    --accent-blue: #1d4ed8;
+    --accent-amber: #d97706;
+    --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'Space Mono', Menlo, monospace;
+    --shadow-brutal: 3px 3px 0px var(--border-accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    padding: 1.5rem;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 68rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  header {
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .logo { font-weight: 700; color: var(--text-primary); text-decoration: none; }
+  .nav-links a { color: var(--text-secondary); text-decoration: none; margin-left: 1rem; }
+  .nav-links a:hover { color: var(--text-primary); }
+
+  .breadcrumbs {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .breadcrumbs a { color: var(--text-secondary); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; }
+
+  .card {
+    background-color: var(--bg-panel);
+    border: 2px solid var(--border-accent);
+    box-shadow: var(--shadow-brutal);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .card-header-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent-green);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  h1 { font-size: 2rem; font-weight: 900; line-height: 1.2; letter-spacing: -0.02em; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin-top: 1.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.35rem; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1rem; }
+  p { color: var(--text-secondary); font-size: 0.95rem; }
+
+  .tldr-box {
+    background-color: #ecfdf5;
+    border-left: 4px solid var(--accent-green);
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #065f46;
+  }
+
+  pre {
+    background-color: var(--bg-code);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  code {
+    background-color: var(--bg-code);
+    padding: 0.15rem 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    border: 1px solid var(--border-color);
+  }
+
+  ul, ol { margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+  li { margin-bottom: 0.5rem; }
+
+  footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border-color); padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; color: var(--text-secondary); }
+  th { background: var(--bg-code); color: var(--text-primary); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; }
+  .ok { color: var(--accent-green); font-weight: 700; }
+  .warn { color: var(--accent-amber); font-weight: 700; }
+  .note-box { background: #fffbeb; border-left: 4px solid var(--accent-amber); padding: 1rem; font-size: 0.9rem; color: #78350f; }
+  .table-wrap { overflow-x: auto; }
+  details > summary { cursor: pointer; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <a href="../" class="logo">AGENT-WEBBRIDGE</a>
+    <div class="nav-links">
+      <a href="../#tools">TOOLS</a>
+      <a href="./">RECIPES</a>
+      <a href="https://github.com/jeet-dhandha/agent-webbridge">GITHUB</a>
+    </div>
+  </header>
+
+  <div class="breadcrumbs">
+    <a href="../">Home</a>
+    <span>/</span>
+    <a href="./">Recipes</a>
+    <span>/</span>
+    <span>Multi-LLM Chat</span>
+  </div>
+
+  <article class="card">
+    <div class="card-header-sub">RECIPE &middot; MULTI-MODEL CHAT &middot; REUSABLE LOCAL SCRIPT</div>
+    <h1>Chat With Many AI Models at Once, From Your Own Logins</h1>
+    <p>Sign in once to ChatGPT, Claude, Gemini, Qwen, DeepSeek, Duck.ai and others in your real Chrome. Then keep one small local script and reuse it forever: it sends the same prompt to every site in parallel and saves every answer to a file. No API keys, no new subscriptions.</p>
+
+    <div class="tldr-box">
+      <strong>Quick Answer (TL;DR)</strong>
+      WebBridge drives the Chrome you already use, so the chat sites see your normal logged-in session. <code>chat-fleet.mjs</code> opens one background tab per site, types your prompt, submits it, waits for the answer to stop streaming, and appends the result to <code>answers.jsonl</code>. It finds the prompt box, send button and answer by page structure, so it keeps working when a site changes its markup. It uses the free tiers of accounts you already own and costs nothing extra.
+    </div>
+
+    <h2>1. What you need</h2>
+    <ul>
+      <li>Agent WebBridge installed, with your Chrome profile connected: <code>npm i -g agent-webbridge</code>, then <code>awb setup "Work"</code> and <code>awb up "Work"</code>. See the <a href="../">overview</a>.</li>
+      <li>Node 18 or newer. The script has no dependencies.</li>
+      <li>Your own accounts on the chat sites you want. Free tiers are fine; the script never touches a password.</li>
+    </ul>
+
+    <h2>2. Get the script and sign in once</h2>
+    <pre><code># download the file and read it before you run it (it is ~300 lines, no dependencies)
+curl -O https://jeet-dhandha.github.io/agent-webbridge/recipes/chat-fleet.mjs
+
+# opens every site in your profile; sign in to each one yourself, once
+node chat-fleet.mjs --profile "Work" --login</code></pre>
+    <p>Chrome keeps the sessions, so you will not repeat this. Sign-in stays a manual step on purpose: the script never sees or stores credentials.</p>
+
+    <h2>3. Check each site, then ask everyone</h2>
+    <pre><code># which sites are ready? (finds the prompt box on each, closes the tabs again)
+node chat-fleet.mjs --profile "Work" --probe
+
+# the same prompt to every site, in parallel
+node chat-fleet.mjs --profile "Work" -p "In one sentence, what is a CRDT?"
+
+# pick sites, or run a whole file of prompts (one per line)
+node chat-fleet.mjs --profile "Work" --sites chatgpt,claude,gemini -f prompts.txt</code></pre>
+
+    <p>A real run on a signed-in profile (tested 2026-10-12):</p>
+    <pre><code>✓ duck        6062ms  GPT-6 Luna GPT-6 A CRDT (Conflict-free Replicated Data Type) is a data structure
+✓ claude      6094ms  just now    Claude responded: A CRDT (Conflict-free Replicated Data Type) is 
+✓ gemini      9213ms  A Conflict-free Replicated Data Type (CRDT) is a data structure designed to be r
+✓ chatgpt    10648ms  A CRDT (Conflict-Free Replicated Data Type) is a data structure that allows dist
+✓ qwen       17006ms  A Conflict-free Replicated Data Type (CRDT) is a specialized data structure desi
+✓ deepseek    6087ms  A CRDT (Conflict-free Replicated Data Type) is a data structure that can be repl</code></pre>
+    <p>Each answer is one line of JSON in <code>answers.jsonl</code> (<code>site</code>, <code>prompt</code>, <code>answer</code>, <code>ok</code>, <code>ms</code>, <code>ts</code>). Re-running the same command skips what is already saved, so an interrupted batch resumes instead of starting over.</p>
+
+    <h2>4. Reuse it</h2>
+    <ul>
+      <li><strong>Keep the file.</strong> It is yours. Put it in a repo, a notes folder, or next to your other scripts, and run it whenever you want a second (or sixth) opinion.</li>
+      <li><strong>Batch mode.</strong> <code>-f prompts.txt</code> sends each prompt in order. Each site keeps one conversation across the batch; add <code>--fresh</code> for a new chat per prompt.</li>
+      <li><strong>Ask your agent instead of typing flags.</strong> "Run my chat fleet on ChatGPT, Claude and Qwen with this question and summarise where they disagree."</li>
+      <li><strong>Compare.</strong> The output is plain JSONL, so <code>jq</code>, a spreadsheet, or your agent can diff the answers.</li>
+    </ul>
+
+    <h2>5. How it works</h2>
+    <pre><code>for each site, in parallel (one background tab each):
+  1. open the site in a tab group named "awb-chat"
+  2. find the prompt box   → hint selector, else the lowest wide editable on the page
+  3. fill it               → WebBridge `fill` (works on textarea and contenteditable)
+  4. submit                → click send; if the text is still in the box, real mouse click
+                             (one tab at a time); if still there, press Enter
+  5. wait                  → poll until the answer is unchanged for ~3.5 s and no "Stop" button shows
+  6. read the answer       → the new text blocks after your prompt, skipping buttons, sidebar, nav
+  7. append to answers.jsonl, close the tab</code></pre>
+    <p>Step 4 matters: a submit is only counted once your prompt has actually left the box. Some sites (DeepSeek, Z.ai, Kimi, Grok) will not render streamed text in a background tab, so those are marked <code>fg: true</code> and run one at a time in a visible tab after the parallel batch finishes.</p>
+
+    <h2>6. Keeping your workflow current</h2>
+    <p>Chat sites change their markup often, so the script treats selectors as optional hints and falls back to looking at the page. When a layout shifts it adapts on its own and prints a line saying so. Nothing needs editing, and nothing is sent anywhere. If you do want to change the workflow, the changes are small, local and visible:</p>
+    <ul>
+      <li><strong>See what is set up:</strong> <code>node chat-fleet.mjs --list</code></li>
+      <li><strong>Check health:</strong> <code>--probe</code> tells you per site whether the prompt box was found and whether it looks signed out.</li>
+      <li><strong>Add another website:</strong> <code>node chat-fleet.mjs --add perplexity https://www.perplexity.ai/</code> saves one entry in <code>~/.awb/chat-sites.json</code> on your machine. Add <code>--fg</code> if the site needs a visible tab. Then run <code>--probe --sites perplexity</code>.</li>
+      <li><strong>Ask your agent to do it:</strong> "Add Mistral to my chat fleet." The agent runs <code>--add</code> and <code>--probe</code>, and reports what it changed in one line. It edits your local workflow file, not the script's logic, and not anything remote.</li>
+    </ul>
+
+    <h2>7. Let your agent remember it (ask first)</h2>
+    <p>This workflow is most useful when your local agent knows it exists. Occasionally, after a run, the agent should <em>ask you</em> whether to save it to memory, and only save it if you say yes. Saving it lets a future chat reuse the script without being re-taught, and look back at older answers in <code>answers.jsonl</code> ("what did Claude and Gemini say about this last week?"). A good memory note is short:</p>
+    <pre><code>Multi-LLM chat workflow: script at ~/tools/chat-fleet.mjs, profile "Work".
+Run: node chat-fleet.mjs --profile Work -p "&lt;prompt&gt;"  (sites: chatgpt, claude, gemini, qwen, duck, deepseek).
+Past answers: ~/tools/answers.jsonl (one JSON per line: site, prompt, answer, ts).
+Add a site: --add &lt;name&gt; &lt;url&gt;. Sign-in is manual via --login. Use human pace; free tiers only.</code></pre>
+    <p>Suggested wording for the agent: "Want me to save this chat-fleet workflow to memory, so I can reuse it and check your earlier answers in future chats?" If you say no, nothing is stored.</p>
+
+    <h2>8. What is tested</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>SITE</th><th>STATUS (2026-10-12)</th><th>NOTES</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT</td><td class="ok">verified</td><td>Free tier works. Real-mouse fallback is used if a plain click does not submit.</td></tr>
+        <tr><td>Claude</td><td class="ok">verified</td><td>Answer text may start with a screen-reader label that the script strips.</td></tr>
+        <tr><td>Gemini</td><td class="ok">verified</td><td>Reads the answer from <code>message-content</code> via textContent.</td></tr>
+        <tr><td>Qwen</td><td class="ok">verified</td><td>Answer bubble is <code>.chat-response-message-right</code>. Maths prompts can start a code interpreter and take longer; raise <code>--timeout</code>.</td></tr>
+        <tr><td>Duck.ai</td><td class="ok">verified</td><td>Works with no sign-in. Includes the model name as a first line.</td></tr>
+        <tr><td>DeepSeek</td><td class="ok">verified</td><td>Runs in a visible tab. Reasoning text may be included before the answer.</td></tr>
+        <tr><td>Z.ai, Kimi, Perplexity, Grok, Mistral, MiniMax, Arena</td><td class="warn">best effort</td><td>Registered, but not confirmed end to end. Grok and Mistral need you to sign in; MiniMax answers until your free quota runs out. Run <code>--probe</code>, and tell your agent to tune or extend the entry.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>These results come from one Chrome profile on one day. Sites redesign their pages without notice, so treat the table as a snapshot and <code>--probe</code> as the source of truth.</p>
+
+    <h2>9. Fair use and limits</h2>
+    <div class="note-box">
+      This drives the consumer web apps you are already allowed to use, with your own accounts. Free tiers have message caps and some services restrict automated use in their terms, so check each one. Keep volume low and human-paced (the script adds random pauses), do not rotate or share accounts to get around limits, and do not point it at accounts that are not yours. Answers on the free tiers can be shorter or from smaller models than the paid ones. All traffic stays between your Chrome and the chat sites; WebBridge itself only talks to <code>127.0.0.1</code>.
+    </div>
+
+    <h2>10. The full script</h2>
+    <details>
+      <summary>Show chat-fleet.mjs</summary>
+      <pre><code>#!/usr/bin/env node
+// chat-fleet.mjs — ask the same question(s) to many chat UIs at once, through your REAL logged-in
+// Chrome, via agent-webbridge. Zero deps (Node &gt;= 18). No API keys: it types into the web UIs.
+//
+//   node chat-fleet.mjs --login                          # open every site so you can sign in once
+//   node chat-fleet.mjs --probe                          # per site: prompt box found? logged in?
+//   node chat-fleet.mjs --add perplexity https://www.perplexity.ai/   # support one more site (saved locally)
+//   node chat-fleet.mjs --list                           # sites this machine knows about
+//   node chat-fleet.mjs -p &quot;Explain CRDTs in 3 lines&quot;    # ask all sites, write answers.jsonl
+//   node chat-fleet.mjs --sites chatgpt,claude,gemini -f prompts.txt --profile Work
+//
+// Flags: --profile &lt;name|email|dir&gt;  --sites a,b,c  -p/--prompt &quot;&lt;text&gt;&quot; | -f/--file &lt;one prompt per line&gt;
+//        --out answers.jsonl  --timeout 150 (s)  --fresh (new chat per prompt)  --keep (leave tabs open)
+// Re-running skips (site, prompt) pairs already in --out, so an interrupted run resumes.
+
+import fs from &#x27;node:fs&#x27;;
+import os from &#x27;node:os&#x27;;
+import path from &#x27;node:path&#x27;;
+
+const ROUTER = process.env.AWB_ROUTER || &#x27;http://127.0.0.1:10086&#x27;;
+
+// ---- Site registry -------------------------------------------------------------------------
+// Just a URL per site. The script finds the prompt box, send button and answer by looking at the
+// page&#x27;s structure, so a redesign does not need a code edit. Everything below is an optional HINT
+// tried first and silently replaced by auto-discovery when it stops matching:
+//   composer / send / answer : CSS hints (answer = the assistant&#x27;s message bubble)       dismiss : text of a cookie/promo button to click
+//   fg              : true = this site only renders streamed text in a visible tab, so it runs
+//                     one-at-a-time in the foreground (after the parallel background batch)
+export const SITES = {
+  chatgpt:  { url: &#x27;https://chatgpt.com/&#x27;, send: &#x27;button[data-testid=&quot;send-button&quot;]&#x27; },
+  claude:   { url: &#x27;https://claude.ai/new&#x27;, send: &#x27;button[aria-label=&quot;Send message&quot;]&#x27; },
+  gemini:   { url: &#x27;https://gemini.google.com/app&#x27;, send: &#x27;button[aria-label=&quot;Send message&quot;]&#x27; },
+  qwen:     { url: &#x27;https://chat.qwen.ai/&#x27;, answer: &#x27;.chat-response-message-right&#x27; },
+  zai:      { url: &#x27;https://chat.z.ai/&#x27;,            fg: true },
+  minimax:  { url: &#x27;https://agent.minimax.io/&#x27;,     dismiss: &#x27;Try It Now|Got it|Close&#x27; },
+  deepseek: { url: &#x27;https://chat.deepseek.com/&#x27;,    fg: true },
+  duck:     { url: &#x27;https://duck.ai/&#x27; },
+  kimi:     { url: &#x27;https://www.kimi.com/&#x27;,         fg: true },
+  grok:     { url: &#x27;https://grok.com/&#x27;,             fg: true, dismiss: &#x27;Accept All Cookies&#x27; },
+  arena:    { url: &#x27;https://arena.ai/text/direct&#x27; },
+  mistral:  { url: &#x27;https://chat.mistral.ai/chat&#x27; },
+  // add any chat UI: name: { url }  — nothing else is required
+};
+
+// ---- Your own sites (local file, never uploaded) -------------------------------------------
+// `--add name url` writes here; it is merged over the built-ins at startup, so your workflow
+// keeps working and growing without ever editing this script.
+const SITES_FILE = process.env.AWB_CHAT_SITES || path.join(os.homedir(), &#x27;.awb&#x27;, &#x27;chat-sites.json&#x27;);
+const loadLocal = () =&gt; { try { return JSON.parse(fs.readFileSync(SITES_FILE, &#x27;utf8&#x27;)); } catch { return {}; } };
+Object.assign(SITES, loadLocal());
+
+// ---- CLI -----------------------------------------------------------------------------------
+const argv = process.argv.slice(2);
+const flag = (n, d, short) =&gt; { const i = argv.findIndex(a =&gt; a === `--${n}` || (short &amp;&amp; a === `-${short}`)); return i &lt; 0 ? d : (argv[i + 1]?.startsWith(&#x27;-&#x27;) || argv[i + 1] === undefined ? true : argv[i + 1]); };
+const PROFILE = flag(&#x27;profile&#x27;, &#x27;Default&#x27;);
+const SESSION = &#x27;awb-chat&#x27;;
+const GROUP = &#x27;awb-chat&#x27;;
+const OUT = flag(&#x27;out&#x27;, &#x27;answers.jsonl&#x27;);
+const TIMEOUT_MS = Number(flag(&#x27;timeout&#x27;, 150)) * 1000;
+const FRESH = !!flag(&#x27;fresh&#x27;, false);
+const KEEP = !!flag(&#x27;keep&#x27;, false);
+const FOREGROUND = !!flag(&#x27;foreground&#x27;, false); // for sites that don&#x27;t render streamed text in a background tab (run those one at a time)
+const names = (flag(&#x27;sites&#x27;, &#x27;&#x27;) || Object.keys(SITES).join(&#x27;,&#x27;)).split(&#x27;,&#x27;).filter(Boolean);
+const sleep = ms =&gt; new Promise(r =&gt; setTimeout(r, ms));
+const jitter = (a, b) =&gt; sleep(a + Math.random() * (b - a));
+
+// ---- AWB transport (plain fetch, no client lib needed) ------------------------------------
+async function cmd(action, args = {}, { tabId, timeout = 60000 } = {}) {
+  const body = { action, args: tabId ? { ...args, _tabId: tabId } : args, session: SESSION, profile: PROFILE };
+  const res = await fetch(`${ROUTER}/command`, { method: &#x27;POST&#x27;, headers: { &#x27;content-type&#x27;: &#x27;application/json&#x27; }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
+  const j = await res.json();
+  if (j.ok === false || j.success === false) throw new Error(`${action}: ${j.error || JSON.stringify(j).slice(0, 160)}`);
+  return j.data ?? j;
+}
+// evaluate a function with JSON args inside the page; failures come back as data, never throw.
+async function page(tabId, fn, arg = {}) {
+  const code = `(async()=&gt;{try{return await (${fn.toString()})(${JSON.stringify(arg)})}catch(e){return {__err:String(e&amp;&amp;e.message||e)}}})()`;
+  const r = await cmd(&#x27;evaluate&#x27;, { code }, { tabId });
+  const v = r?.value !== undefined ? r.value : r;
+  if (v &amp;&amp; v.__err) throw new Error(v.__err);
+  return v;
+}
+
+// ---- In-page helpers (each runs inside the chat tab) --------------------------------------
+const inPage = {
+  // Wait for a prompt box, tag it data-awb-composer. Hint first; else the lowest, widest visible
+  // textarea / contenteditable / role=textbox that is not a search box or inside nav/aside.
+  ready: async ({ composer, dismiss }) =&gt; {
+    const vis = e =&gt; { const r = e.getBoundingClientRect(); return r.width &gt; 30 &amp;&amp; r.height &gt; 12 &amp;&amp; getComputedStyle(e).visibility !== &#x27;hidden&#x27;; };
+    const pick = () =&gt; {
+      document.querySelectorAll(&#x27;[data-awb-composer]&#x27;).forEach(e =&gt; e.removeAttribute(&#x27;data-awb-composer&#x27;));
+      let c = composer ? [...document.querySelectorAll(composer)].find(vis) : null, how = &#x27;hint&#x27;;
+      if (!c) {
+        how = &#x27;auto&#x27;;
+        const cands = [...document.querySelectorAll(&#x27;textarea,[contenteditable]:not([contenteditable=false]),[role=textbox],input[type=text]&#x27;)]
+          .filter(e =&gt; vis(e) &amp;&amp; !e.closest(&#x27;nav,aside,header,[role=navigation]&#x27;) &amp;&amp; !/search|find/i.test([e.getAttribute(&#x27;placeholder&#x27;), e.getAttribute(&#x27;aria-label&#x27;), e.type].join(&#x27; &#x27;)));
+        cands.sort((x, y) =&gt; { const a = x.getBoundingClientRect(), b = y.getBoundingClientRect(); return (b.bottom + b.width) - (a.bottom + a.width); });
+        c = cands[0];
+      }
+      if (c) { c.setAttribute(&#x27;data-awb-composer&#x27;, &#x27;1&#x27;); return how; }
+      return null;
+    };
+    for (let i = 0; i &lt; 40; i++) {
+      if (dismiss) for (const b of document.querySelectorAll(&#x27;button,[role=button]&#x27;)) if (vis(b) &amp;&amp; new RegExp(`^(${dismiss})$`, &#x27;i&#x27;).test((b.innerText || &#x27;&#x27;).trim())) b.click();
+      const how = pick();
+      if (how) return { ok: true, how, url: location.href };
+      await new Promise(r =&gt; setTimeout(r, 500));
+    }
+    const t = document.body.innerText.toLowerCase();
+    return { ok: false, why: /log in|sign in|sign up|continue with/.test(t) ? &#x27;not-logged-in&#x27; : &#x27;no-composer&#x27;, url: location.href };
+  },
+  // Tag the send button data-awb-send: hint first, else the nearest enabled &quot;send/submit/ask&quot; control above the composer.
+  findSend: ({ send }) =&gt; {
+    document.querySelectorAll(&#x27;[data-awb-send]&#x27;).forEach(e =&gt; e.removeAttribute(&#x27;data-awb-send&#x27;));
+    const vis = e =&gt; { const r = e.getBoundingClientRect(); return r.width &gt;= 16 &amp;&amp; r.height &gt;= 16; };
+    const ok = e =&gt; e &amp;&amp; vis(e) &amp;&amp; !e.disabled &amp;&amp; e.getAttribute(&#x27;aria-disabled&#x27;) !== &#x27;true&#x27;;
+    const ae = document.activeElement, c = document.querySelector(&#x27;[data-awb-composer]&#x27;) || (ae &amp;&amp; ae.matches(&#x27;textarea,[contenteditable],[role=textbox]&#x27;) ? ae : null);
+    let b = send ? [...document.querySelectorAll(send)].find(ok) : null, how = &#x27;hint&#x27;;
+    if (!b &amp;&amp; c) {
+      how = &#x27;auto&#x27;;
+      for (let n = c.parentElement, i = 0; n &amp;&amp; i &lt; 8 &amp;&amp; !b; n = n.parentElement, i++) {
+        const cands = [...n.querySelectorAll(&#x27;button,[role=button],div[aria-label],div[data-testid]&#x27;)].filter(e =&gt; {
+          const s = [e.getAttribute(&#x27;aria-label&#x27;), e.getAttribute(&#x27;data-testid&#x27;), e.id, e.getAttribute(&#x27;type&#x27;), e.innerText].join(&#x27; &#x27;);
+          return ok(e) &amp;&amp; e !== c &amp;&amp; !e.contains(c) &amp;&amp; !c.contains(e) &amp;&amp; /send|submit|ask|发送/i.test(s) &amp;&amp; !/stop|voice|dictat|attach|search chats|upload/i.test(s);
+        });
+        if (cands.length) b = cands[cands.length - 1];
+      }
+    }
+    if (!b) return { found: false };
+    b.setAttribute(&#x27;data-awb-send&#x27;, &#x27;1&#x27;);
+    return { found: true, how, label: b.getAttribute(&#x27;aria-label&#x27;) || b.getAttribute(&#x27;data-testid&#x27;) || b.id || b.tagName };
+  },
+  // Did the prompt leave the box? (true = still sitting in the composer, i.e. the click did nothing)
+  stuck: ({ prompt }) =&gt; {
+    const ae = document.activeElement, c = document.querySelector(&#x27;[data-awb-composer]&#x27;) || (ae &amp;&amp; ae.matches(&#x27;textarea,[contenteditable],[role=textbox]&#x27;) ? ae : null);
+    return !!c &amp;&amp; (c.value || c.innerText || &#x27;&#x27;).trim().startsWith(prompt.trim().slice(0, 20));
+  },
+  // Last-resort send: Enter on the composer (works where the site&#x27;s handler ignores isTrusted).
+  pressEnter: () =&gt; {
+    const ae = document.activeElement, c = document.querySelector(&#x27;[data-awb-composer]&#x27;) || (ae &amp;&amp; ae.matches(&#x27;textarea,[contenteditable],[role=textbox]&#x27;) ? ae : null); if (!c) return false;
+    c.focus();
+    for (const type of [&#x27;keydown&#x27;, &#x27;keypress&#x27;, &#x27;keyup&#x27;]) c.dispatchEvent(new KeyboardEvent(type, { key: &#x27;Enter&#x27;, code: &#x27;Enter&#x27;, keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+    return true;
+  },
+  // Read the answer structurally: new text blocks that come AFTER your prompt in the page, ignoring
+  // buttons, nav/sidebar, forms and the composer. No per-site selector needed.
+  snap: ({ prompt, answer }) =&gt; {
+    const txt = e =&gt; (e.innerText || e.textContent || &#x27;&#x27;).trim();
+    const stop = [...document.querySelectorAll(&#x27;button,[role=button]&#x27;)].some(b =&gt; {
+      const r = b.getBoundingClientRect(); if (r.width &lt; 12) return false;
+      const s = [b.getAttribute(&#x27;aria-label&#x27;), b.getAttribute(&#x27;data-testid&#x27;), b.innerText].join(&#x27; &#x27;);
+      return /^\s*(stop|stop generating|stop streaming|stop response|停止)\b/i.test(s) || /stop-button|stop-generating/i.test(s);
+    });
+    const words = prompt.trim().split(/\s+/).slice(-8);
+    const tailRe = new RegExp(words.map(w =&gt; w.replace(/[.*+?^${}()|[\]\\]/g, &#x27;\\$&amp;&#x27;)).join(&#x27;\\s+&#x27;));
+    // the echo of your prompt: the deepest element whose text contains the prompt tail, last in the page
+    let echo = null;
+    for (const e of document.querySelectorAll(&#x27;body *&#x27;)) {
+      if (e.closest(&#x27;textarea,[contenteditable],[role=textbox],nav,aside&#x27;)) continue;
+      if (tailRe.test(e.innerText || &#x27;&#x27;) &amp;&amp; ![...e.children].some(ch =&gt; tailRe.test(ch.innerText || &#x27;&#x27;))) echo = e;
+    }
+    const byText = () =&gt; { // fallback: page text after the last occurrence of the prompt tail
+      let m, end = -1; const re = new RegExp(tailRe.source, &#x27;g&#x27;), body = document.body.innerText;
+      while ((m = re.exec(body))) end = m.index + m[0].length;
+      return end &gt;= 0 ? body.slice(end).trim() : &#x27;&#x27;;
+    };
+    // a hint selector wins when it matches (after your prompt if we found it, anywhere otherwise)
+    if (answer) {
+      const els = [...document.querySelectorAll(answer)].filter(e =&gt; !echo || (echo.compareDocumentPosition(e) &amp; Node.DOCUMENT_POSITION_FOLLOWING));
+      const t = els.length ? txt(els[els.length - 1]) : &#x27;&#x27;;
+      if (t) return { text: t, stop, echo: !!echo };
+    }
+    if (!echo) return { text: byText(), stop, echo: false };
+    const UI = /^(edit|copy|retry|share|regenerate|like|dislike|good response|bad response|more|read aloud|try again|new chat|upgrade|just now|today)$/i;
+    const seen = new Set(), out = [];
+    for (const e of document.querySelectorAll(&#x27;p,li,pre,h1,h2,h3,h4,h5,h6,blockquote,td,div,span&#x27;)) {
+      if (!(echo.compareDocumentPosition(e) &amp; Node.DOCUMENT_POSITION_FOLLOWING) || echo.contains(e)) continue;
+      if (e.closest(&#x27;button,[role=button],textarea,[contenteditable],[role=textbox],nav,aside,[role=navigation],[aria-hidden=true]&#x27;)) continue;
+      if ([...e.children].some(ch =&gt; /^(P|LI|PRE|H\d|BLOCKQUOTE|TD|DIV)$/.test(ch.tagName) &amp;&amp; txt(ch))) continue; // leaf blocks only
+      const t = txt(e); if (!t || seen.has(t) || UI.test(t)) continue; seen.add(t); out.push(t);
+    }
+    return { text: out.join(&#x27;\n&#x27;) || byText(), stop, echo: true };
+  },
+  // For --probe: what does this tab look like right now?
+  state: () =&gt; {
+    const t = document.body.innerText.toLowerCase();
+    return { url: location.href, loginWords: /log in|sign in|sign up/.test(t) };
+  },
+};
+
+// ---- Ledger (resumable) --------------------------------------------------------------------
+const done = new Set();
+if (fs.existsSync(OUT)) for (const l of fs.readFileSync(OUT, &#x27;utf8&#x27;).split(&#x27;\n&#x27;)) { try { const r = JSON.parse(l); if (r.ok) done.add(`${r.site}\t${r.prompt}`); } catch {} }
+const append = r =&gt; fs.appendFileSync(OUT, JSON.stringify(r) + &#x27;\n&#x27;);
+
+async function openTab(name) {
+  const s = SITES[name];
+  const nav = await cmd(&#x27;navigate&#x27;, { url: s.url, newTab: true, active: FOREGROUND || !!s.fg, group_title: GROUP });
+  return nav.tabId ?? nav.tab?.id;
+}
+
+// Poll until the answer stops changing (and no stop button shows), then return it.
+async function collect(tabId, arg, stableMs = 3500) {
+  const t0 = Date.now(); let last = &#x27;&#x27;, since = Date.now();
+  while (Date.now() - t0 &lt; TIMEOUT_MS) {
+    await sleep(1500);
+    const { text, stop } = await page(tabId, inPage.snap, arg);
+    if (text !== last) { last = text; since = Date.now(); continue; }
+    if (text &amp;&amp; !stop &amp;&amp; !/^(thinking\.*|thought process|searching.*|generating.*)$/i.test(text.trim()) &amp;&amp; Date.now() - since &gt;= stableMs) return { text: tidy(text), ms: Date.now() - t0 };
+  }
+  return { text: tidy(last), ms: Date.now() - t0, partial: true };
+}
+// Drop screen-reader labels some UIs put in front of the answer (&quot;Claude responded:&quot;, &quot;Duck.ai said&quot;, &quot;Thinking completed&quot;).
+const NOISE = /(can make mistakes|ai-generated|double-check|check important info|response complete|latest response|^copy$|^regenerate|^share$|^rate response$|^read aloud$|^more actions$|^edit message$)/i;
+const tidy = t =&gt; { let l = t.split(&#x27;\n&#x27;); const cut = l.findIndex((x, i) =&gt; i &gt; 0 &amp;&amp; NOISE.test(x.trim())); if (cut &gt; 0) l = l.slice(0, cut); while (l.length &gt; 1 &amp;&amp; /^\s*(.{0,40}\b(said|responded):?|flash|fast|deepthink|search|thinking completed|thought for .*|thinking\.*)\s*$/i.test(l[0])) l.shift(); return l.join(&#x27;\n&#x27;).trim(); };
+
+// Submit the typed prompt and PROVE it left the box. Escalates until it does:
+//   1) plain click on the send button  2) real mouse click via CDP (isTrusted; needs the tab on
+//   screen, so only one tab at a time)  3) Enter key in the box.   Returns how it worked, or null.
+let screenLock = Promise.resolve();
+const oneAtATime = fn =&gt; { const r = screenLock.then(fn, fn); screenLock = r.catch(() =&gt; {}); return r; };
+async function submit(tabId, s, prompt) {
+  const stuck = () =&gt; page(tabId, inPage.stuck, { prompt });
+  let snd = await page(tabId, inPage.findSend, s);
+  if (snd.found) { await cmd(&#x27;click&#x27;, { selector: &#x27;[data-awb-send=&quot;1&quot;]&#x27; }, { tabId }).catch(() =&gt; {}); await sleep(1500); if (!(await stuck())) return &#x27;click&#x27;; }
+  snd = await page(tabId, inPage.findSend, s);
+  if (snd.found) {
+    try { await oneAtATime(async () =&gt; { await cmd(&#x27;trusted_click&#x27;, { selector: &#x27;[data-awb-send=&quot;1&quot;]&#x27; }, { tabId }); await sleep(1500); }); if (!(await stuck())) return &#x27;trusted-click&#x27;; } catch {}
+  }
+  await page(tabId, inPage.pressEnter); await sleep(1500);
+  return (await stuck()) ? null : &#x27;enter&#x27;;
+}
+
+// ---- One site, all prompts, in its own tab -------------------------------------------------
+async function runSite(name, prompts) {
+  const s = SITES[name];
+  const todo = prompts.filter(p =&gt; !done.has(`${name}\t${p}`));
+  if (!todo.length) return;
+  let tabId;
+  try {
+    tabId = await openTab(name);
+    for (const [k, prompt] of todo.entries()) {
+      if (k &gt; 0 &amp;&amp; FRESH) await cmd(&#x27;navigate&#x27;, { url: s.url }, { tabId });
+      const rdy = await page(tabId, inPage.ready, s);
+      if (!rdy.ok) { append({ site: name, prompt, ok: false, error: rdy.why, url: rdy.url }); console.log(`✗ ${name.padEnd(9)} ${rdy.why === &#x27;not-logged-in&#x27; ? &#x27;sign in once with --login, then re-run&#x27; : &#x27;no prompt box found — run --probe &#x27; + name}`); break; }
+      if (s.composer &amp;&amp; rdy.how === &#x27;auto&#x27;) console.log(`ℹ ${name}: its page layout changed — adapted automatically (no action needed)`);
+      await cmd(&#x27;fill&#x27;, { selector: &#x27;[data-awb-composer=&quot;1&quot;]&#x27;, value: prompt }, { tabId });
+      await jitter(400, 900);
+      const how = await submit(tabId, s, prompt);
+      if (!how) { append({ site: name, prompt, ok: false, error: &#x27;could-not-send&#x27; }); console.log(`✗ ${name.padEnd(9)} could not submit the prompt — run --probe ${name}`); continue; }
+      const out = await collect(tabId, { ...s, prompt });
+      const walled = /sign up to continue|log in to continue|sign in to continue|create a free account/i.test(out.text);
+      const rec = { site: name, prompt, ok: !!out.text &amp;&amp; !out.partial &amp;&amp; !walled, error: walled ? &#x27;not-logged-in&#x27; : undefined, answer: out.text, ms: out.ms, partial: !!out.partial, ts: new Date().toISOString() };
+      append(rec);
+      console.log(`${rec.ok ? &#x27;✓&#x27; : &#x27;✗&#x27;} ${name.padEnd(9)} ${String(out.ms).padStart(6)}ms  ${out.text.replace(/\s+/g, &#x27; &#x27;).slice(0, 90)}`);
+      await jitter(1500, 3500); // be a polite human-speed client
+    }
+  } catch (e) {
+    append({ site: name, prompt: prompts[0], ok: false, error: String(e.message).slice(0, 200) });
+    console.log(`✗ ${name.padEnd(9)} ${e.message.slice(0, 110)}`);
+  } finally {
+    if (tabId &amp;&amp; !KEEP) await cmd(&#x27;close_tab&#x27;, {}, { tabId }).catch(() =&gt; {});
+  }
+}
+
+// ---- Modes ---------------------------------------------------------------------------------
+async function login() {
+  console.log(`Opening ${names.length} sites in profile &quot;${PROFILE}&quot;. Sign in to each one once (your own account), then close nothing — just re-run without --login.`);
+  for (const n of names) { await cmd(&#x27;navigate&#x27;, { url: SITES[n].url, newTab: true, active: true, group_title: GROUP }); await sleep(500); }
+}
+async function probe() {
+  await Promise.all(names.map(async n =&gt; {
+    let tabId;
+    try {
+      tabId = await openTab(n); await sleep(6000);
+      const rdy = await page(tabId, inPage.ready, SITES[n]);
+      const st = await page(tabId, inPage.state);
+      console.log(`${rdy.ok ? &#x27;✓&#x27; : &#x27;✗&#x27;} ${n.padEnd(9)} ${rdy.ok ? `prompt box found (${rdy.how})` : rdy.why}${st.loginWords &amp;&amp; rdy.ok ? &#x27;  — login/sign-up text on page, are you signed in?&#x27; : &#x27;&#x27;}  ${st.url.slice(0, 60)}`);
+    } catch (e) { console.log(`✗ ${n.padEnd(9)} ${e.message.slice(0, 100)}`); }
+    finally { if (tabId) await cmd(&#x27;close_tab&#x27;, {}, { tabId }).catch(() =&gt; {}); }
+  }));
+}
+
+const addIdx = argv.indexOf(&#x27;--add&#x27;);
+if (addIdx &gt;= 0) {
+  const [name, url] = [argv[addIdx + 1], argv[addIdx + 2]];
+  if (!name || !/^https?:\/\//.test(url || &#x27;&#x27;)) { console.error(&#x27;usage: --add &lt;name&gt; &lt;https://chat-site/&gt; [--fg]&#x27;); process.exit(2); }
+  const cur = loadLocal(); cur[name] = { url, ...(argv.includes(&#x27;--fg&#x27;) ? { fg: true } : {}) };
+  fs.mkdirSync(path.dirname(SITES_FILE), { recursive: true }); fs.writeFileSync(SITES_FILE, JSON.stringify(cur, null, 2) + &#x27;\n&#x27;);
+  console.log(`✓ added &quot;${name}&quot; → ${url}  (saved in ${SITES_FILE}; try: --probe --sites ${name})`);
+  process.exit(0);
+}
+if (flag(&#x27;list&#x27;, false)) { for (const [n, s] of Object.entries(SITES)) console.log(`${n.padEnd(10)} ${s.url}${s.fg ? &#x27;  (foreground)&#x27; : &#x27;&#x27;}`); process.exit(0); }
+
+const bad = names.filter(n =&gt; !SITES[n]);
+if (bad.length) { console.error(`unknown site(s): ${bad.join(&#x27;, &#x27;)}. known: ${Object.keys(SITES).join(&#x27;, &#x27;)}`); process.exit(2); }
+if (flag(&#x27;login&#x27;, false)) await login();
+else if (flag(&#x27;probe&#x27;, false)) await probe();
+else {
+  const p = flag(&#x27;prompt&#x27;, null, &#x27;p&#x27;), f = flag(&#x27;file&#x27;, null, &#x27;f&#x27;);
+  const prompts = typeof f === &#x27;string&#x27; ? fs.readFileSync(f, &#x27;utf8&#x27;).split(&#x27;\n&#x27;).map(s =&gt; s.trim()).filter(Boolean) : typeof p === &#x27;string&#x27; ? [p] : [];
+  if (!prompts.length) { console.error(&#x27;give -p &quot;&lt;prompt&gt;&quot; or -f prompts.txt (or --login / --probe)&#x27;); process.exit(2); }
+  const bg = names.filter(n =&gt; !SITES[n].fg &amp;&amp; !FOREGROUND), fg = names.filter(n =&gt; !bg.includes(n));
+  await Promise.all(bg.map(n =&gt; runSite(n, prompts)));   // parallel: one background tab per site
+  for (const n of fg) await runSite(n, prompts);          // sequential: needs the tab on screen
+  const rows = fs.readFileSync(OUT, &#x27;utf8&#x27;).split(&#x27;\n&#x27;).filter(Boolean).map(l =&gt; JSON.parse(l));
+  console.log(`\n${rows.filter(r =&gt; r.ok).length} answers saved to ${OUT}`);
+}
+</code></pre>
+    </details>
+    <p>Download: <a href="./chat-fleet.mjs">chat-fleet.mjs</a>. MIT licensed like the rest of the project.</p>
+
+  </article>
+
+  <footer>
+    <div>
+      <a href="../">Overview</a> &middot;
+      <a href="./">All recipes</a> &middot;
+      <a href="./parallel-fleet-scraping.html">Parallel Fleet Scraping</a> &middot;
+      <a href="./rich-text-editors.html">Rich-Text Editors</a> &middot;
+      <a href="./in-page-api-harvesting.html">In-Page API</a> &middot;
+      <a href="./file-uploads.html">File Uploads</a>
+    </div>
+    <div>&copy; 2026 jeet-dhandha. MIT Licensed. Open-source browser automation for AI agents.</div>
+  </footer>
+
+</div>
+
+</body>
+</html>
