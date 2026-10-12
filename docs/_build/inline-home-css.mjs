@@ -13,10 +13,10 @@ const tmp = mkdtempSync(join(tmpdir(), 'awb-css-'));
 const read = (f) => readFileSync(join(docs, f), 'utf8');
 const sh = (...a) => execFileSync('npx', ['--yes', ...a], { stdio: ['ignore', 'pipe', 'inherit'] });
 
-writeFileSync(join(tmp, 'all.css'), read('assets/site.css') + '\n' + read('assets/home.css'));
+writeFileSync(join(tmp, 'all.css'), read('assets/fonts.css').replace(/url\(fonts\//g, 'url(assets/fonts/') + '\n' + read('assets/site.css') + '\n' + read('assets/home.css'));
 // "done" is toggled by site.js (copy button), so purge can't see it in the HTML.
 sh('purgecss', '--css', join(tmp, 'all.css'), '--content', join(docs, 'index.html'),
-  '--safelist', 'done', '--keyframes', '--font-face', '--variables', '-o', join(tmp, 'out/'));
+  '--safelist', 'done', '--keyframes', '--variables', '-o', join(tmp, 'out/'));
 sh('lightningcss-cli', '--minify', join(tmp, 'out/all.css'), '-o', join(tmp, 'min.css'));
 
 const css = readFileSync(join(tmp, 'min.css'), 'utf8').trim();

@@ -1,0 +1,8 @@
+/* Self-hosted fonts (latin subset of Outfit + Space Mono). Used by the homepage's inlined CSS;
+   urls are relative to assets/ and rewritten by _build/inline-home-css.mjs. */
+@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 300 900; font-display: swap; src: url(fonts/outfit-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/space-mono-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/space-mono-700-latin.woff2) format('woff2'); }
+/* Metric-matched fallbacks so the swap to the web font doesn't shift layout (CLS) */
+@font-face { font-family: 'Outfit Fallback'; src: local('Arial'), local('Liberation Sans'), local('Arimo'); size-adjust: 99.32%; ascent-override: 100.69%; descent-override: 26.18%; line-gap-override: 0%; }
+@font-face { font-family: 'Space Mono Fallback'; src: local('Courier New'), local('Liberation Mono'), local('Cousine'); size-adjust: 101.98%; ascent-override: 109.82%; descent-override: 35.4%; line-gap-override: 0%; }
