@@ -37,6 +37,7 @@
 - Real Chrome vs Headless Automation: https://jeet-dhandha.github.io/agent-webbridge/real-chrome-vs-headless/ — Why AI agents fail in headless browsers, and why a signed-in browser avoids login walls (it does not make automation undetectable).
 - Rich-Text Editor Automation: https://jeet-dhandha.github.io/agent-webbridge/recipes/rich-text-editors.html — Automating React synthetic setters, DraftJS caret drift, ProseMirror, and CodeMirror.
 - In-Page API Harvesting: https://jeet-dhandha.github.io/agent-webbridge/recipes/in-page-api-harvesting.html — In-tab same-origin fetch() with your session cookies, and Next.js __NEXT_DATA__ extraction.
+- Multi-LLM Chat: https://jeet-dhandha.github.io/agent-webbridge/recipes/multi-llm-chat.html — Sign in once to ChatGPT, Claude, Gemini, Qwen, DeepSeek, Duck.ai; one reusable self-adapting local script asks them all the same question in parallel and saves answers to JSONL.
 
 ## Quickstart & Installation
 
