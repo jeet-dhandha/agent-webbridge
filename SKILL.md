@@ -197,6 +197,31 @@ error comes back as an error message with no partial result.
 - **Ask before anything outward-facing** (submit, buy, post, delete, send) unless the user asked for
   that exact action. Prefer "fill, then stop and show me".
 
+#### Frames (cross-origin iframes)
+
+Plain `evaluate` runs only in the top frame — a cross-origin iframe (a Claude artifact, an embedded
+checkout, a third-party widget) is invisible to it. Add `allFrames:true` and the code runs in
+every frame, including those iframes:
+
+```bash
+# Read every frame's title/URL/text; filter later or narrow up front.
+cmd '{"action":"evaluate","args":{"code":"(()=>JSON.stringify({u:location.href,t:document.title,x:document.body.innerText.slice(0,4000)}))()","allFrames":true,"_tabId":123},"session":"s1","profile":"Work"}'
+```
+
+- `frameUrl` / `frameTitle` keep only frames whose URL/title contains that substring.
+- `first:true` returns the single first match instead of `{frames:[...]}`.
+- Each entry is `{ok, url, title, value}` — or `{ok:false, url, title, error}` if that frame threw.
+- `world:"MAIN"` runs in the page's world; the default `ISOLATED` keeps globals out of reach but is
+  still bound by the page's CSP — where `unsafe-eval` is disallowed, every frame returns
+  `{ok:false, error:"… Content Security Policy …"}`.
+- CSP-protected frames (e.g. Claude artifacts): `chrome.debugger.getTargets()` lists them as
+  `type:"other"` (`about:srcdoc` or the frame-host URL). `chrome.debugger.attach({targetId})` plus
+  `Runtime.evaluate` on that target is exempt from the page CSP. Use an extension-privileged
+  `evaluate` surface (a tab on the extension's own `popup.html`) to run those calls.
+- Requires the extension's `scripting` permission and a one-time extension reload after upgrading.
+- Use it to read content that cannot be navigated to directly (frame-busting or token-gated
+  iframes) instead of guessing at APIs.
+
 ## How to use
 
 Full, copy-pasteable setup is in **[AGENTS.md](AGENTS.md)**. Quick version:
@@ -323,7 +348,7 @@ fill N forms), drive it as a **fleet fan-out**:
 | `click` | `selector` (@e ref or CSS) | `{success, tag, text}` | Synthetic `el.click()` |
 | `trusted_click` | `selector` (@e ref or CSS) or `x`,`y`; opt. `button`, `clickCount`, `activate`, `force` | `{success, x, y, tag, text, hit, visibility, activated}` | Real mouse via CDP `Input.dispatchMouseEvent` (`isTrusted`); activates a hidden tab first; refuses a covered target unless `force` |
 | `fill` | `selector`, `value` | `{success, tag, mode}` | Works on `<input>`/`<textarea>` AND `[contenteditable]` (ProseMirror/Lexical/Slate). `mode` is `"value"` or `"contenteditable"` |
-| `evaluate` | `code` (supports async/await) | `{type, value}` | |
+| `evaluate` | `code` (supports async/await); opt. `allFrames`, `frameUrl`, `frameTitle`, `first`, `world` | `{type, value}`, or `{frames:[{ok,url,title,value}]}` in frame mode | Frame mode reaches cross-origin iframes — see [Frames](#frames-cross-origin-iframes) |
 | `screenshot` | `format`(png\|jpeg), `quality`(0-100), optional `selector` (@e/CSS), optional `path` | `{format, path, sizeBytes, mimeType}` | Returns a file path, not base64 — see [Screenshots](#screenshots) |
 | `network` | `cmd`(start\|stop\|list\|detail), `filter`, `requestId` | request/response data | Capture requests/responses |
 | `upload` | `selector`, `files`(string[]) | `{success, fileCount}` | |
@@ -538,9 +563,10 @@ When automating actions in sensitive accounts, monitor pages after write actions
 - **Sites that strictly check `event.isTrusted`** (some banking portals, captcha challenges)
   reject `fill` and `click` because both go through DOM-level synthetic events
   (`isTrusted=false`). This is a product boundary, not a bug.
-- **Cross-origin iframes**: `fill`, `click`, `evaluate`, and `snapshot` operate on the top frame.
-  If a target element lives in a same-page iframe from a different origin, navigate to the
-  iframe's URL directly instead.
+- **Cross-origin iframes**: `fill`, `click`, `snapshot` and plain `evaluate` operate on the top frame.
+  For a cross-origin iframe, use `evaluate` with `allFrames:true` (plus optional `frameUrl` /
+  `frameTitle`) to read it, or navigate to the iframe's URL directly when that URL is not
+  frame-gated.
 
 ## Scope and limits
 

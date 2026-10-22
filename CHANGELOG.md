@@ -3,6 +3,21 @@
 All notable changes to **agent-webbridge** (formerly **kimi-webbridge-fleet**) are documented
 here. This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.4] — 2026-10-22
+
+**`evaluate` can now read cross-origin iframes.**
+
+- Added frame mode to the `evaluate` tool: `allFrames:true` runs the code in every frame,
+  including cross-origin iframes that top-frame `Runtime.evaluate` cannot reach. `frameUrl` and
+  `frameTitle` filter the results, and `first:true` returns one match. Each frame reports
+  `{ok, url, title, value}` (or `error`). Defaults to an ISOLATED world; `world:"MAIN"` is
+  available when the page's own globals are needed. Injected code is still subject to the page's
+  CSP, so `unsafe-eval` restrictions return per-frame errors — SKILL.md documents the
+  debugger-target (`targetId` + `Runtime.evaluate`) route for those pages.
+- Added the `scripting` permission to the extension manifest. Unpacked builds need one reload in
+  `chrome://extensions`.
+- Documented frame mode in SKILL.md and updated the cross-origin-iframe limitation.
+
 ## [1.3.3] — 2026-10-10
 
 **First-class programmatic SDKs, MCP tool parity, and zero-friction ergonomics.**
