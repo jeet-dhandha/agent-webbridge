@@ -23,8 +23,10 @@ export function initDebugger() {
   }
 }
 
-// Attach the debugger to a tab. Idempotent: if we already hold the tab, or if
-// Chrome reports another debugger is already attached, treat it as attached.
+// Attach the debugger to a tab. Idempotent, and self-healing: a stale session
+// left by a previous browser/worker ("Another debugger is already attached")
+// is detached and re-taken instead of being adopted blindly, because an adopted
+// foreign session fails every later sendCommand with "Debugger is not attached".
 export async function attach(tabId) {
   if (attached.has(tabId)) return;
   try {
@@ -33,7 +35,12 @@ export async function attach(tabId) {
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
     if (msg.includes("Another debugger") || msg.includes("already attached")) {
-      // Someone else (or a racing call) already attached — adopt it.
+      try {
+        await chrome.debugger.detach({ tabId });
+      } catch {
+        // nothing to drop — fall through and try to take it anyway
+      }
+      await chrome.debugger.attach({ tabId }, "1.3");
       attached.set(tabId, true);
       return;
     }
@@ -69,8 +76,19 @@ export async function send(tabId, method, params = {}) {
       throw e instanceof Error ? e : new Error(msg);
     }
     if (msg.includes("not attached")) {
+      // Our session is stale: drop it, re-attach once, and retry the command.
       attached.delete(tabId);
-      throw new Error("Debugger is not attached (" + tabId + ")");
+      try {
+        await chrome.debugger.detach({ tabId });
+      } catch {}
+      await attach(tabId);
+      try {
+        return await chrome.debugger.sendCommand({ tabId }, method, params);
+      } catch (e2) {
+        const msg2 = e2 && e2.message ? e2.message : String(e2);
+        attached.delete(tabId);
+        throw new Error("Debugger is not attached (" + tabId + "): " + msg2);
+      }
     }
     throw e instanceof Error ? e : new Error(msg);
   }
